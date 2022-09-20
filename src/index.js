@@ -1,31 +1,62 @@
 import "./styles.css";
 import worldmap from "./map";
 
-const worldData = [];
+import Cell from "./Cell";
+import Agent from "./Agent"
+import World from "./World"
 
 const squareSize = 32;
 
-const rows = worldmap.split("\n");
+// **********************************
+// Read worldmap and create worldData
+// **********************************
 
-for (const row of rows) {
-  const rowData = [...row].map((c) => {
-    console.log(c);
-    return c;
-  });
-  worldData.push(rowData);
+const world = new World(worldmap);
+
+// **********************************
+// This is where the simulation loop
+// goes later or something
+// **********************************
+
+
+function gameTick() {
+  world.spawnAgent();
+
+  // Move current agents
+  world.tick();
+
+  // Spawn new agent
+  world.spawnAgent();
+
+  // setTimeout(gameTick, 1000);
 }
 
-const gridHeight = rows.length;
-const gridWidth = rows[0].length;
+gameTick();
+
+
+// **********************************
+// Draw world state to canvas
+// **********************************
+
+const gridWidth = world.state[0].length;
+const gridHeight = world.state.length;
 
 const canvasWidth = gridWidth * squareSize;
 const canvasHeight = gridHeight * squareSize;
+console.log(canvasWidth, canvasHeight);
 
 var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
 ctx.canvas.width = canvasWidth;
 ctx.canvas.height = canvasHeight;
 
-ctx.moveTo(0, 0);
-ctx.lineTo(canvasWidth, canvasHeight);
-ctx.stroke();
+function drawCanvas() {
+  for(const [y, row] of world.state.entries()) {
+    for(const [x, cell] of row.entries()) {
+      cell.draw(ctx, x, y, squareSize);
+    }
+  }
+  requestAnimationFrame(drawCanvas);
+}
+
+requestAnimationFrame(drawCanvas);

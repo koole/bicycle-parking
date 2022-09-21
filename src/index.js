@@ -23,8 +23,10 @@ function gameTick() {
   // Move current agents
   world.tick();
 
-  // Spawn new agent every tick
-  world.spawnAgent();
+  // Spawn new agent sometimes
+  if(Math.random() < 0.2) {
+    world.spawnAgent();
+  }
 
   setTimeout(gameTick, 100);
 }

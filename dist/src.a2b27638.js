@@ -525,8 +525,11 @@ var Agent = /*#__PURE__*/function () {
         pathfinder.calculate(); // If route is already calculated, just move to the next cell
       } else if (this.move_to !== null && this.path !== null && this.path.length > 0) {
         var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-        this.world.moveAgent(this, nextCell);
-        this.path.shift();
+
+        if (nextCell.checkAddAgent(this)) {
+          this.world.moveAgent(this, nextCell);
+          this.path.shift();
+        }
 
         if (this.path.length === 0) {
           this.move_to = null;
@@ -1695,6 +1698,10 @@ var World = /*#__PURE__*/function () {
   }, {
     key: "tick",
     value: function tick() {
+      this.agents.sort(function () {
+        return 0.5 - Math.random();
+      });
+
       var _iterator2 = _createForOfIteratorHelper(this.agents),
           _step2;
 
@@ -1757,9 +1764,12 @@ var world = new _World.default(_map.default); // *******************************
 
 function gameTick() {
   // Move current agents
-  world.tick(); // Spawn new agent every tick
+  world.tick(); // Spawn new agent sometimes
 
-  world.spawnAgent();
+  if (Math.random() < 0.2) {
+    world.spawnAgent();
+  }
+
   setTimeout(gameTick, 100);
 }
 

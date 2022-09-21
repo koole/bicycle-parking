@@ -16,8 +16,8 @@ class Agent {
   }
 
   park() {
-    if(this.cell.canPark()) {
-      if(this.type === "BIKE" && this.cell.type === "PARKING" && this.parked_cell === null) {
+    if (this.cell.canPark()) {
+      if (this.type === "BIKE" && this.cell.type === "PARKING" && this.parked_cell === null) {
         this.parked_cell = this.cell;
         this.type = "PEDESTRIAN";
         this.cell.addBike();
@@ -26,7 +26,7 @@ class Agent {
   }
 
   unpark() {
-    if(this.type === "PEDESTRIAN" && this.cell.type === "PARKING" && this.parked_cell !== null) {
+    if (this.type === "PEDESTRIAN" && this.cell.type === "PARKING" && this.parked_cell !== null) {
       this.parked_cell = null;
       this.type = "BIKE";
       this.cell.removeBike();
@@ -49,10 +49,10 @@ class Agent {
 
     // If it has a goal to move to, and route needs to be calculated
     // calculate route and then move.
-    if(this.move_to !== null && this.recalculatePath == true) {
+    if (this.move_to !== null && this.recalculatePath == true) {
       const pathfinder = this.getPathfinder();
       pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], (path) => {
-        if(path !== null) {
+        if (path !== null) {
           this.path = path;
           this.recalculatePath = false;
         } else {
@@ -60,24 +60,26 @@ class Agent {
         }
       });
       pathfinder.calculate();
-    // If route is already calculated, just move to the next cell
-    } else if(this.move_to !== null && this.path !== null && this.path.length > 0) {
+      // If route is already calculated, just move to the next cell
+    } else if (this.move_to !== null && this.path !== null && this.path.length > 0) {
       const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-      this.world.moveAgent(this, nextCell);
-      this.path.shift();
-      if(this.path.length === 0) {
+      if (nextCell.checkAddAgent(this)) {
+        this.world.moveAgent(this, nextCell);
+        this.path.shift();
+      }
+      if (this.path.length === 0) {
         this.move_to = null;
         this.recalculatePath = true;
       }
-    // Path is empty, so we are next to goal. Move into ti.
+      // Path is empty, so we are next to goal. Move into ti.
     } else {
       // If not, we can do other things such as looking for new goals
       // or park the pike or something
 
       // Temporary: If no goal and agent is now pedestrian, the agent must have
       // just parked their bike. So we set a next goal: the entrance.
-      if(this.type === "PEDESTRIAN") { 
-        this.changeMoveTo(12 , 20);
+      if (this.type === "PEDESTRIAN") {
+        this.changeMoveTo(12, 20);
       }
     }
   }

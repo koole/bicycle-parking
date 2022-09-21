@@ -107,6 +107,9 @@ class World {
   }
 
   tick() {
+    this.agents.sort(function () {
+      return 0.5 - Math.random();
+    })
     for (const agent of this.agents) {
       const cell = agent.cell;
       agent.act();

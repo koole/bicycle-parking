@@ -1,10 +1,48 @@
-const map = `eeeeeeeeeee
-eeeebbbbbbs
-ebbbbepepee
-ebeeeepepee
-ebaauwwwwee
-ebeeeeeeeee
-eseeeeeeeee
+// const map = `
+// eeeeeeeeeee
+// eeeebbbbbbs
+// ebbbbepepee
+// ebeeeepepee
+// ebaauwwwwee
+// ebeeeeeeeee
+// eseeeeeeeee
+// `;
+
+const map = `
+eeeeeeeeeeeeeeeeeeeeeeeeeee
+aaaaaaaaaaaaaaaaaaaaaaaaaaS
+ebweeeeeeeeeeaeeeeeeeeeeeee
+ebweeeeeeeeeeappppppppppeee
+ebweeeeeeeeeeappppppppppeee
+ebweeeeeeeeeeappppppppppeee
+ebweeeeeeeeeeaeeeeeeeeeeeee
+ebweeooooooooaeeeeeeeeeeeee
+ebweeooooooooaeeeeeeeeeeeee
+ebweeooooooooabbbbbbbbbbbbb
+ebweeooooooooaeeeeeeeeeeeee
+ebweeooooooooaeeeeeeeeeeeee
+ebweeooooooooaeeeeeeeeeeeee
+ebweeooooooooaeeeeeeeeeeeee
+ebweeooooooooaeeeeeeeeeeeee
+ebwwwooooooooaeeeeeeeeeeeee
+ebappoooppppoaeeeeeeeeeeeee
+ebappoooppppoaeeeeeeeeeeeee
+ebappooooooaaaeeeppppeeeeee
+ebwwwooooooooaeeeppppeeeeee
+ebwwwoooooooXaaaaaaaaaaaaaS
+ebwwwooooooooaeeeppppeeeeee
+ebwwwooooooooaeeeeeeeeeeeee
+ebaaaaaaaaaaaaeeeeeeeeeeeee
+ebaaaaaaaaaaaaaeeeeeeeeeeee
+ebweeeeeeeeeeaaaeeeeeeeeeee
+ebweeeeeeeeeeeeeeeeeeeeeeee
+ebweeeeeeeeeeeeeeeeeeeeeeee
+ebweeeeeeeeeeeeeeeeeeeeeeee
+ebweeeeeeeeeeeeeeeeeeeeeeee
+ebweeeeeeeeeeeeeeeeeeeeeeee
+ebweeeeeeeeeeeeeeeeeeeeeeee
+ebweeeeeeeeeeeeeeeeeeeeeeee
+eSweeeeeeeeeeeeeeeeeeeeeeee
 `;
 
 export default map;

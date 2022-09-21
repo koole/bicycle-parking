@@ -20,15 +20,13 @@ const world = new World(worldmap);
 
 
 function gameTick() {
-  world.spawnAgent();
-
   // Move current agents
   world.tick();
 
-  // Spawn new agent
+  // Spawn new agent every tick
   world.spawnAgent();
 
-  // setTimeout(gameTick, 1000);
+  setTimeout(gameTick, 100);
 }
 
 gameTick();

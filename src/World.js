@@ -61,38 +61,30 @@ class World {
     this.pedestrianPathfinder.setAcceptableTiles([0]);
   }
 
-  // Returns all neighbors of a cell
-  getNeighbors(cell) {
-    const { x, y } = cell;
-    let neighbors = [];
-
-    // Get neighbors in all 4 directions
-    if (y > 0) {
-      neighbors.push(this.state[y - 1][x]);
-    }
-    if (y < this.state.length - 1) {
-      neighbors.push(this.state[y + 1][x]);
-    }
-    if (x > 0) {
-      neighbors.push(this.state[y][x - 1]);
-    }
-    if (x < this.state[y].length - 1) {
-      neighbors.push(this.state[y][x + 1]);
-    }
-    return neighbors;
+  getCellAtCoordinates(x, y) {
+    return this.state[y][x];
   }
 
-  filterAllowedNeighbors(agent, neighbors) {
-    const allowedNeighbors = neighbors.filter(neighbor => {
-      switch (agent.type) {
-        case "BIKE":
-          return neighbor.type === "BIKE_PATH" || neighbor.type === "ALL_PATH" || neighbor.type === "SPAWN" || neighbor.type === "PARKING";
-        case "PEDESTRIAN":
-          return neighbor.type === "PEDESTRIAN_PATH" || neighbor.type === "ALL_PATH" || neighbor.type === "PARKING" || neighbor.type === "BUILDING_ENTRANCE";
-      }
-    });
-    return allowedNeighbors;
-  }
+  // // Returns all neighbors of a cell
+  // getNeighbors(cell) {
+  //   const { x, y } = cell;
+  //   let neighbors = [];
+
+  //   // Get neighbors in all 4 directions
+  //   if (y > 0) {
+  //     neighbors.push(this.state[y - 1][x]);
+  //   }
+  //   if (y < this.state.length - 1) {
+  //     neighbors.push(this.state[y + 1][x]);
+  //   }
+  //   if (x > 0) {
+  //     neighbors.push(this.state[y][x - 1]);
+  //   }
+  //   if (x < this.state[y].length - 1) {
+  //     neighbors.push(this.state[y][x + 1]);
+  //   }
+  //   return neighbors;
+  // }
 
   // Adds a new agent to the world, at a random spawn point
   spawnAgent() {
@@ -107,39 +99,17 @@ class World {
 
   // // Moves agent to a new cell
   moveAgent(agent, cell) {
-    agent.cell.removeAgent(agent);
-    cell.addAgent(agent);
-    agent.cell = cell;
+    if (cell.checkAddAgent(agent)) {
+      agent.cell.removeAgent(agent);
+      cell.addAgent(agent);
+      agent.cell = cell;
+    }
   }
 
   tick() {
     for (const agent of this.agents) {
       const cell = agent.cell;
-
-      // \/ \/ \/ THIS LOGIC IS TEMPORARY !!!!!!
-
-      // Randomly decide if the agent should park
-      if (cell.type === "PARKING" && Math.random() < 0.1) {
-        agent.park();
-      }
-
       agent.act();
-
-      // Move agent to a random neighbor, shouldn't be possible when also parking
-      // but this is for later
-      const neighbors = this.getNeighbors(cell);
-
-      // Remove all neighbors the agent type is not allowed to move to
-      const allowedNeighbors = this.filterAllowedNeighbors(agent, neighbors);
-
-      // Randomly move to a neighbor
-      const nextCell = allowedNeighbors[Math.floor(Math.random() * neighbors.length)];
-
-      // If no neighbors, stay put
-      if (nextCell) {
-        this.moveAgent(agent, nextCell);
-      }
-      // /\ /\ /\ THIS LOGIC IS TEMPORARY !!!!!!
     }
   }
 }

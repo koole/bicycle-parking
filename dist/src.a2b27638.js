@@ -222,7 +222,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
-var MAX_BIKES = 8;
+var MAX_PARKED_BIKES = 8;
 
 var Cell = /*#__PURE__*/function () {
   function Cell(world, type, x, y) {
@@ -233,9 +233,51 @@ var Cell = /*#__PURE__*/function () {
     this.y = y;
     this.agents = [];
     this.bikes = 0;
-  }
+  } // Check if agent can be added to this cell
+
 
   _createClass(Cell, [{
+    key: "checkAddAgent",
+    value: function checkAddAgent(agent) {
+      if (this.type === "BUILDING_ENTRANCE" && agent.type === "PEDESTRIAN") {
+        return true;
+      } // Allow a maximum of:
+      // 2 agents of type BIKE
+      // or 3 agents of type PEDESTRIAN 
+      // or 1 agent of type BIKE and 2 agents of type PEDESTRIAN
+
+
+      if (agent.type === "BIKE" && this.agents.filter(function (_ref) {
+        var type = _ref.type;
+        return type === "BIKE";
+      }).length >= 2) {
+        return false;
+      }
+
+      if (agent.type === "PEDESTRIAN" && this.agents.filter(function (_ref2) {
+        var type = _ref2.type;
+        return type === "PEDESTRIAN";
+      }).length >= 3) {
+        return false;
+      }
+
+      if (agent.type === "BIKE" && this.agents.filter(function (_ref3) {
+        var type = _ref3.type;
+        return type === "PEDESTRIAN";
+      }).length >= 2) {
+        return false;
+      }
+
+      if (agent.type === "PEDESTRIAN" && this.agents.filter(function (_ref4) {
+        var type = _ref4.type;
+        return type === "BIKE";
+      }).length >= 1) {
+        return false;
+      }
+
+      return true;
+    }
+  }, {
     key: "addAgent",
     value: function addAgent(agent) {
       this.agents.push(agent);
@@ -250,7 +292,7 @@ var Cell = /*#__PURE__*/function () {
   }, {
     key: "canPark",
     value: function canPark() {
-      return this.type === "PARKING" && this.bikes < MAX_BIKES;
+      return this.type === "PARKING" && this.bikes < MAX_PARKED_BIKES;
     }
   }, {
     key: "addBike",
@@ -265,9 +307,81 @@ var Cell = /*#__PURE__*/function () {
   }, {
     key: "draw",
     value: function draw(ctx, x, y, squareSize) {
+      var _this = this;
+
       var canvas_x = x * squareSize;
       var canvas_y = y * squareSize;
       var color = "#fefefe";
+      color = this.getCellColor(color);
+      ctx.fillStyle = color;
+      ctx.fillRect(canvas_x, canvas_y, squareSize, squareSize); // Draw progress bar for amount of parked bikes
+
+      if (this.type === "PARKING") {
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(canvas_x, canvas_y + squareSize - 4, squareSize, 4);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = "#00ff00";
+        ctx.fillRect(canvas_x, canvas_y + squareSize - 4, squareSize * (this.bikes / MAX_PARKED_BIKES), 4);
+      }
+
+      if (this.type === "BUILDING_ENTRANCE") {
+        ctx.fillStyle = "#000000";
+        ctx.font = '12px monospace';
+        ctx.fillText("" + this.agents.filter(function (_ref5) {
+          var type = _ref5.type;
+          return type === "PEDESTRIAN";
+        }).length, canvas_x + 2, canvas_y + 24);
+      } else {
+        var bikeAgents = this.agents.filter(function (_ref6) {
+          var type = _ref6.type;
+          return type === "BIKE";
+        });
+        var pedestrianAgents = this.agents.filter(function (_ref7) {
+          var type = _ref7.type;
+          return type === "PEDESTRIAN";
+        });
+
+        if (bikeAgents.length > 0) {
+          bikeAgents.forEach(function (agent, i) {
+            _this.drawBike(ctx, x * squareSize + i * 10, y * squareSize);
+          });
+
+          if (pedestrianAgents.length > 0) {
+            pedestrianAgents.forEach(function (agent, i) {
+              _this.drawPedestrian(ctx, x * squareSize + 10, y * squareSize + i * 10);
+            });
+          }
+        } else if (pedestrianAgents.length > 0) {
+          pedestrianAgents.forEach(function (agent, i) {
+            if (i < 2) {
+              _this.drawPedestrian(ctx, x * squareSize + i * 10, y * squareSize);
+            } else {
+              _this.drawPedestrian(ctx, x * squareSize + 5, y * squareSize + 10);
+            }
+          });
+        }
+      } // !! Debug to show number of agents in cell
+      // if(["SPAWN", "BIKE_PATH", "PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"].includes(this.type)) {
+      //   ctx.font = '12px monospace';
+      //   ctx.fillStyle = "black";
+      //   // make text slightly transparent
+      //   ctx.globalAlpha = 0.3;
+      //   ctx.fillText("B:" + this.agents.filter(({type}) => type === "BIKE").length, canvas_x + 2, canvas_y + 12);
+      //   ctx.fillText("P:" + this.agents.filter(({type}) => type === "PEDESTRIAN").length, canvas_x + 2, canvas_y + 24);
+      //   // reset transparency
+      //   ctx.globalAlpha = 1;
+      // }
+
+    } // Drawing utilities, nothing important after this point :)
+
+  }, {
+    key: "getCellColor",
+    value: function getCellColor(color) {
+      if (this.x === 12 && this.y === 20) {
+        color = "orange";
+        return color;
+      }
 
       switch (this.type) {
         case "SPAWN":
@@ -303,35 +417,19 @@ var Cell = /*#__PURE__*/function () {
           break;
       }
 
-      ctx.fillStyle = color;
-      ctx.fillRect(canvas_x, canvas_y, squareSize, squareSize);
-
-      if (["SPAWN", "BIKE_PATH", "PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"].includes(this.type)) {
-        ctx.font = '12px monospace';
-        ctx.fillStyle = "black"; // make text slightly transparent
-
-        ctx.globalAlpha = 0.3;
-        ctx.fillText("B:" + this.agents.filter(function (_ref) {
-          var type = _ref.type;
-          return type === "BIKE";
-        }).length, canvas_x + 2, canvas_y + 12);
-        ctx.fillText("P:" + this.agents.filter(function (_ref2) {
-          var type = _ref2.type;
-          return type === "PEDESTRIAN";
-        }).length, canvas_x + 2, canvas_y + 24); // reset transparency
-
-        ctx.globalAlpha = 1;
-      } // Draw progress bar for amount of parked bikes
-
-
-      if (this.type === "PARKING") {
-        ctx.globalAlpha = 0.3;
-        ctx.fillStyle = "#00ff00";
-        ctx.fillRect(canvas_x, canvas_y + squareSize - 4, squareSize, 4);
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = "#00ff00";
-        ctx.fillRect(canvas_x, canvas_y + squareSize - 4, squareSize * (this.bikes / MAX_BIKES), 4);
-      }
+      return color;
+    }
+  }, {
+    key: "drawBike",
+    value: function drawBike(ctx, x, y) {
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(x + 6, y + 2, 5, 20);
+    }
+  }, {
+    key: "drawPedestrian",
+    value: function drawPedestrian(ctx, x, y) {
+      ctx.fillStyle = "#FF0000";
+      ctx.fillRect(x + 6, y + 2, 5, 5);
     }
   }]);
 
@@ -362,7 +460,7 @@ var Agent = /*#__PURE__*/function () {
     this.type = type;
     this.cell = cell;
     this.parked_cell = null;
-    this.move_to = [20, 5]; // This is for storing the calculated path
+    this.move_to = [23, 5]; // This is for storing the calculated path
     // and not recalculating it every tick
 
     this.path = null;
@@ -370,6 +468,11 @@ var Agent = /*#__PURE__*/function () {
   }
 
   _createClass(Agent, [{
+    key: "getPathfinder",
+    value: function getPathfinder() {
+      return this.type === "BIKE" ? this.world.bikePathfinder : this.world.pedestrianPathfinder;
+    }
+  }, {
     key: "park",
     value: function park() {
       if (this.cell.canPark()) {
@@ -393,6 +496,7 @@ var Agent = /*#__PURE__*/function () {
     key: "changeMoveTo",
     value: function changeMoveTo(x, y) {
       this.move_to = [x, y];
+      this.path = null;
       this.recalculatePath = true;
     }
   }, {
@@ -400,9 +504,17 @@ var Agent = /*#__PURE__*/function () {
     value: function act() {
       var _this = this;
 
-      // If it has a goal to move to, move to it
+      // Temporary: If possible, just randomly decide to park bike
+      if (this.type === "BIKE" && this.cell.type === "PARKING" && Math.random() < 0.1) {
+        this.park();
+        this.move_to = null;
+      } // If it has a goal to move to, and route needs to be calculated
+      // calculate route and then move.
+
+
       if (this.move_to !== null && this.recalculatePath == true) {
-        this.world.bikePathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], function (path) {
+        var pathfinder = this.getPathfinder();
+        pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], function (path) {
           if (path !== null) {
             _this.path = path;
             _this.recalculatePath = false;
@@ -410,9 +522,25 @@ var Agent = /*#__PURE__*/function () {
             console.log("Agent has no way to reach its goal");
           }
         });
-        this.world.bikePathfinder.calculate();
-      } else {// If not, we can do other things such as looking for new goals
+        pathfinder.calculate(); // If route is already calculated, just move to the next cell
+      } else if (this.move_to !== null && this.path !== null && this.path.length > 0) {
+        var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+        this.world.moveAgent(this, nextCell);
+        this.path.shift();
+
+        if (this.path.length === 0) {
+          this.move_to = null;
+          this.recalculatePath = true;
+        } // Path is empty, so we are next to goal. Move into ti.
+
+      } else {
+        // If not, we can do other things such as looking for new goals
         // or park the pike or something
+        // Temporary: If no goal and agent is now pedestrian, the agent must have
+        // just parked their bike. So we set a next goal: the entrance.
+        if (this.type === "PEDESTRIAN") {
+          this.changeMoveTo(12, 20);
+        }
       }
     }
   }]);
@@ -1517,48 +1645,32 @@ var World = /*#__PURE__*/function () {
       });
     }));
     this.pedestrianPathfinder.setAcceptableTiles([0]);
-  } // Returns all neighbors of a cell
-
+  }
 
   _createClass(World, [{
-    key: "getNeighbors",
-    value: function getNeighbors(cell) {
-      var x = cell.x,
-          y = cell.y;
-      var neighbors = []; // Get neighbors in all 4 directions
-
-      if (y > 0) {
-        neighbors.push(this.state[y - 1][x]);
-      }
-
-      if (y < this.state.length - 1) {
-        neighbors.push(this.state[y + 1][x]);
-      }
-
-      if (x > 0) {
-        neighbors.push(this.state[y][x - 1]);
-      }
-
-      if (x < this.state[y].length - 1) {
-        neighbors.push(this.state[y][x + 1]);
-      }
-
-      return neighbors;
-    }
-  }, {
-    key: "filterAllowedNeighbors",
-    value: function filterAllowedNeighbors(agent, neighbors) {
-      var allowedNeighbors = neighbors.filter(function (neighbor) {
-        switch (agent.type) {
-          case "BIKE":
-            return neighbor.type === "BIKE_PATH" || neighbor.type === "ALL_PATH" || neighbor.type === "SPAWN" || neighbor.type === "PARKING";
-
-          case "PEDESTRIAN":
-            return neighbor.type === "PEDESTRIAN_PATH" || neighbor.type === "ALL_PATH" || neighbor.type === "PARKING" || neighbor.type === "BUILDING_ENTRANCE";
-        }
-      });
-      return allowedNeighbors;
-    } // Adds a new agent to the world, at a random spawn point
+    key: "getCellAtCoordinates",
+    value: function getCellAtCoordinates(x, y) {
+      return this.state[y][x];
+    } // // Returns all neighbors of a cell
+    // getNeighbors(cell) {
+    //   const { x, y } = cell;
+    //   let neighbors = [];
+    //   // Get neighbors in all 4 directions
+    //   if (y > 0) {
+    //     neighbors.push(this.state[y - 1][x]);
+    //   }
+    //   if (y < this.state.length - 1) {
+    //     neighbors.push(this.state[y + 1][x]);
+    //   }
+    //   if (x > 0) {
+    //     neighbors.push(this.state[y][x - 1]);
+    //   }
+    //   if (x < this.state[y].length - 1) {
+    //     neighbors.push(this.state[y][x + 1]);
+    //   }
+    //   return neighbors;
+    // }
+    // Adds a new agent to the world, at a random spawn point
 
   }, {
     key: "spawnAgent",
@@ -1574,9 +1686,11 @@ var World = /*#__PURE__*/function () {
   }, {
     key: "moveAgent",
     value: function moveAgent(agent, cell) {
-      agent.cell.removeAgent(agent);
-      cell.addAgent(agent);
-      agent.cell = cell;
+      if (cell.checkAddAgent(agent)) {
+        agent.cell.removeAgent(agent);
+        cell.addAgent(agent);
+        agent.cell = cell;
+      }
     }
   }, {
     key: "tick",
@@ -1587,26 +1701,8 @@ var World = /*#__PURE__*/function () {
       try {
         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var agent = _step2.value;
-          var cell = agent.cell; // \/ \/ \/ THIS LOGIC IS TEMPORARY !!!!!!
-          // Randomly decide if the agent should park
-
-          if (cell.type === "PARKING" && Math.random() < 0.1) {
-            agent.park();
-          }
-
-          agent.act(); // Move agent to a random neighbor, shouldn't be possible when also parking
-          // but this is for later
-
-          var neighbors = this.getNeighbors(cell); // Remove all neighbors the agent type is not allowed to move to
-
-          var allowedNeighbors = this.filterAllowedNeighbors(agent, neighbors); // Randomly move to a neighbor
-
-          var nextCell = allowedNeighbors[Math.floor(Math.random() * neighbors.length)]; // If no neighbors, stay put
-
-          if (nextCell) {
-            this.moveAgent(agent, nextCell);
-          } // /\ /\ /\ THIS LOGIC IS TEMPORARY !!!!!!
-
+          var cell = agent.cell;
+          agent.act();
         }
       } catch (err) {
         _iterator2.e(err);

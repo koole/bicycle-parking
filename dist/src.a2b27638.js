@@ -243,8 +243,9 @@ var Cell = /*#__PURE__*/function () {
         return true;
       } // Allow a maximum of:
       // 2 agents of type BIKE
-      // or 3 agents of type PEDESTRIAN 
+      // or 3 agents of type PEDESTRIAN
       // or 1 agent of type BIKE and 2 agents of type PEDESTRIAN
+      // or 2 agent of type BIKE and 1 agents of type PEDESTRIAN
 
 
       if (agent.type === "BIKE" && this.agents.filter(function (_ref) {
@@ -271,7 +272,7 @@ var Cell = /*#__PURE__*/function () {
       if (agent.type === "PEDESTRIAN" && this.agents.filter(function (_ref4) {
         var type = _ref4.type;
         return type === "BIKE";
-      }).length >= 1) {
+      }).length >= 3) {
         return false;
       }
 
@@ -327,7 +328,7 @@ var Cell = /*#__PURE__*/function () {
 
       if (this.type === "BUILDING_ENTRANCE") {
         ctx.fillStyle = "#000000";
-        ctx.font = '12px monospace';
+        ctx.font = "12px monospace";
         ctx.fillText("" + this.agents.filter(function (_ref5) {
           var type = _ref5.type;
           return type === "PEDESTRIAN";
@@ -1852,7 +1853,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "35485" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "46113" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

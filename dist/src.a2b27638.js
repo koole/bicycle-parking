@@ -447,7 +447,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
 var Agent = /*#__PURE__*/function () {
-  function Agent(world, type, cell) {
+  function Agent(world, type, cell, strategy) {
     _classCallCheck(this, Agent);
 
     this.world = world;
@@ -459,6 +459,7 @@ var Agent = /*#__PURE__*/function () {
 
     this.path = null;
     this.recalculatePath = true;
+    this.strategy = strategy;
   }
 
   _createClass(Agent, [{
@@ -498,46 +499,54 @@ var Agent = /*#__PURE__*/function () {
     value: function act() {
       var _this = this;
 
-      // Temporary: If possible, just randomly decide to park bike
-      if (this.type === "BIKE" && this.cell.type === "PARKING" && Math.random() < 0.1) {
-        this.park();
-        this.move_to = null;
-      } // If it has a goal to move to, and route needs to be calculated
-      // calculate route and then move.
+      switch (this.strategy) {
+        case "TEST_STRATEGY":
+          // Temporary: If possible, just randomly decide to park bike
+          if (this.type === "BIKE" && this.cell.type === "PARKING" && Math.random() < 0.1) {
+            this.park();
+            this.move_to = null;
+          } // If it has a goal to move to, and route needs to be calculated
+          // calculate route and then move.
 
 
-      if (this.move_to !== null && this.recalculatePath == true) {
-        var pathfinder = this.getPathfinder();
-        pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], function (path) {
-          if (path !== null) {
-            _this.path = path;
-            _this.recalculatePath = false;
+          if (this.move_to !== null && this.recalculatePath == true) {
+            var pathfinder = this.getPathfinder();
+            pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], function (path) {
+              if (path !== null) {
+                _this.path = path;
+                _this.recalculatePath = false;
+              } else {
+                console.log("Agent has no way to reach its goal");
+              }
+            });
+            pathfinder.calculate(); // If route is already calculated, just move to the next cell
+          } else if (this.move_to !== null && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            if (nextCell.checkAddAgent(this)) {
+              this.world.moveAgent(this, nextCell);
+              this.path.shift();
+            }
+
+            if (this.path.length === 0) {
+              this.move_to = null;
+              this.recalculatePath = true;
+            } // Path is empty, so we are next to goal. Move into ti.
+
           } else {
-            console.log("Agent has no way to reach its goal");
+            // If not, we can do other things such as looking for new goals
+            // or park the pike or something
+            // Temporary: If no goal and agent is now pedestrian, the agent must have
+            // just parked their bike. So we set a next goal: the entrance.
+            if (this.type === "PEDESTRIAN") {
+              this.changeMoveTo(12, 20);
+            }
           }
-        });
-        pathfinder.calculate(); // If route is already calculated, just move to the next cell
-      } else if (this.move_to !== null && this.path !== null && this.path.length > 0) {
-        var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
 
-        if (nextCell.checkAddAgent(this)) {
-          this.world.moveAgent(this, nextCell);
-          this.path.shift();
-        }
+          break;
 
-        if (this.path.length === 0) {
-          this.move_to = null;
-          this.recalculatePath = true;
-        } // Path is empty, so we are next to goal. Move into ti.
-
-      } else {
-        // If not, we can do other things such as looking for new goals
-        // or park the pike or something
-        // Temporary: If no goal and agent is now pedestrian, the agent must have
-        // just parked their bike. So we set a next goal: the entrance.
-        if (this.type === "PEDESTRIAN") {
-          this.changeMoveTo(12, 20);
-        }
+        default:
+          console.log("Unknown strategy: ", this.strategy);
       }
     }
   }]);
@@ -1671,11 +1680,11 @@ var World = /*#__PURE__*/function () {
 
   }, {
     key: "spawnAgent",
-    value: function spawnAgent() {
+    value: function spawnAgent(strategy) {
       // Randomly pick a spawn cell
       var spawn = this.spawns[Math.floor(Math.random() * this.spawns.length)]; // Add agent of type "BIKE" to this cell
 
-      var agent = new _Agent.default(this, "BIKE", spawn);
+      var agent = new _Agent.default(this, "BIKE", spawn, strategy);
       this.agents.push(agent);
       spawn.addAgent(agent);
     } // // Moves agent to a new cell
@@ -1773,7 +1782,7 @@ function gameTick() {
   world.tick(); // Spawn new agent sometimes
 
   if (Math.random() < spawnspeed) {
-    world.spawnAgent();
+    world.spawnAgent("TEST_STRATEGY");
   }
 
   setTimeout(gameTick, tickdelay);

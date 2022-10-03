@@ -87,12 +87,12 @@ class World {
   // }
 
   // Adds a new agent to the world, at a random spawn point
-  spawnAgent() {
+  spawnAgent(strategy) {
     // Randomly pick a spawn cell
     const spawn = this.spawns[Math.floor(Math.random() * this.spawns.length)];
 
     // Add agent of type "BIKE" to this cell
-    const agent = new Agent(this, "BIKE", spawn);
+    const agent = new Agent(this, "BIKE", spawn, strategy);
     this.agents.push(agent);
     spawn.addAgent(agent);
   }

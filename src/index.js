@@ -41,7 +41,7 @@ function gameTick() {
 
   // Spawn new agent sometimes
   if(Math.random() < spawnspeed) {
-    world.spawnAgent();
+    world.spawnAgent("TEST_STRATEGY");
   }
 
   setTimeout(gameTick, tickdelay);

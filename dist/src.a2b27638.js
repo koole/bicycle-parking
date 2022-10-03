@@ -318,11 +318,9 @@ var Cell = /*#__PURE__*/function () {
       ctx.fillRect(canvas_x, canvas_y, squareSize, squareSize); // Draw progress bar for amount of parked bikes
 
       if (this.type === "PARKING") {
-        ctx.globalAlpha = 0.3;
-        ctx.fillStyle = "#00ff00";
+        ctx.fillStyle = "#ffffff";
         ctx.fillRect(canvas_x + 2, canvas_y + squareSize - 8, squareSize - 4, 4);
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = "#00ff00";
+        ctx.fillStyle = "#316cf4";
         ctx.fillRect(canvas_x + 2, canvas_y + squareSize - 8, (squareSize + 4) * (this.bikes / MAX_PARKED_BIKES), 4);
       }
 
@@ -379,42 +377,37 @@ var Cell = /*#__PURE__*/function () {
   }, {
     key: "getCellColor",
     value: function getCellColor(color) {
-      if (this.x === 12 && this.y === 20) {
-        color = "orange";
-        return color;
-      }
-
       switch (this.type) {
         case "SPAWN":
-          color = "#d65451";
+          color = "#e7b1b6";
           break;
 
         case "BIKE_PATH":
-          color = "#ebb3b3";
+          color = "#f3d8da";
           break;
 
         case "PEDESTRIAN_PATH":
-          color = "#dbdddb";
+          color = "#eaecef";
           break;
 
         case "ALL_PATH":
-          color = "#9c9c9b";
+          color = "#cfd4d9";
           break;
 
         case "PARKING":
-          color = "#696059";
+          color = "#aeb5bc";
           break;
 
         case "EMPTY":
-          color = "#dae6c5";
+          color = "#d5e6de";
           break;
 
         case "BUILDING":
-          color = "#84b0c5";
+          color = "#a6c4f9";
           break;
 
         case "BUILDING_ENTRANCE":
-          color = "#5397b8";
+          color = "#7ba6f7";
           break;
       }
 
@@ -423,13 +416,13 @@ var Cell = /*#__PURE__*/function () {
   }, {
     key: "drawBike",
     value: function drawBike(ctx, x, y) {
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = "#222529";
       ctx.fillRect(x + 6, y + 2, 5, 20);
     }
   }, {
     key: "drawPedestrian",
     value: function drawPedestrian(ctx, x, y) {
-      ctx.fillStyle = "#FF0000";
+      ctx.fillStyle = "#fd7e14";
       ctx.fillRect(x + 6, y + 2, 5, 5);
     }
   }]);

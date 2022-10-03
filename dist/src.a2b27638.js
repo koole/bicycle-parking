@@ -487,14 +487,14 @@ var Agent = /*#__PURE__*/function () {
     key: "unpark",
     value: function unpark() {
       if (this.type === "PEDESTRIAN" && this.cell.type === "PARKING" && this.parked_cell !== null) {
+        this.cell.removeBike();
         this.parked_cell = null;
         this.type = "BIKE";
-        this.cell.removeBike();
       }
     }
   }, {
     key: "changeMoveTo",
-    value: function changeMoveTo(x, y) {
+    value: function changeMoveTo(x, y, callback) {
       var _this = this;
 
       this.calculatingPath = true;
@@ -509,6 +509,10 @@ var Agent = /*#__PURE__*/function () {
         }
 
         _this.calculatingPath = false;
+
+        if (callback) {
+          callback();
+        }
       });
       pathfinder.calculate();
     }
@@ -523,12 +527,16 @@ var Agent = /*#__PURE__*/function () {
   }, {
     key: "act",
     value: function act() {
+      var _this2 = this;
+
       switch (this.strategy) {
         case "TEST_STRATEGY":
           switch (this.stage) {
             case "ENTERING":
-              this.changeMoveTo(23, 5);
-              this.stage = "MOVING_TO_PARKING_ENTERING";
+              var parkingCell = this.world.getRandomCellOfType("PARKING");
+              this.changeMoveTo(parkingCell.x, parkingCell.y, function () {
+                _this2.stage = "MOVING_TO_PARKING_ENTERING";
+              });
               break;
 
             case "MOVING_TO_PARKING_ENTERING":
@@ -548,12 +556,12 @@ var Agent = /*#__PURE__*/function () {
                 console.log("Could not park");
               }
 
-              ;
               break;
 
             case "LEAVING_PARKING":
-              this.changeMoveTo(12, 20);
-              this.stage = "MOVING_TO_GOAL";
+              this.changeMoveTo(12, 20, function () {
+                _this2.stage = "MOVING_TO_GOAL";
+              });
               break;
 
             case "MOVING_TO_GOAL":
@@ -573,8 +581,9 @@ var Agent = /*#__PURE__*/function () {
               break;
 
             case "LEAVING_GOAL":
-              this.changeMoveTo(this.parked_cell.x, this.parked_cell.y);
-              this.stage = "MOVING_TO_PARKING_LEAVING";
+              this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
+                _this2.stage = "MOVING_TO_PARKING_LEAVING";
+              });
               break;
 
             case "MOVING_TO_PARKING_LEAVING":
@@ -594,8 +603,9 @@ var Agent = /*#__PURE__*/function () {
               break;
 
             case "LEAVING":
-              this.changeMoveTo(this.spawn.x, this.spawn.y);
-              this.stage = "MOVING_TO_EXIT";
+              this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
+                _this2.stage = "MOVING_TO_EXIT";
+              });
               break;
 
             case "MOVING_TO_EXIT":
@@ -1732,6 +1742,14 @@ var World = /*#__PURE__*/function () {
     key: "getCellAtCoordinates",
     value: function getCellAtCoordinates(x, y) {
       return this.state[y][x];
+    }
+  }, {
+    key: "getRandomCellOfType",
+    value: function getRandomCellOfType(type) {
+      var cells = this.state.flat().filter(function (cell) {
+        return cell.type === type;
+      });
+      return cells[Math.floor(Math.random() * cells.length)];
     } // // Returns all neighbors of a cell
     // getNeighbors(cell) {
     //   const { x, y } = cell;
@@ -1760,8 +1778,8 @@ var World = /*#__PURE__*/function () {
       var spawn = this.spawns[Math.floor(Math.random() * this.spawns.length)]; // Add agent of type "BIKE" to this cell
 
       var agent = new _Agent.default(this, "BIKE", spawn, strategy);
-      this.agents.push(agent);
       spawn.addAgent(agent);
+      this.agents.push(agent);
     } // Remove agent
 
   }, {

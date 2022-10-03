@@ -65,6 +65,11 @@ class World {
     return this.state[y][x];
   }
 
+  getRandomCellOfType(type) {
+    const cells = this.state.flat().filter(cell => cell.type === type);
+    return cells[Math.floor(Math.random() * cells.length)];
+  }
+
   // // Returns all neighbors of a cell
   // getNeighbors(cell) {
   //   const { x, y } = cell;
@@ -93,8 +98,8 @@ class World {
 
     // Add agent of type "BIKE" to this cell
     const agent = new Agent(this, "BIKE", spawn, strategy);
-    this.agents.push(agent);
     spawn.addAgent(agent);
+    this.agents.push(agent);
   }
 
   // Remove agent

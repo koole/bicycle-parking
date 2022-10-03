@@ -15,12 +15,18 @@ class Agent {
   }
 
   getPathfinder() {
-    return this.type === "BIKE" ? this.world.bikePathfinder : this.world.pedestrianPathfinder;
+    return this.type === "BIKE"
+      ? this.world.bikePathfinder
+      : this.world.pedestrianPathfinder;
   }
 
   park() {
     if (this.cell.canPark()) {
-      if (this.type === "BIKE" && this.cell.type === "PARKING" && this.parked_cell === null) {
+      if (
+        this.type === "BIKE" &&
+        this.cell.type === "PARKING" &&
+        this.parked_cell === null
+      ) {
         this.parked_cell = this.cell;
         this.type = "PEDESTRIAN";
         this.cell.addBike();
@@ -31,27 +37,40 @@ class Agent {
   }
 
   unpark() {
-    if (this.type === "PEDESTRIAN" && this.cell.type === "PARKING" && this.parked_cell !== null) {
+    if (
+      this.type === "PEDESTRIAN" &&
+      this.cell.type === "PARKING" &&
+      this.parked_cell !== null
+    ) {
+      this.cell.removeBike();
       this.parked_cell = null;
       this.type = "BIKE";
-      this.cell.removeBike();
     }
   }
 
-  changeMoveTo(x, y) {
+  changeMoveTo(x, y, callback) {
     this.calculatingPath = true;
     this.move_to = [x, y];
     this.path = null;
 
     const pathfinder = this.getPathfinder();
-    pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], (path) => {
-      if (path !== null) {
-        this.path = path;
-      } else {
-        console.log("Agent has no way to reach its goal");
+    pathfinder.findPath(
+      this.cell.x,
+      this.cell.y,
+      this.move_to[0],
+      this.move_to[1],
+      (path) => {
+        if (path !== null) {
+          this.path = path;
+        } else {
+          console.log("Agent has no way to reach its goal");
+        }
+        this.calculatingPath = false;
+        if (callback) {
+          callback();
+        }
       }
-      this.calculatingPath = false;
-    });
+    );
 
     pathfinder.calculate();
   }
@@ -68,31 +87,48 @@ class Agent {
       case "TEST_STRATEGY":
         switch (this.stage) {
           case "ENTERING":
-            this.changeMoveTo(23, 5);
-            this.stage = "MOVING_TO_PARKING_ENTERING";
+            const parkingCell = this.world.getRandomCellOfType("PARKING");
+            this.changeMoveTo(parkingCell.x, parkingCell.y, () => {
+              this.stage = "MOVING_TO_PARKING_ENTERING";
+            });
             break;
           case "MOVING_TO_PARKING_ENTERING":
-            if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-              const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            if (
+              this.calculatingPath == false &&
+              this.path !== null &&
+              this.path.length > 0
+            ) {
+              const nextCell = this.world.getCellAtCoordinates(
+                this.path[0].x,
+                this.path[0].y
+              );
               this.makeMove(nextCell);
             } else {
               this.stage = "PARKING";
             }
             break;
           case "PARKING":
-            if(this.park()) {
+            if (this.park()) {
               this.stage = "LEAVING_PARKING";
             } else {
               console.log("Could not park");
-            };
+            }
             break;
           case "LEAVING_PARKING":
-            this.changeMoveTo(12, 20);
-            this.stage = "MOVING_TO_GOAL";
+            this.changeMoveTo(12, 20, () => {
+              this.stage = "MOVING_TO_GOAL";
+            });
             break;
           case "MOVING_TO_GOAL":
-            if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-              const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            if (
+              this.calculatingPath == false &&
+              this.path !== null &&
+              this.path.length > 0
+            ) {
+              const nextCell = this.world.getCellAtCoordinates(
+                this.path[0].x,
+                this.path[0].y
+              );
               this.makeMove(nextCell);
             } else {
               this.stage = "IN_GOAL";
@@ -103,12 +139,20 @@ class Agent {
             this.stage = "LEAVING_GOAL";
             break;
           case "LEAVING_GOAL":
-            this.changeMoveTo(this.parked_cell.x, this.parked_cell.y);
-            this.stage = "MOVING_TO_PARKING_LEAVING";
+            this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, () => {
+              this.stage = "MOVING_TO_PARKING_LEAVING";
+            });
             break;
           case "MOVING_TO_PARKING_LEAVING":
-            if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-              const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            if (
+              this.calculatingPath == false &&
+              this.path !== null &&
+              this.path.length > 0
+            ) {
+              const nextCell = this.world.getCellAtCoordinates(
+                this.path[0].x,
+                this.path[0].y
+              );
               this.makeMove(nextCell);
             } else {
               this.stage = "UNPARKING";
@@ -119,12 +163,20 @@ class Agent {
             this.stage = "LEAVING";
             break;
           case "LEAVING":
-            this.changeMoveTo(this.spawn.x, this.spawn.y);
-            this.stage = "MOVING_TO_EXIT";
+            this.changeMoveTo(this.spawn.x, this.spawn.y, () => {
+              this.stage = "MOVING_TO_EXIT";
+            });
             break;
           case "MOVING_TO_EXIT":
-            if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-              const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            if (
+              this.calculatingPath == false &&
+              this.path !== null &&
+              this.path.length > 0
+            ) {
+              const nextCell = this.world.getCellAtCoordinates(
+                this.path[0].x,
+                this.path[0].y
+              );
               this.makeMove(nextCell);
             } else {
               this.stage = "EXITED";

@@ -1775,11 +1775,14 @@ var World = /*#__PURE__*/function () {
     key: "spawnAgent",
     value: function spawnAgent(strategy) {
       // Randomly pick a spawn cell
-      var spawn = this.spawns[Math.floor(Math.random() * this.spawns.length)]; // Add agent of type "BIKE" to this cell
-
+      var spawn = this.spawns[Math.floor(Math.random() * this.spawns.length)];
       var agent = new _Agent.default(this, "BIKE", spawn, strategy);
-      spawn.addAgent(agent);
-      this.agents.push(agent);
+
+      if (spawn.checkAddAgent(agent)) {
+        // Add agent of type "BIKE" to this cell
+        spawn.addAgent(agent);
+        this.agents.push(agent);
+      }
     } // Remove agent
 
   }, {
@@ -1813,7 +1816,6 @@ var World = /*#__PURE__*/function () {
       try {
         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var agent = _step2.value;
-          var cell = agent.cell;
           agent.act();
         }
       } catch (err) {
@@ -1835,10 +1837,6 @@ exports.default = _default;
 require("./styles.css");
 
 var _map = _interopRequireDefault(require("./map"));
-
-var _Cell = _interopRequireDefault(require("./Cell"));
-
-var _Agent = _interopRequireDefault(require("./Agent"));
 
 var _World = _interopRequireDefault(require("./World"));
 
@@ -1880,13 +1878,13 @@ var world = new _World.default(_map.default); // *******************************
 // **********************************
 
 function gameTick() {
-  // Move current agents
-  world.tick(); // Spawn new agent sometimes
-
+  // Spawn new agent sometimes
   if (Math.random() < spawnspeed) {
     world.spawnAgent("TEST_STRATEGY");
-  }
+  } // Move current agents
 
+
+  world.tick();
   setTimeout(gameTick, tickdelay);
 }
 
@@ -1898,7 +1896,6 @@ var gridWidth = world.state[0].length;
 var gridHeight = world.state.length;
 var canvasWidth = gridWidth * squareSize;
 var canvasHeight = gridHeight * squareSize;
-console.log(canvasWidth, canvasHeight);
 var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
 ctx.canvas.width = canvasWidth;
@@ -1941,7 +1938,7 @@ function drawCanvas() {
 }
 
 requestAnimationFrame(drawCanvas);
-},{"./styles.css":"src/styles.css","./map":"src/map.js","./Cell":"src/Cell.js","./Agent":"src/Agent.js","./World":"src/World.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./styles.css":"src/styles.css","./map":"src/map.js","./World":"src/World.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

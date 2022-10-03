@@ -1,9 +1,7 @@
 import "./styles.css";
 import worldmap from "./map";
 
-import Cell from "./Cell";
-import Agent from "./Agent"
-import World from "./World"
+import World from "./World";
 
 const squareSize = 32;
 
@@ -34,21 +32,19 @@ const world = new World(worldmap);
 // goes later or something
 // **********************************
 
-
 function gameTick() {
-  // Move current agents
-  world.tick();
-
   // Spawn new agent sometimes
-  if(Math.random() < spawnspeed) {
+  if (Math.random() < spawnspeed) {
     world.spawnAgent("TEST_STRATEGY");
   }
+
+  // Move current agents
+  world.tick();
 
   setTimeout(gameTick, tickdelay);
 }
 
 gameTick();
-
 
 // **********************************
 // Draw world state to canvas
@@ -59,7 +55,6 @@ const gridHeight = world.state.length;
 
 const canvasWidth = gridWidth * squareSize;
 const canvasHeight = gridHeight * squareSize;
-console.log(canvasWidth, canvasHeight);
 
 var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
@@ -67,8 +62,8 @@ ctx.canvas.width = canvasWidth;
 ctx.canvas.height = canvasHeight;
 
 function drawCanvas() {
-  for(const [y, row] of world.state.entries()) {
-    for(const [x, cell] of row.entries()) {
+  for (const [y, row] of world.state.entries()) {
+    for (const [x, cell] of row.entries()) {
       cell.draw(ctx, x, y, squareSize);
     }
   }

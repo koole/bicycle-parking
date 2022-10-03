@@ -81,14 +81,14 @@ class Cell {
     if (this.type === "PARKING") {
       ctx.globalAlpha = 0.3;
       ctx.fillStyle = "#00ff00";
-      ctx.fillRect(canvas_x, canvas_y + squareSize - 4, squareSize, 4);
+      ctx.fillRect(canvas_x + 2, canvas_y + squareSize - 8, squareSize - 4, 4);
       ctx.globalAlpha = 1;
 
       ctx.fillStyle = "#00ff00";
       ctx.fillRect(
-        canvas_x,
-        canvas_y + squareSize - 4,
-        squareSize * (this.bikes / MAX_PARKED_BIKES),
+        canvas_x + 2,
+        canvas_y + squareSize - 8,
+        (squareSize + 4) * (this.bikes / MAX_PARKED_BIKES),
         4
       );
     }

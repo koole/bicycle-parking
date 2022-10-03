@@ -1639,16 +1639,16 @@ var World = /*#__PURE__*/function () {
     this.pedestrianPathfinder = new _easystarjs.default.js();
     this.bikePathfinder.setGrid(this.state.map(function (row) {
       return row.map(function (cell) {
-        return ["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING"].includes(cell.type) ? 0 : 1;
+        return ["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING"].includes(cell.type) ? 1 : 0;
       });
     }));
-    this.bikePathfinder.setAcceptableTiles([0]);
+    this.bikePathfinder.setAcceptableTiles([1]);
     this.pedestrianPathfinder.setGrid(this.state.map(function (row) {
       return row.map(function (cell) {
-        return ["PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"].includes(cell.type) ? 0 : 1;
+        return ["PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"].includes(cell.type) ? 1 : 0;
       });
     }));
-    this.pedestrianPathfinder.setAcceptableTiles([0]);
+    this.pedestrianPathfinder.setAcceptableTiles([1]);
   }
 
   _createClass(World, [{
@@ -1754,7 +1754,19 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var squareSize = 32; // **********************************
+var squareSize = 32;
+var tickdelay = 100;
+var spawnspeed = 0.2; // **********************************
+// Controls
+// **********************************
+// Control tickdelay using range input with id "tickdelay"
+
+document.getElementById("tickdelay").addEventListener("input", function (e) {
+  tickdelay = e.target.value;
+});
+document.getElementById("spawnspeed").addEventListener("input", function (e) {
+  spawnspeed = e.target.value;
+}); // **********************************
 // Read worldmap and create worldData
 // **********************************
 
@@ -1767,11 +1779,11 @@ function gameTick() {
   // Move current agents
   world.tick(); // Spawn new agent sometimes
 
-  if (Math.random() < 0.2) {
+  if (Math.random() < spawnspeed) {
     world.spawnAgent();
   }
 
-  setTimeout(gameTick, 100);
+  setTimeout(gameTick, tickdelay);
 }
 
 gameTick(); // **********************************
@@ -1853,7 +1865,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "46113" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "35071" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

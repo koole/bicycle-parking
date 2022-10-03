@@ -49,16 +49,16 @@ class World {
       "BIKE_PATH",
       "ALL_PATH",
       "PARKING"
-    ].includes(cell.type) ? 0 : 1)));
-    this.bikePathfinder.setAcceptableTiles([0]);
+    ].includes(cell.type) ? 1 : 0)));
+    this.bikePathfinder.setAcceptableTiles([1]);
 
     this.pedestrianPathfinder.setGrid(this.state.map(row => row.map(cell => [
       "PEDESTRIAN_PATH",
       "ALL_PATH",
       "PARKING",
       "BUILDING_ENTRANCE"
-    ].includes(cell.type) ? 0 : 1)));
-    this.pedestrianPathfinder.setAcceptableTiles([0]);
+    ].includes(cell.type) ? 1 : 0)));
+    this.pedestrianPathfinder.setAcceptableTiles([1]);
   }
 
   getCellAtCoordinates(x, y) {

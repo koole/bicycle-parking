@@ -7,6 +7,22 @@ import World from "./World"
 
 const squareSize = 32;
 
+let tickdelay = 100;
+let spawnspeed = 0.2;
+
+// **********************************
+// Controls
+// **********************************
+
+// Control tickdelay using range input with id "tickdelay"
+document.getElementById("tickdelay").addEventListener("input", (e) => {
+  tickdelay = e.target.value;
+});
+
+document.getElementById("spawnspeed").addEventListener("input", (e) => {
+  spawnspeed = e.target.value;
+});
+
 // **********************************
 // Read worldmap and create worldData
 // **********************************
@@ -24,11 +40,11 @@ function gameTick() {
   world.tick();
 
   // Spawn new agent sometimes
-  if(Math.random() < 0.2) {
+  if(Math.random() < spawnspeed) {
     world.spawnAgent();
   }
 
-  setTimeout(gameTick, 100);
+  setTimeout(gameTick, tickdelay);
 }
 
 gameTick();

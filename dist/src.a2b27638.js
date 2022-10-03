@@ -452,14 +452,16 @@ var Agent = /*#__PURE__*/function () {
 
     this.world = world;
     this.type = type;
+    this.spawn = cell;
     this.cell = cell;
     this.parked_cell = null;
-    this.move_to = [23, 5]; // This is for storing the calculated path
+    this.strategy = strategy;
+    this.move_to = null; // This is for storing the calculated path
     // and not recalculating it every tick
 
     this.path = null;
-    this.recalculatePath = true;
-    this.strategy = strategy;
+    this.calculatingPath = false;
+    this.stage = "ENTERING";
   }
 
   _createClass(Agent, [{
@@ -475,8 +477,11 @@ var Agent = /*#__PURE__*/function () {
           this.parked_cell = this.cell;
           this.type = "PEDESTRIAN";
           this.cell.addBike();
+          return true;
         }
       }
+
+      return false;
     }
   }, {
     key: "unpark",
@@ -490,57 +495,127 @@ var Agent = /*#__PURE__*/function () {
   }, {
     key: "changeMoveTo",
     value: function changeMoveTo(x, y) {
+      var _this = this;
+
+      this.calculatingPath = true;
       this.move_to = [x, y];
       this.path = null;
-      this.recalculatePath = true;
+      var pathfinder = this.getPathfinder();
+      pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], function (path) {
+        if (path !== null) {
+          _this.path = path;
+        } else {
+          console.log("Agent has no way to reach its goal");
+        }
+
+        _this.calculatingPath = false;
+      });
+      pathfinder.calculate();
+    }
+  }, {
+    key: "makeMove",
+    value: function makeMove(nextCell) {
+      if (nextCell.checkAddAgent(this)) {
+        this.world.moveAgent(this, nextCell);
+        this.path.shift();
+      }
     }
   }, {
     key: "act",
     value: function act() {
-      var _this = this;
-
       switch (this.strategy) {
         case "TEST_STRATEGY":
-          // Temporary: If possible, just randomly decide to park bike
-          if (this.type === "BIKE" && this.cell.type === "PARKING" && Math.random() < 0.1) {
-            this.park();
-            this.move_to = null;
-          } // If it has a goal to move to, and route needs to be calculated
-          // calculate route and then move.
+          switch (this.stage) {
+            case "ENTERING":
+              this.changeMoveTo(23, 5);
+              this.stage = "MOVING_TO_PARKING_ENTERING";
+              break;
 
-
-          if (this.move_to !== null && this.recalculatePath == true) {
-            var pathfinder = this.getPathfinder();
-            pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], function (path) {
-              if (path !== null) {
-                _this.path = path;
-                _this.recalculatePath = false;
+            case "MOVING_TO_PARKING_ENTERING":
+              if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+                var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+                this.makeMove(nextCell);
               } else {
-                console.log("Agent has no way to reach its goal");
+                this.stage = "PARKING";
               }
-            });
-            pathfinder.calculate(); // If route is already calculated, just move to the next cell
-          } else if (this.move_to !== null && this.path !== null && this.path.length > 0) {
-            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
 
-            if (nextCell.checkAddAgent(this)) {
-              this.world.moveAgent(this, nextCell);
-              this.path.shift();
-            }
+              break;
 
-            if (this.path.length === 0) {
-              this.move_to = null;
-              this.recalculatePath = true;
-            } // Path is empty, so we are next to goal. Move into ti.
+            case "PARKING":
+              if (this.park()) {
+                this.stage = "LEAVING_PARKING";
+              } else {
+                console.log("Could not park");
+              }
 
-          } else {
-            // If not, we can do other things such as looking for new goals
-            // or park the pike or something
-            // Temporary: If no goal and agent is now pedestrian, the agent must have
-            // just parked their bike. So we set a next goal: the entrance.
-            if (this.type === "PEDESTRIAN") {
+              ;
+              break;
+
+            case "LEAVING_PARKING":
               this.changeMoveTo(12, 20);
-            }
+              this.stage = "MOVING_TO_GOAL";
+              break;
+
+            case "MOVING_TO_GOAL":
+              if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+                var _nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+                this.makeMove(_nextCell);
+              } else {
+                this.stage = "IN_GOAL";
+              }
+
+              break;
+
+            case "IN_GOAL":
+              // Todo: Wait for a bit
+              this.stage = "LEAVING_GOAL";
+              break;
+
+            case "LEAVING_GOAL":
+              this.changeMoveTo(this.parked_cell.x, this.parked_cell.y);
+              this.stage = "MOVING_TO_PARKING_LEAVING";
+              break;
+
+            case "MOVING_TO_PARKING_LEAVING":
+              if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+                var _nextCell2 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+                this.makeMove(_nextCell2);
+              } else {
+                this.stage = "UNPARKING";
+              }
+
+              break;
+
+            case "UNPARKING":
+              this.unpark();
+              this.stage = "LEAVING";
+              break;
+
+            case "LEAVING":
+              this.changeMoveTo(this.spawn.x, this.spawn.y);
+              this.stage = "MOVING_TO_EXIT";
+              break;
+
+            case "MOVING_TO_EXIT":
+              if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+                var _nextCell3 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+                this.makeMove(_nextCell3);
+              } else {
+                this.stage = "EXITED";
+              }
+
+              break;
+
+            case "EXITED":
+              this.world.removeAgent(this);
+              break;
+
+            default:
+              console.log("Unknown stage: ", this.stage);
+              break;
           }
 
           break;
@@ -1687,6 +1762,15 @@ var World = /*#__PURE__*/function () {
       var agent = new _Agent.default(this, "BIKE", spawn, strategy);
       this.agents.push(agent);
       spawn.addAgent(agent);
+    } // Remove agent
+
+  }, {
+    key: "removeAgent",
+    value: function removeAgent(agent) {
+      this.agents = this.agents.filter(function (a) {
+        return a !== agent;
+      });
+      agent.cell.removeAgent(agent);
     } // // Moves agent to a new cell
 
   }, {

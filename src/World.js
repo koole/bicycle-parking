@@ -97,6 +97,12 @@ class World {
     spawn.addAgent(agent);
   }
 
+  // Remove agent
+  removeAgent(agent) {
+    this.agents = this.agents.filter((a) => a !== agent);
+    agent.cell.removeAgent(agent);
+  }
+
   // // Moves agent to a new cell
   moveAgent(agent, cell) {
     if (cell.checkAddAgent(agent)) {

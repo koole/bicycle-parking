@@ -2,14 +2,16 @@ class Agent {
   constructor(world, type, cell, strategy) {
     this.world = world;
     this.type = type;
+    this.spawn = cell;
     this.cell = cell;
     this.parked_cell = null;
-    this.move_to = [23, 5];
+    this.strategy = strategy;
+    this.move_to = null;
     // This is for storing the calculated path
     // and not recalculating it every tick
     this.path = null;
-    this.recalculatePath = true;
-    this.strategy = strategy;
+    this.calculatingPath = false;
+    this.stage = "ENTERING";
   }
 
   getPathfinder() {
@@ -22,8 +24,10 @@ class Agent {
         this.parked_cell = this.cell;
         this.type = "PEDESTRIAN";
         this.cell.addBike();
+        return true;
       }
     }
+    return false;
   }
 
   unpark() {
@@ -35,55 +39,103 @@ class Agent {
   }
 
   changeMoveTo(x, y) {
+    this.calculatingPath = true;
     this.move_to = [x, y];
     this.path = null;
-    this.recalculatePath = true;
+
+    const pathfinder = this.getPathfinder();
+    pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], (path) => {
+      if (path !== null) {
+        this.path = path;
+      } else {
+        console.log("Agent has no way to reach its goal");
+      }
+      this.calculatingPath = false;
+    });
+
+    pathfinder.calculate();
+  }
+
+  makeMove(nextCell) {
+    if (nextCell.checkAddAgent(this)) {
+      this.world.moveAgent(this, nextCell);
+      this.path.shift();
+    }
   }
 
   act() {
-
     switch (this.strategy) {
       case "TEST_STRATEGY":
-        // Temporary: If possible, just randomly decide to park bike
-        if (this.type === "BIKE" && this.cell.type === "PARKING" && Math.random() < 0.1) {
-          this.park();
-          this.move_to = null;
-        }
-
-        // If it has a goal to move to, and route needs to be calculated
-        // calculate route and then move.
-        if (this.move_to !== null && this.recalculatePath == true) {
-          const pathfinder = this.getPathfinder();
-          pathfinder.findPath(this.cell.x, this.cell.y, this.move_to[0], this.move_to[1], (path) => {
-            if (path !== null) {
-              this.path = path;
-              this.recalculatePath = false;
+        switch (this.stage) {
+          case "ENTERING":
+            this.changeMoveTo(23, 5);
+            this.stage = "MOVING_TO_PARKING_ENTERING";
+            break;
+          case "MOVING_TO_PARKING_ENTERING":
+            if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+              const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+              this.makeMove(nextCell);
             } else {
-              console.log("Agent has no way to reach its goal");
+              this.stage = "PARKING";
             }
-          });
-          pathfinder.calculate();
-          // If route is already calculated, just move to the next cell
-        } else if (this.move_to !== null && this.path !== null && this.path.length > 0) {
-          const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-          if (nextCell.checkAddAgent(this)) {
-            this.world.moveAgent(this, nextCell);
-            this.path.shift();
-          }
-          if (this.path.length === 0) {
-            this.move_to = null;
-            this.recalculatePath = true;
-          }
-          // Path is empty, so we are next to goal. Move into ti.
-        } else {
-          // If not, we can do other things such as looking for new goals
-          // or park the pike or something
-
-          // Temporary: If no goal and agent is now pedestrian, the agent must have
-          // just parked their bike. So we set a next goal: the entrance.
-          if (this.type === "PEDESTRIAN") {
+            break;
+          case "PARKING":
+            if(this.park()) {
+              this.stage = "LEAVING_PARKING";
+            } else {
+              console.log("Could not park");
+            };
+            break;
+          case "LEAVING_PARKING":
             this.changeMoveTo(12, 20);
-          }
+            this.stage = "MOVING_TO_GOAL";
+            break;
+          case "MOVING_TO_GOAL":
+            if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+              const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+              this.makeMove(nextCell);
+            } else {
+              this.stage = "IN_GOAL";
+            }
+            break;
+          case "IN_GOAL":
+            // Todo: Wait for a bit
+            this.stage = "LEAVING_GOAL";
+            break;
+          case "LEAVING_GOAL":
+            this.changeMoveTo(this.parked_cell.x, this.parked_cell.y);
+            this.stage = "MOVING_TO_PARKING_LEAVING";
+            break;
+          case "MOVING_TO_PARKING_LEAVING":
+            if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+              const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+              this.makeMove(nextCell);
+            } else {
+              this.stage = "UNPARKING";
+            }
+            break;
+          case "UNPARKING":
+            this.unpark();
+            this.stage = "LEAVING";
+            break;
+          case "LEAVING":
+            this.changeMoveTo(this.spawn.x, this.spawn.y);
+            this.stage = "MOVING_TO_EXIT";
+            break;
+          case "MOVING_TO_EXIT":
+            if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+              const nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+              this.makeMove(nextCell);
+            } else {
+              this.stage = "EXITED";
+            }
+            break;
+          case "EXITED":
+            this.world.removeAgent(this);
+            break;
+          default:
+            console.log("Unknown stage: ", this.stage);
+            break;
         }
         break;
       default:

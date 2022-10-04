@@ -45,31 +45,28 @@ class World {
     this.pedestrianPathfinder = new EasyStar.js();
 
     this.bikePathfinder.setGrid(
-      this.state.map((row) =>
-        row.map((cell) =>
-          ["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING"].includes(cell.type)
-            ? 1
-            : 0
-        )
-      )
+      this.state.map((row) => row.map((cell) => cell.type))
     );
-    this.bikePathfinder.setAcceptableTiles([1]);
+    this.bikePathfinder.setAcceptableTiles([
+      "SPAWN",
+      "BIKE_PATH",
+      "ALL_PATH",
+      "PARKING",
+    ]);
+    this.bikePathfinder.setTileCost("ALL_PATH", 2);
+    this.bikePathfinder.setTileCost("PARKING", 4);
 
     this.pedestrianPathfinder.setGrid(
-      this.state.map((row) =>
-        row.map((cell) =>
-          [
-            "PEDESTRIAN_PATH",
-            "ALL_PATH",
-            "PARKING",
-            "BUILDING_ENTRANCE",
-          ].includes(cell.type)
-            ? 1
-            : 0
-        )
-      )
+      this.state.map((row) => row.map((cell) => cell.type))
     );
-    this.pedestrianPathfinder.setAcceptableTiles([1]);
+    this.pedestrianPathfinder.setAcceptableTiles([
+      "PEDESTRIAN_PATH",
+      "ALL_PATH",
+      "PARKING",
+      "BUILDING_ENTRANCE",
+    ]);
+    this.pedestrianPathfinder.setTileCost("ALL_PATH", 2);
+    this.pedestrianPathfinder.setTileCost("PARKING", 3);
   }
 
   getCellAtCoordinates(x, y) {

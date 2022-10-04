@@ -205,7 +205,7 @@ exports.default = void 0;
 // ebeeeeeeeee
 // eseeeeeeeee
 // `;
-var map = "\neeeeeeeeeeeeeeeeeeeeeeeeeee\naaaaaaaaaaaaaaaaaaaaaaaaaaS\nebweeeeeeeeeeaeeeeeeeeeeeee\nebweeeeeeeeeeappppppppppeee\nebweeeeeeeeeeappppppppppeee\nebweeeeeeeeeeappppppppppeee\nebweeeeeeeeeeaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooabbbbbbbbbbbbb\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebwwwooooooooaeeeeeeeeeeeee\nebappoooppppoaeeeeeeeeeeeee\nebappoooppppoaeeeeeeeeeeeee\nebappooooooaaaeeeppppeeeeee\nebwwwooooooooaeeeppppeeeeee\nebwwwoooooooXaaaaaaaaaaaaaS\nebwwwooooooooaeeeppppeeeeee\nebwwwooooooooaeeeeeeeeeeeee\nebaaaaaaaaaaaaeeeeeeeeeeeee\nebaaaaaaaaaaaaaeeeeeeeeeeee\nebweeeeeeeeeeaaaeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\neSweeeeeeeeeeeeeeeeeeeeeeee\n";
+var map = "\neeeeeeeeeeeeeeeeeeeeeeeeeee\naaaaaaaaaaaaaaaaaaaaaaaaaae\nebweeeeeeeeeeaeeeeeeeeeeeae\nebweeeeeeeeeeappppppppppeae\nebweeeeeeeeeeappppppppppaaS\nebweeeeeeeeeeappppppppppeee\nebweeeeeeeeeeaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooabbbbbbbbbbbbb\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebwwwooooooooaeeeeeeeeeeeee\nebappoooppppoaeeeeeeeeeeeee\nebappoooppppoaeeeeeeeeeeeee\nebappooooooaaaeeeppppeeeeee\nebwwwooooooooaeeeppppeeeeee\nebwwwoooooooXaaaaaaaaaaaaaS\nebwwwooooooooaeeeppppeeeeee\nebwwwooooooooaeeeeeeeeeeeee\nebaaaaaaaaaaaaeeeeeeeeeeeee\nebaaaaaaaaaaaaaeeeeeeeeeeee\nebweeeeeeeeeeaaaeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\neSweeeeeeeeeeeeeeeeeeeeeeee\n";
 var _default = map;
 exports.default = _default;
 },{}],"src/Cell.js":[function(require,module,exports) {
@@ -239,6 +239,10 @@ var Cell = /*#__PURE__*/function () {
   _createClass(Cell, [{
     key: "checkAddAgent",
     value: function checkAddAgent(agent) {
+      if (this.type === "SPAWN") {
+        return true;
+      }
+
       if (this.type === "BUILDING_ENTRANCE" && agent.type === "PEDESTRIAN") {
         return true;
       } // Allow a maximum of:
@@ -523,7 +527,8 @@ var Agent = /*#__PURE__*/function () {
         this.world.moveAgent(this, nextCell);
         this.path.shift();
       }
-    }
+    } // WORK ON AGENT STRATS HERE -->
+
   }, {
     key: "act",
     value: function act() {
@@ -1726,16 +1731,20 @@ var World = /*#__PURE__*/function () {
     this.pedestrianPathfinder = new _easystarjs.default.js();
     this.bikePathfinder.setGrid(this.state.map(function (row) {
       return row.map(function (cell) {
-        return ["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING"].includes(cell.type) ? 1 : 0;
+        return cell.type;
       });
     }));
-    this.bikePathfinder.setAcceptableTiles([1]);
+    this.bikePathfinder.setAcceptableTiles(["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING"]);
+    this.bikePathfinder.setTileCost("ALL_PATH", 2);
+    this.bikePathfinder.setTileCost("PARKING", 4);
     this.pedestrianPathfinder.setGrid(this.state.map(function (row) {
       return row.map(function (cell) {
-        return ["PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"].includes(cell.type) ? 1 : 0;
+        return cell.type;
       });
     }));
-    this.pedestrianPathfinder.setAcceptableTiles([1]);
+    this.pedestrianPathfinder.setAcceptableTiles(["PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"]);
+    this.pedestrianPathfinder.setTileCost("ALL_PATH", 2);
+    this.pedestrianPathfinder.setTileCost("PARKING", 3);
   }
 
   _createClass(World, [{
@@ -1858,10 +1867,21 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
 var squareSize = 32;
 var tickdelay = 100;
-var spawnspeed = 0.2; // **********************************
+var spawnspeed = 0.2;
+var paused = false; // **********************************
 // Controls
 // **********************************
-// Control tickdelay using range input with id "tickdelay"
+// Control play/pause button with "play-pause" id
+
+document.getElementById("play-pause").addEventListener("click", function () {
+  if (document.getElementById("play-pause").innerHTML === "Play") {
+    document.getElementById("play-pause").innerHTML = "Pause";
+    paused = false;
+  } else {
+    document.getElementById("play-pause").innerHTML = "Play";
+    paused = true;
+  }
+}); // Control tickdelay using range input with id "tickdelay"
 
 document.getElementById("tickdelay").addEventListener("input", function (e) {
   tickdelay = e.target.value;
@@ -1878,13 +1898,16 @@ var world = new _World.default(_map.default); // *******************************
 // **********************************
 
 function gameTick() {
-  // Spawn new agent sometimes
-  if (Math.random() < spawnspeed) {
-    world.spawnAgent("TEST_STRATEGY");
-  } // Move current agents
+  if (!paused) {
+    // Spawn new agent sometimes
+    if (Math.random() < spawnspeed) {
+      world.spawnAgent("TEST_STRATEGY");
+    } // Move current agents
 
 
-  world.tick();
+    world.tick();
+  }
+
   setTimeout(gameTick, tickdelay);
 }
 

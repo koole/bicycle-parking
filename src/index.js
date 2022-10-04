@@ -7,10 +7,22 @@ const squareSize = 32;
 
 let tickdelay = 100;
 let spawnspeed = 0.2;
+let paused = false;
 
 // **********************************
 // Controls
 // **********************************
+
+// Control play/pause button with "play-pause" id
+document.getElementById("play-pause").addEventListener("click", () => {
+  if (document.getElementById("play-pause").innerHTML === "Play") {
+    document.getElementById("play-pause").innerHTML = "Pause";
+    paused = false;
+  } else {
+    document.getElementById("play-pause").innerHTML = "Play";
+    paused = true;
+  }
+});
 
 // Control tickdelay using range input with id "tickdelay"
 document.getElementById("tickdelay").addEventListener("input", (e) => {
@@ -33,14 +45,15 @@ const world = new World(worldmap);
 // **********************************
 
 function gameTick() {
-  // Spawn new agent sometimes
-  if (Math.random() < spawnspeed) {
-    world.spawnAgent("TEST_STRATEGY");
+  if (!paused) {
+    // Spawn new agent sometimes
+    if (Math.random() < spawnspeed) {
+      world.spawnAgent("TEST_STRATEGY");
+    }
+
+    // Move current agents
+    world.tick();
   }
-
-  // Move current agents
-  world.tick();
-
   setTimeout(gameTick, tickdelay);
 }
 

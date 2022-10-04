@@ -10,10 +10,10 @@
 
 const map = `
 eeeeeeeeeeeeeeeeeeeeeeeeeee
-aaaaaaaaaaaaaaaaaaaaaaaaaaS
-ebweeeeeeeeeeaeeeeeeeeeeeee
-ebweeeeeeeeeeappppppppppeee
-ebweeeeeeeeeeappppppppppeee
+aaaaaaaaaaaaaaaaaaaaaaaaaae
+ebweeeeeeeeeeaeeeeeeeeeeeae
+ebweeeeeeeeeeappppppppppeae
+ebweeeeeeeeeeappppppppppaaS
 ebweeeeeeeeeeappppppppppeee
 ebweeeeeeeeeeaeeeeeeeeeeeee
 ebweeooooooooaeeeeeeeeeeeee

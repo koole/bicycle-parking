@@ -11,6 +11,10 @@ class Cell {
 
   // Check if agent can be added to this cell
   checkAddAgent(agent) {
+    if (this.type === "SPAWN") {
+      return true;
+    }
+
     if (this.type === "BUILDING_ENTRANCE" && agent.type === "PEDESTRIAN") {
       return true;
     }

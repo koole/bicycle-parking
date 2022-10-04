@@ -82,6 +82,7 @@ class Agent {
     }
   }
 
+  // WORK ON AGENT STRATS HERE -->
   act() {
     switch (this.strategy) {
       case "TEST_STRATEGY":
@@ -189,7 +190,7 @@ class Agent {
             console.log("Unknown stage: ", this.stage);
             break;
         }
-        break;
+        break;   
       default:
         console.log("Unknown strategy: ", this.strategy);
     }

@@ -1,5 +1,5 @@
 import "./styles.css";
-import worldmap from "./map";
+import worldmap, { mapDirection } from "./map";
 
 import World from "./World";
 
@@ -37,7 +37,7 @@ document.getElementById("spawnspeed").addEventListener("input", (e) => {
 // Read worldmap and create worldData
 // **********************************
 
-const world = new World(worldmap);
+const world = new World(worldmap, mapDirection);
 
 // **********************************
 // This is where the simulation loop
@@ -84,3 +84,35 @@ function drawCanvas() {
 }
 
 requestAnimationFrame(drawCanvas);
+
+// **********************************
+// Draw graphs for time-to-park and time-to-goal
+// **********************************
+
+const timeToParkCanvas = document.getElementById('time-to-park').getContext('2d');
+const timeToGoalCanvas = document.getElementById('time-to-goal').getContext('2d');
+
+const timeToParkChart = new Chart(timeToParkCanvas, {
+  type: 'line',
+  data: {
+  labels: [],
+  datasets: [{
+    label: 'Time to park',
+    data: [],
+    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+    borderColor: 'rgba(255, 99, 132, 1)',
+    borderWidth: 1
+  }]
+  },
+  options: {
+    scales: {
+      yAxes: [{
+        ticks: {
+          beginAtZero: true
+        }
+      }]
+    }
+  }
+});
+
+

@@ -2,47 +2,68 @@ import Cell from "./Cell";
 import Agent from "./Agent";
 import EasyStar from "easystarjs";
 
+function getDirectionArray(direction) {
+  switch (direction) {
+    case "n":
+      return [EasyStar.BOTTOM];
+    case "s":
+      return [EasyStar.TOP];
+    case "e":
+      return [EasyStar.LEFT];
+    case "w":
+      return [EasyStar.RIGHT];
+    case "v":
+      return [EasyStar.TOP, EasyStar.BOTTOM];
+    case "h":
+      return [EasyStar.LEFT, EasyStar.RIGHT];
+    default:
+      return [EasyStar.TOP, EasyStar.BOTTOM, EasyStar.LEFT, EasyStar.RIGHT];
+  }
+}
+
 class World {
-  constructor(worldmap) {
+  constructor(worldmap, mapDirection) {
     this.state = [];
     this.agents = [];
-    this.spawns = [];
 
     // Setup initial state
     const rows = worldmap.split("\n").filter((row) => row.length > 0);
+    const directionRows = mapDirection.split("\n").filter((row) => row.length > 0);
 
     // Turns the characters from the worldmap into understandable strings
     const types = {
       // Useful stuff
       S: "SPAWN",
+      E: "EXIT",
       X: "BUILDING_ENTRANCE",
       b: "BIKE_PATH",
       w: "PEDESTRIAN_PATH",
       a: "ALL_PATH",
       p: "PARKING",
       // Cosmetics
-      e: "EMPTY",
+      _: "EMPTY",
       o: "BUILDING",
     };
+
+    this.bikePathfinder = new EasyStar.js();
+    this.pedestrianPathfinder = new EasyStar.js();
 
     // Create cells
     // Loop over the 2D array of types, and create a new cell for each type
     for (const [y, row] of rows.entries()) {
+      const directionRow = [...directionRows[y]];
       const rowData = [...row].map((c, x) => {
+        const allowed_direction = directionRow[x];
         const type = types[c];
-        const cell = new Cell(this, type, x, y);
+        const cell = new Cell(this, type, x, y, allowed_direction);
 
-        if (type === "SPAWN") {
-          this.spawns.push(cell);
-        }
+        this.bikePathfinder.setDirectionalCondition(x, y, getDirectionArray(allowed_direction));
+        this.pedestrianPathfinder.setDirectionalCondition(x, y, getDirectionArray(allowed_direction));
 
         return cell;
       });
       this.state.push(rowData);
     }
-
-    this.bikePathfinder = new EasyStar.js();
-    this.pedestrianPathfinder = new EasyStar.js();
 
     this.bikePathfinder.setGrid(
       this.state.map((row) => row.map((cell) => cell.type))
@@ -52,6 +73,7 @@ class World {
       "BIKE_PATH",
       "ALL_PATH",
       "PARKING",
+      "EXIT",
     ]);
     this.bikePathfinder.setTileCost("ALL_PATH", 2);
     this.bikePathfinder.setTileCost("PARKING", 4);
@@ -102,7 +124,7 @@ class World {
   // Adds a new agent to the world, at a random spawn point
   spawnAgent(strategy) {
     // Randomly pick a spawn cell
-    const spawn = this.spawns[Math.floor(Math.random() * this.spawns.length)];
+    const spawn = this.getRandomCellOfType("SPAWN");
     const agent = new Agent(this, "BIKE", spawn, strategy);
 
     if (spawn.checkAddAgent(agent)) {

@@ -195,17 +195,10 @@ module.hot.accept(reloadCSS);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
-// const map = `
-// eeeeeeeeeee
-// eeeebbbbbbs
-// ebbbbepepee
-// ebeeeepepee
-// ebaauwwwwee
-// ebeeeeeeeee
-// eseeeeeeeee
-// `;
-var map = "\neeeeeeeeeeeeeeeeeeeeeeeeeee\naaaaaaaaaaaaaaaaaaaaaaaaaae\nebweeeeeeeeeeaeeeeeeeeeeeae\nebweeeeeeeeeeappppppppppeae\nebweeeeeeeeeeappppppppppaaS\nebweeeeeeeeeeappppppppppeee\nebweeeeeeeeeeaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooabbbbbbbbbbbbb\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebweeooooooooaeeeeeeeeeeeee\nebwwwooooooooaeeeeeeeeeeeee\nebappoooppppoaeeeeeeeeeeeee\nebappoooppppoaeeeeeeeeeeeee\nebappooooooaaaeeeppppeeeeee\nebwwwooooooooaeeeppppeeeeee\nebwwwoooooooXaaaaaaaaaaaaaS\nebwwwooooooooaeeeppppeeeeee\nebwwwooooooooaeeeeeeeeeeeee\nebaaaaaaaaaaaaeeeeeeeeeeeee\nebaaaaaaaaaaaaaeeeeeeeeeeee\nebweeeeeeeeeeaaaeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\nebweeeeeeeeeeeeeeeeeeeeeeee\neSweeeeeeeeeeeeeeeeeeeeeeee\n";
+exports.mapDirection = exports.default = void 0;
+var map = "\n____________________________________\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\n_bbw______________aa____________bb__\n_bbw______________aappppppppppa_bb__\n_bbw______________aappppppppppaaaaaS\n_bbw______________aappppppppppaaaaaE\n_bbw______________aa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbwwwooooooooooooaa________________\n_bbappoooopppppppoaa________________\n_bbappoooopppppppoaa________________\n_bbappooooooooooaaaa___pppppp_______\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwoooooooooooXaaaaaaaaaaaaaaaaaS\n_bbwwwooooooooooooaaaaaaaaaaaaaaaaaE\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwooooooooooooaa________________\n_bbaaa____________aa________________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbw_____________aaaaa______________\n_bbw______________aaaaa_____________\n_bbw______________aaaaa_____________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_ESw________________________________\n";
+var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_snaaa____________sn________________\n_saahh____hhhhhha_sn________________\n_saahh____hhhhhha_sn________________\n_saahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________saeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_snawwwwwwwwwwwwwwana_______________\n_snaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
+exports.mapDirection = mapDirection;
 var _default = map;
 exports.default = _default;
 },{}],"src/Cell.js":[function(require,module,exports) {
@@ -225,7 +218,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 var MAX_PARKED_BIKES = 8;
 
 var Cell = /*#__PURE__*/function () {
-  function Cell(world, type, x, y) {
+  function Cell(world, type, x, y, allowed_direction) {
     _classCallCheck(this, Cell);
 
     this.type = type;
@@ -233,6 +226,7 @@ var Cell = /*#__PURE__*/function () {
     this.y = y;
     this.agents = [];
     this.bikes = 0;
+    this.allowed_direction = allowed_direction;
   } // Check if agent can be added to this cell
 
 
@@ -375,6 +369,14 @@ var Cell = /*#__PURE__*/function () {
       //   // reset transparency
       //   ctx.globalAlpha = 1;
       // }
+      // !! Draws directions in which agents are allowed to move
+      // ctx.font = '14px monospace';
+      // ctx.fillStyle = "black";
+      // // make text slightly transparent
+      // ctx.globalAlpha = 0.5;
+      // ctx.fillText(this.allowed_direction, canvas_x + 2, canvas_y + 24);
+      // // reset transparency
+      // ctx.globalAlpha = 1;
 
     } // Drawing utilities, nothing important after this point :)
 
@@ -412,6 +414,10 @@ var Cell = /*#__PURE__*/function () {
 
         case "BUILDING_ENTRANCE":
           color = "#7ba6f7";
+          break;
+
+        case "EXIT":
+          color = "#e7b1b6";
           break;
       }
 
@@ -466,12 +472,25 @@ var Agent = /*#__PURE__*/function () {
     this.path = null;
     this.calculatingPath = false;
     this.stage = "ENTERING";
+    this.ticks = 0;
+    this.ticks_to_parked = null;
+    this.ticks_to_goal = null;
   }
 
   _createClass(Agent, [{
     key: "getPathfinder",
     value: function getPathfinder() {
       return this.type === "BIKE" ? this.world.bikePathfinder : this.world.pedestrianPathfinder;
+    }
+  }, {
+    key: "hasParked",
+    value: function hasParked() {
+      this.ticks_to_parked = this.ticks;
+    }
+  }, {
+    key: "hasReachedGoal",
+    value: function hasReachedGoal() {
+      this.ticks_to_goal = this.ticks;
     }
   }, {
     key: "park",
@@ -481,6 +500,7 @@ var Agent = /*#__PURE__*/function () {
           this.parked_cell = this.cell;
           this.type = "PEDESTRIAN";
           this.cell.addBike();
+          this.hasParked();
           return true;
         }
       }
@@ -514,7 +534,7 @@ var Agent = /*#__PURE__*/function () {
 
         _this.calculatingPath = false;
 
-        if (callback) {
+        if (callback && path !== null) {
           callback();
         }
       });
@@ -533,6 +553,8 @@ var Agent = /*#__PURE__*/function () {
     key: "act",
     value: function act() {
       var _this2 = this;
+
+      this.ticks += 1;
 
       switch (this.strategy) {
         case "TEST_STRATEGY":
@@ -564,7 +586,8 @@ var Agent = /*#__PURE__*/function () {
               break;
 
             case "LEAVING_PARKING":
-              this.changeMoveTo(12, 20, function () {
+              var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+              this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
                 _this2.stage = "MOVING_TO_GOAL";
               });
               break;
@@ -576,6 +599,7 @@ var Agent = /*#__PURE__*/function () {
                 this.makeMove(_nextCell);
               } else {
                 this.stage = "IN_GOAL";
+                this.hasReachedGoal();
               }
 
               break;
@@ -1667,32 +1691,62 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
+function getDirectionArray(direction) {
+  switch (direction) {
+    case "n":
+      return [_easystarjs.default.BOTTOM];
+
+    case "s":
+      return [_easystarjs.default.TOP];
+
+    case "e":
+      return [_easystarjs.default.LEFT];
+
+    case "w":
+      return [_easystarjs.default.RIGHT];
+
+    case "v":
+      return [_easystarjs.default.TOP, _easystarjs.default.BOTTOM];
+
+    case "h":
+      return [_easystarjs.default.LEFT, _easystarjs.default.RIGHT];
+
+    default:
+      return [_easystarjs.default.TOP, _easystarjs.default.BOTTOM, _easystarjs.default.LEFT, _easystarjs.default.RIGHT];
+  }
+}
+
 var World = /*#__PURE__*/function () {
-  function World(worldmap) {
+  function World(worldmap, mapDirection) {
     var _this = this;
 
     _classCallCheck(this, World);
 
     this.state = [];
-    this.agents = [];
-    this.spawns = []; // Setup initial state
+    this.agents = []; // Setup initial state
 
     var rows = worldmap.split("\n").filter(function (row) {
+      return row.length > 0;
+    });
+    var directionRows = mapDirection.split("\n").filter(function (row) {
       return row.length > 0;
     }); // Turns the characters from the worldmap into understandable strings
 
     var types = {
       // Useful stuff
       S: "SPAWN",
+      E: "EXIT",
       X: "BUILDING_ENTRANCE",
       b: "BIKE_PATH",
       w: "PEDESTRIAN_PATH",
       a: "ALL_PATH",
       p: "PARKING",
       // Cosmetics
-      e: "EMPTY",
+      _: "EMPTY",
       o: "BUILDING"
-    }; // Create cells
+    };
+    this.bikePathfinder = new _easystarjs.default.js();
+    this.pedestrianPathfinder = new _easystarjs.default.js(); // Create cells
     // Loop over the 2D array of types, and create a new cell for each type
 
     var _iterator = _createForOfIteratorHelper(rows.entries()),
@@ -1704,13 +1758,16 @@ var World = /*#__PURE__*/function () {
             y = _step$value[0],
             row = _step$value[1];
 
-        var rowData = _toConsumableArray(row).map(function (c, x) {
-          var type = types[c];
-          var cell = new _Cell.default(_this, type, x, y);
+        var directionRow = _toConsumableArray(directionRows[y]);
 
-          if (type === "SPAWN") {
-            _this.spawns.push(cell);
-          }
+        var rowData = _toConsumableArray(row).map(function (c, x) {
+          var allowed_direction = directionRow[x];
+          var type = types[c];
+          var cell = new _Cell.default(_this, type, x, y, allowed_direction);
+
+          _this.bikePathfinder.setDirectionalCondition(x, y, getDirectionArray(allowed_direction));
+
+          _this.pedestrianPathfinder.setDirectionalCondition(x, y, getDirectionArray(allowed_direction));
 
           return cell;
         });
@@ -1727,14 +1784,12 @@ var World = /*#__PURE__*/function () {
       _iterator.f();
     }
 
-    this.bikePathfinder = new _easystarjs.default.js();
-    this.pedestrianPathfinder = new _easystarjs.default.js();
     this.bikePathfinder.setGrid(this.state.map(function (row) {
       return row.map(function (cell) {
         return cell.type;
       });
     }));
-    this.bikePathfinder.setAcceptableTiles(["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING"]);
+    this.bikePathfinder.setAcceptableTiles(["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING", "EXIT"]);
     this.bikePathfinder.setTileCost("ALL_PATH", 2);
     this.bikePathfinder.setTileCost("PARKING", 4);
     this.pedestrianPathfinder.setGrid(this.state.map(function (row) {
@@ -1784,7 +1839,7 @@ var World = /*#__PURE__*/function () {
     key: "spawnAgent",
     value: function spawnAgent(strategy) {
       // Randomly pick a spawn cell
-      var spawn = this.spawns[Math.floor(Math.random() * this.spawns.length)];
+      var spawn = this.getRandomCellOfType("SPAWN");
       var agent = new _Agent.default(this, "BIKE", spawn, strategy);
 
       if (spawn.checkAddAgent(agent)) {
@@ -1845,11 +1900,15 @@ exports.default = _default;
 
 require("./styles.css");
 
-var _map = _interopRequireDefault(require("./map"));
+var _map = _interopRequireWildcard(require("./map"));
 
 var _World = _interopRequireDefault(require("./World"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
@@ -1892,7 +1951,7 @@ document.getElementById("spawnspeed").addEventListener("input", function (e) {
 // Read worldmap and create worldData
 // **********************************
 
-var world = new _World.default(_map.default); // **********************************
+var world = new _World.default(_map.default, _map.mapDirection); // **********************************
 // This is where the simulation loop
 // goes later or something
 // **********************************
@@ -1960,7 +2019,34 @@ function drawCanvas() {
   requestAnimationFrame(drawCanvas);
 }
 
-requestAnimationFrame(drawCanvas);
+requestAnimationFrame(drawCanvas); // **********************************
+// Draw graphs for time-to-park and time-to-goal
+// **********************************
+
+var timeToParkCanvas = document.getElementById('time-to-park').getContext('2d');
+var timeToGoalCanvas = document.getElementById('time-to-goal').getContext('2d');
+var timeToParkChart = new Chart(timeToParkCanvas, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Time to park',
+      data: [],
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    scales: {
+      yAxes: [{
+        ticks: {
+          beginAtZero: true
+        }
+      }]
+    }
+  }
+});
 },{"./styles.css":"src/styles.css","./map":"src/map.js","./World":"src/World.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -1989,7 +2075,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "35071" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "42721" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

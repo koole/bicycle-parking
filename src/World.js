@@ -1,5 +1,5 @@
 import Cell from "./Cell";
-import Agent from "./Agent"
+import Agent from "./Agent";
 import EasyStar from "easystarjs";
 
 class World {
@@ -9,7 +9,7 @@ class World {
     this.spawns = [];
 
     // Setup initial state
-    const rows = worldmap.split("\n").filter(row => row.length > 0);
+    const rows = worldmap.split("\n").filter((row) => row.length > 0);
 
     // Turns the characters from the worldmap into understandable strings
     const types = {
@@ -22,8 +22,8 @@ class World {
       p: "PARKING",
       // Cosmetics
       e: "EMPTY",
-      o: "BUILDING"
-    }
+      o: "BUILDING",
+    };
 
     // Create cells
     // Loop over the 2D array of types, and create a new cell for each type
@@ -44,25 +44,38 @@ class World {
     this.bikePathfinder = new EasyStar.js();
     this.pedestrianPathfinder = new EasyStar.js();
 
-    this.bikePathfinder.setGrid(this.state.map(row => row.map(cell => [
+    this.bikePathfinder.setGrid(
+      this.state.map((row) => row.map((cell) => cell.type))
+    );
+    this.bikePathfinder.setAcceptableTiles([
       "SPAWN",
       "BIKE_PATH",
       "ALL_PATH",
-      "PARKING"
-    ].includes(cell.type) ? 0 : 1)));
-    this.bikePathfinder.setAcceptableTiles([0]);
+      "PARKING",
+    ]);
+    this.bikePathfinder.setTileCost("ALL_PATH", 2);
+    this.bikePathfinder.setTileCost("PARKING", 4);
 
-    this.pedestrianPathfinder.setGrid(this.state.map(row => row.map(cell => [
+    this.pedestrianPathfinder.setGrid(
+      this.state.map((row) => row.map((cell) => cell.type))
+    );
+    this.pedestrianPathfinder.setAcceptableTiles([
       "PEDESTRIAN_PATH",
       "ALL_PATH",
       "PARKING",
-      "BUILDING_ENTRANCE"
-    ].includes(cell.type) ? 0 : 1)));
-    this.pedestrianPathfinder.setAcceptableTiles([0]);
+      "BUILDING_ENTRANCE",
+    ]);
+    this.pedestrianPathfinder.setTileCost("ALL_PATH", 2);
+    this.pedestrianPathfinder.setTileCost("PARKING", 3);
   }
 
   getCellAtCoordinates(x, y) {
     return this.state[y][x];
+  }
+
+  getRandomCellOfType(type) {
+    const cells = this.state.flat().filter((cell) => cell.type === type);
+    return cells[Math.floor(Math.random() * cells.length)];
   }
 
   // // Returns all neighbors of a cell
@@ -87,14 +100,22 @@ class World {
   // }
 
   // Adds a new agent to the world, at a random spawn point
-  spawnAgent() {
+  spawnAgent(strategy) {
     // Randomly pick a spawn cell
     const spawn = this.spawns[Math.floor(Math.random() * this.spawns.length)];
+    const agent = new Agent(this, "BIKE", spawn, strategy);
 
-    // Add agent of type "BIKE" to this cell
-    const agent = new Agent(this, "BIKE", spawn);
-    this.agents.push(agent);
-    spawn.addAgent(agent);
+    if (spawn.checkAddAgent(agent)) {
+      // Add agent of type "BIKE" to this cell
+      spawn.addAgent(agent);
+      this.agents.push(agent);
+    }
+  }
+
+  // Remove agent
+  removeAgent(agent) {
+    this.agents = this.agents.filter((a) => a !== agent);
+    agent.cell.removeAgent(agent);
   }
 
   // // Moves agent to a new cell
@@ -109,9 +130,8 @@ class World {
   tick() {
     this.agents.sort(function () {
       return 0.5 - Math.random();
-    })
+    });
     for (const agent of this.agents) {
-      const cell = agent.cell;
       agent.act();
     }
   }

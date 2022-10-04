@@ -1,11 +1,37 @@
 import "./styles.css";
 import worldmap from "./map";
 
-import Cell from "./Cell";
-import Agent from "./Agent"
-import World from "./World"
+import World from "./World";
 
 const squareSize = 32;
+
+let tickdelay = 100;
+let spawnspeed = 0.2;
+let paused = false;
+
+// **********************************
+// Controls
+// **********************************
+
+// Control play/pause button with "play-pause" id
+document.getElementById("play-pause").addEventListener("click", () => {
+  if (document.getElementById("play-pause").innerHTML === "Play") {
+    document.getElementById("play-pause").innerHTML = "Pause";
+    paused = false;
+  } else {
+    document.getElementById("play-pause").innerHTML = "Play";
+    paused = true;
+  }
+});
+
+// Control tickdelay using range input with id "tickdelay"
+document.getElementById("tickdelay").addEventListener("input", (e) => {
+  tickdelay = e.target.value;
+});
+
+document.getElementById("spawnspeed").addEventListener("input", (e) => {
+  spawnspeed = e.target.value;
+});
 
 // **********************************
 // Read worldmap and create worldData
@@ -18,21 +44,20 @@ const world = new World(worldmap);
 // goes later or something
 // **********************************
 
-
 function gameTick() {
-  // Move current agents
-  world.tick();
+  if (!paused) {
+    // Spawn new agent sometimes
+    if (Math.random() < spawnspeed) {
+      world.spawnAgent("TEST_STRATEGY");
+    }
 
-  // Spawn new agent sometimes
-  if(Math.random() < 0.2) {
-    world.spawnAgent();
+    // Move current agents
+    world.tick();
   }
-
-  setTimeout(gameTick, 100);
+  setTimeout(gameTick, tickdelay);
 }
 
 gameTick();
-
 
 // **********************************
 // Draw world state to canvas
@@ -43,7 +68,6 @@ const gridHeight = world.state.length;
 
 const canvasWidth = gridWidth * squareSize;
 const canvasHeight = gridHeight * squareSize;
-console.log(canvasWidth, canvasHeight);
 
 var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
@@ -51,8 +75,8 @@ ctx.canvas.width = canvasWidth;
 ctx.canvas.height = canvasHeight;
 
 function drawCanvas() {
-  for(const [y, row] of world.state.entries()) {
-    for(const [x, cell] of row.entries()) {
+  for (const [y, row] of world.state.entries()) {
+    for (const [x, cell] of row.entries()) {
       cell.draw(ctx, x, y, squareSize);
     }
   }

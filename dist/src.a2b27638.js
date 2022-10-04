@@ -197,7 +197,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.mapDirection = exports.default = void 0;
 var map = "\n____________________________________\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\n_bbw______________aa____________bb__\n_bbw______________aappppppppppa_bb__\n_bbw______________aappppppppppaaaaaS\n_bbw______________aappppppppppaaaaaE\n_bbw______________aa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbwwwooooooooooooaa________________\n_bbappoooopppppppoaa________________\n_bbappoooopppppppoaa________________\n_bbappooooooooooaaaa___pppppp_______\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwoooooooooooXaaaaaaaaaaaaaaaaaS\n_bbwwwooooooooooooaaaaaaaaaaaaaaaaaE\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwooooooooooooaa________________\n_bbaaa____________aa________________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbw_____________aaaaa______________\n_bbw______________aaaaa_____________\n_bbw______________aaaaa_____________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_ESw________________________________\n";
-var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_snaaa____________sn________________\n_saahh____hhhhhha_sn________________\n_saahh____hhhhhha_sn________________\n_saahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________saeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_snawwwwwwwwwwwwwwana_______________\n_snaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
+var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
 exports.mapDirection = mapDirection;
 var _default = map;
 exports.default = _default;
@@ -2048,12 +2048,20 @@ var timeToParkChart = new Chart(timeToParkCanvas, {
     }]
   },
   options: {
+    animation: false,
+    spanGaps: true,
     scales: {
       yAxes: [{
         ticks: {
           beginAtZero: true
         }
       }]
+    },
+    datasets: {
+      line: {
+        pointRadius: 0 // disable for all `'line'` datasets
+
+      }
     }
   }
 });
@@ -2070,12 +2078,20 @@ var timeToGoalChart = new Chart(timeToGoalCanvas, {
     }]
   },
   options: {
+    animation: false,
+    spanGaps: true,
     scales: {
       yAxes: [{
         ticks: {
           beginAtZero: true
         }
       }]
+    },
+    datasets: {
+      line: {
+        pointRadius: 0 // disable for all `'line'` datasets
+
+      }
     }
   }
 });
@@ -2123,7 +2139,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "42721" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59650" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

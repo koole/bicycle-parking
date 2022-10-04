@@ -105,13 +105,20 @@ const timeToParkChart = new Chart(timeToParkCanvas, {
     }]
   },
   options: {
+    animation: false,
+    spanGaps: true,
     scales: {
       yAxes: [{
         ticks: {
           beginAtZero: true
         }
       }]
-    }
+    },
+    datasets: {
+        line: {
+            pointRadius: 0 // disable for all `'line'` datasets
+        }
+    },
   }
 });
 
@@ -128,13 +135,20 @@ const timeToGoalChart = new Chart(timeToGoalCanvas, {
     }]
   },
   options: {
+    animation: false,
+    spanGaps: true,
     scales: {
       yAxes: [{
         ticks: {
           beginAtZero: true
         }
       }]
-    }
+    },
+    datasets: {
+        line: {
+            pointRadius: 0 // disable for all `'line'` datasets
+        }
+    },
   }
 });
 

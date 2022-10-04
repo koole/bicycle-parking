@@ -450,6 +450,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _index = require("./index");
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -486,11 +488,13 @@ var Agent = /*#__PURE__*/function () {
     key: "hasParked",
     value: function hasParked() {
       this.ticks_to_parked = this.ticks;
+      (0, _index.addTimeToPark)(this.ticks_to_parked);
     }
   }, {
     key: "hasReachedGoal",
     value: function hasReachedGoal() {
       this.ticks_to_goal = this.ticks;
+      (0, _index.addTimeToGoal)(this.ticks_to_goal);
     }
   }, {
     key: "park",
@@ -670,7 +674,7 @@ var Agent = /*#__PURE__*/function () {
 
 var _default = Agent;
 exports.default = _default;
-},{}],"node_modules/easystarjs/src/instance.js":[function(require,module,exports) {
+},{"./index":"src/index.js"}],"node_modules/easystarjs/src/instance.js":[function(require,module,exports) {
 /**
  * Represents a single instance of EasyStar.
  * A path that is in the queue to eventually be found.
@@ -1898,6 +1902,12 @@ exports.default = _default;
 },{"./Cell":"src/Cell.js","./Agent":"src/Agent.js","easystarjs":"node_modules/easystarjs/src/easystar.js"}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.addTimeToGoal = addTimeToGoal;
+exports.addTimeToPark = addTimeToPark;
+
 require("./styles.css");
 
 var _map = _interopRequireWildcard(require("./map"));
@@ -2028,13 +2038,13 @@ var timeToGoalCanvas = document.getElementById('time-to-goal').getContext('2d');
 var timeToParkChart = new Chart(timeToParkCanvas, {
   type: 'line',
   data: {
-    labels: [],
     datasets: [{
       label: 'Time to park',
       data: [],
       backgroundColor: 'rgba(255, 99, 132, 0.2)',
       borderColor: 'rgba(255, 99, 132, 1)',
-      borderWidth: 1
+      borderWidth: 1,
+      pointStyle: "cross"
     }]
   },
   options: {
@@ -2047,6 +2057,44 @@ var timeToParkChart = new Chart(timeToParkCanvas, {
     }
   }
 });
+var timeToGoalChart = new Chart(timeToGoalCanvas, {
+  type: 'line',
+  data: {
+    datasets: [{
+      label: 'Time to goal',
+      data: [],
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 1,
+      pointStyle: "cross"
+    }]
+  },
+  options: {
+    scales: {
+      yAxes: [{
+        ticks: {
+          beginAtZero: true
+        }
+      }]
+    }
+  }
+});
+
+function addTimeToPark(data) {
+  timeToParkChart.data.labels.push(timeToParkChart.data.labels.length);
+  timeToParkChart.data.datasets.forEach(function (dataset) {
+    dataset.data.push(data);
+  });
+  timeToParkChart.update();
+}
+
+function addTimeToGoal(data) {
+  timeToGoalChart.data.labels.push(timeToGoalChart.data.labels.length);
+  timeToGoalChart.data.datasets.forEach(function (dataset) {
+    dataset.data.push(data);
+  });
+  timeToGoalChart.update();
+}
 },{"./styles.css":"src/styles.css","./map":"src/map.js","./World":"src/World.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';

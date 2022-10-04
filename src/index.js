@@ -95,14 +95,14 @@ const timeToGoalCanvas = document.getElementById('time-to-goal').getContext('2d'
 const timeToParkChart = new Chart(timeToParkCanvas, {
   type: 'line',
   data: {
-  labels: [],
-  datasets: [{
-    label: 'Time to park',
-    data: [],
-    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-    borderColor: 'rgba(255, 99, 132, 1)',
-    borderWidth: 1
-  }]
+    datasets: [{
+      label: 'Time to park',
+      data: [],
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 1,
+      pointStyle: "cross"
+    }]
   },
   options: {
     scales: {
@@ -115,4 +115,43 @@ const timeToParkChart = new Chart(timeToParkCanvas, {
   }
 });
 
+const timeToGoalChart = new Chart(timeToGoalCanvas, {
+  type: 'line',
+  data: {
+    datasets: [{
+      label: 'Time to goal',
+      data: [],
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 1,
+      pointStyle: "cross"
+    }]
+  },
+  options: {
+    scales: {
+      yAxes: [{
+        ticks: {
+          beginAtZero: true
+        }
+      }]
+    }
+  }
+});
+
+
+export function addTimeToPark(data) {
+  timeToParkChart.data.labels.push(timeToParkChart.data.labels.length);
+  timeToParkChart.data.datasets.forEach((dataset) => {
+    dataset.data.push(data);
+  });
+  timeToParkChart.update();
+}
+
+export function addTimeToGoal(data) {
+  timeToGoalChart.data.labels.push(timeToGoalChart.data.labels.length);
+  timeToGoalChart.data.datasets.forEach((dataset) => {
+    dataset.data.push(data);
+  });
+  timeToGoalChart.update();
+}
 

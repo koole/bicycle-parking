@@ -1,3 +1,5 @@
+import { addTimeToPark, addTimeToGoal } from "./index";
+
 class Agent {
   constructor(world, type, cell, strategy) {
     this.world = world;
@@ -26,10 +28,12 @@ class Agent {
 
   hasParked() {
     this.ticks_to_parked = this.ticks;
+    addTimeToPark(this.ticks_to_parked);
   }
 
   hasReachedGoal() {
     this.ticks_to_goal = this.ticks;
+    addTimeToGoal(this.ticks_to_goal);
   }
 
   park() {

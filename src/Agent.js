@@ -210,7 +210,7 @@ class Agent {
             console.log("Unknown stage: ", this.stage);
             break;
         }
-        break;   
+        break;
       default:
         console.log("Unknown strategy: ", this.strategy);
     }

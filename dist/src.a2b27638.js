@@ -2059,8 +2059,7 @@ var timeToParkChart = new Chart(timeToParkCanvas, {
     },
     datasets: {
       line: {
-        pointRadius: 0 // disable for all `'line'` datasets
-
+        pointRadius: 0
       }
     }
   }
@@ -2089,8 +2088,7 @@ var timeToGoalChart = new Chart(timeToGoalCanvas, {
     },
     datasets: {
       line: {
-        pointRadius: 0 // disable for all `'line'` datasets
-
+        pointRadius: 0
       }
     }
   }

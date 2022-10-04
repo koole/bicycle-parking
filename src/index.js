@@ -115,9 +115,9 @@ const timeToParkChart = new Chart(timeToParkCanvas, {
       }]
     },
     datasets: {
-        line: {
-            pointRadius: 0 // disable for all `'line'` datasets
-        }
+      line: {
+        pointRadius: 0
+      }
     },
   }
 });
@@ -145,9 +145,9 @@ const timeToGoalChart = new Chart(timeToGoalCanvas, {
       }]
     },
     datasets: {
-        line: {
-            pointRadius: 0 // disable for all `'line'` datasets
-        }
+      line: {
+        pointRadius: 0
+      }
     },
   }
 });

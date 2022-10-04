@@ -1,12 +1,13 @@
 const MAX_PARKED_BIKES = 8;
 
 class Cell {
-  constructor(world, type, x, y) {
+  constructor(world, type, x, y, allowed_direction) {
     this.type = type;
     this.x = x;
     this.y = y;
     this.agents = [];
     this.bikes = 0;
+    this.allowed_direction = allowed_direction;
   }
 
   // Check if agent can be added to this cell
@@ -142,6 +143,15 @@ class Cell {
     //   // reset transparency
     //   ctx.globalAlpha = 1;
     // }
+
+    // !! Draws directions in which agents are allowed to move
+    // ctx.font = '14px monospace';
+    // ctx.fillStyle = "black";
+    // // make text slightly transparent
+    // ctx.globalAlpha = 0.5;
+    // ctx.fillText(this.allowed_direction, canvas_x + 2, canvas_y + 24);
+    // // reset transparency
+    // ctx.globalAlpha = 1;
   }
 
   // Drawing utilities, nothing important after this point :)
@@ -171,6 +181,9 @@ class Cell {
         break;
       case "BUILDING_ENTRANCE":
         color = "#7ba6f7";
+        break;
+      case "EXIT":
+        color = "#e7b1b6";
         break;
     }
     return color;

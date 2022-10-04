@@ -1,3 +1,5 @@
+import { addTimeToPark, addTimeToGoal } from "./index";
+
 class Agent {
   constructor(world, type, cell, strategy) {
     this.world = world;
@@ -12,12 +14,26 @@ class Agent {
     this.path = null;
     this.calculatingPath = false;
     this.stage = "ENTERING";
+
+    this.ticks = 0;
+    this.ticks_to_parked = null;
+    this.ticks_to_goal = null;
   }
 
   getPathfinder() {
     return this.type === "BIKE"
       ? this.world.bikePathfinder
       : this.world.pedestrianPathfinder;
+  }
+
+  hasParked() {
+    this.ticks_to_parked = this.ticks;
+    addTimeToPark(this.ticks_to_parked);
+  }
+
+  hasReachedGoal() {
+    this.ticks_to_goal = this.ticks;
+    addTimeToGoal(this.ticks_to_goal);
   }
 
   park() {
@@ -30,6 +46,7 @@ class Agent {
         this.parked_cell = this.cell;
         this.type = "PEDESTRIAN";
         this.cell.addBike();
+        this.hasParked();
         return true;
       }
     }
@@ -66,7 +83,7 @@ class Agent {
           console.log("Agent has no way to reach its goal");
         }
         this.calculatingPath = false;
-        if (callback) {
+        if (callback && path !== null) {
           callback();
         }
       }
@@ -84,6 +101,7 @@ class Agent {
 
   // WORK ON AGENT STRATS HERE -->
   act() {
+    this.ticks += 1;
     switch (this.strategy) {
       case "TEST_STRATEGY":
         switch (this.stage) {
@@ -116,7 +134,8 @@ class Agent {
             }
             break;
           case "LEAVING_PARKING":
-            this.changeMoveTo(12, 20, () => {
+            const buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+            this.changeMoveTo(buildingCell.x, buildingCell.y, () => {
               this.stage = "MOVING_TO_GOAL";
             });
             break;
@@ -133,6 +152,7 @@ class Agent {
               this.makeMove(nextCell);
             } else {
               this.stage = "IN_GOAL";
+              this.hasReachedGoal();
             }
             break;
           case "IN_GOAL":

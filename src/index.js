@@ -185,7 +185,7 @@ export function addTimeToPark(strategy, data) {
   // Create array of 0's, with length of number of strategies,
   // and set the index of the strategy to the data 
   const index = selectedStrategies.indexOf(strategy)
-  const row = Array(selectedStrategies.length).fill(0);
+  const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToParkData.push(row);
   if (realtimeChart) {

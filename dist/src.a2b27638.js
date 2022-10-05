@@ -2144,7 +2144,7 @@ function addTimeToPark(strategy, data) {
   // Create array of 0's, with length of number of strategies,
   // and set the index of the strategy to the data 
   var index = selectedStrategies.indexOf(strategy);
-  var row = Array(selectedStrategies.length).fill(0);
+  var row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToParkData.push(row);
 

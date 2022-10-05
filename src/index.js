@@ -8,13 +8,19 @@ const STRATEGIES = [
   "PARKING_LOT_PREFERENCE"
 ]
 
-var timeToParkData = [STRATEGIES];
-var timeToGoalData = [STRATEGIES];
+// Set default selected strategies
+let selectedStrategies = [
+  "DEFAULT",
+  // "PARKING_LOT_PREFERENCE"
+];
+
+var timeToParkData = [selectedStrategies];
+var timeToGoalData = [selectedStrategies];
 
 function reset() {
   world = new World(worldmap, mapDirection);
-  timeToParkData = [STRATEGIES];
-  timeToGoalData = [STRATEGIES];
+  timeToParkData = [selectedStrategies];
+  timeToGoalData = [selectedStrategies];
   DrawChart('time-to-park', timeToParkData);
   DrawChart('time-to-goal', timeToGoalData);
 }
@@ -23,7 +29,16 @@ function strategyName(strategy) {
   return strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, (s, c, d) => c ? c.toUpperCase() : ' ' + d.toUpperCase());
 }
 
-let selectedStrategies = STRATEGIES;
+const squareSize = 32;
+
+let tickdelay = 20;
+let spawnspeed = 0.2;
+let paused = false;
+var realtimeChart = true;
+
+// **********************************
+// Controls
+// **********************************
 
 // Reset button
 document.getElementById("reset").addEventListener("click", () => {
@@ -39,7 +54,8 @@ STRATEGIES.forEach(strategy => {
   checkbox.classList.add("form-check-input");
   checkbox.type = "checkbox";
   checkbox.id = strategy;
-  checkbox.checked = true;
+  // Check the box if it's in selectedStrategies
+  checkbox.checked = selectedStrategies.includes(strategy);
   checkbox.addEventListener("change", () => {
     if (checkbox.checked) {
       selectedStrategies.push(strategy);
@@ -57,13 +73,7 @@ STRATEGIES.forEach(strategy => {
   container.appendChild(label);
 });
 
-const squareSize = 32;
-
-let tickdelay = 20;
-let spawnspeed = 0.2;
-let paused = false;
-var realtimeChart = true;
-
+// Control if the chart is updated in realtime
 const realtimeChartCheckbox = document.getElementById("realtime-charts");
 realtimeChartCheckbox.addEventListener("change", () => {
   if (realtimeChartCheckbox.checked) {
@@ -73,11 +83,7 @@ realtimeChartCheckbox.addEventListener("change", () => {
   }
 });
 
-// **********************************
-// Controls
-// **********************************
-
-// Control play/pause button with "play-pause" id
+// Control play/pause button
 document.getElementById("play-pause").addEventListener("click", () => {
   if (document.getElementById("play-pause").innerHTML === "Play") {
     document.getElementById("play-pause").innerHTML = "Pause";
@@ -88,7 +94,7 @@ document.getElementById("play-pause").addEventListener("click", () => {
   }
 });
 
-// Control tickdelay using range input with id "tickdelay"
+// Control tickdelay
 document.getElementById("tickdelay").addEventListener("input", (e) => {
   tickdelay = e.target.value;
 });

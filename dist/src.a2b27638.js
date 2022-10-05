@@ -2033,14 +2033,17 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var STRATEGIES = ["DEFAULT", "PARKING_LOT_PREFERENCE"];
-var timeToParkData = [STRATEGIES];
-var timeToGoalData = [STRATEGIES];
+var STRATEGIES = ["DEFAULT", "PARKING_LOT_PREFERENCE"]; // Set default selected strategies
+
+var selectedStrategies = ["DEFAULT" // "PARKING_LOT_PREFERENCE"
+];
+var timeToParkData = [selectedStrategies];
+var timeToGoalData = [selectedStrategies];
 
 function reset() {
   world = new _World.default(_map.default, _map.mapDirection);
-  timeToParkData = [STRATEGIES];
-  timeToGoalData = [STRATEGIES];
+  timeToParkData = [selectedStrategies];
+  timeToGoalData = [selectedStrategies];
   DrawChart('time-to-park', timeToParkData);
   DrawChart('time-to-goal', timeToGoalData);
 }
@@ -2051,7 +2054,14 @@ function strategyName(strategy) {
   });
 }
 
-var selectedStrategies = STRATEGIES; // Reset button
+var squareSize = 32;
+var tickdelay = 20;
+var spawnspeed = 0.2;
+var paused = false;
+var realtimeChart = true; // **********************************
+// Controls
+// **********************************
+// Reset button
 
 document.getElementById("reset").addEventListener("click", function () {
   reset();
@@ -2064,8 +2074,9 @@ STRATEGIES.forEach(function (strategy) {
   var checkbox = document.createElement("input");
   checkbox.classList.add("form-check-input");
   checkbox.type = "checkbox";
-  checkbox.id = strategy;
-  checkbox.checked = true;
+  checkbox.id = strategy; // Check the box if it's in selectedStrategies
+
+  checkbox.checked = selectedStrategies.includes(strategy);
   checkbox.addEventListener("change", function () {
     if (checkbox.checked) {
       selectedStrategies.push(strategy);
@@ -2084,12 +2095,8 @@ STRATEGIES.forEach(function (strategy) {
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
   container.appendChild(label);
-});
-var squareSize = 32;
-var tickdelay = 20;
-var spawnspeed = 0.2;
-var paused = false;
-var realtimeChart = true;
+}); // Control if the chart is updated in realtime
+
 var realtimeChartCheckbox = document.getElementById("realtime-charts");
 realtimeChartCheckbox.addEventListener("change", function () {
   if (realtimeChartCheckbox.checked) {
@@ -2097,10 +2104,7 @@ realtimeChartCheckbox.addEventListener("change", function () {
   } else {
     realtimeChart = false;
   }
-}); // **********************************
-// Controls
-// **********************************
-// Control play/pause button with "play-pause" id
+}); // Control play/pause button
 
 document.getElementById("play-pause").addEventListener("click", function () {
   if (document.getElementById("play-pause").innerHTML === "Play") {
@@ -2110,7 +2114,7 @@ document.getElementById("play-pause").addEventListener("click", function () {
     document.getElementById("play-pause").innerHTML = "Play";
     paused = true;
   }
-}); // Control tickdelay using range input with id "tickdelay"
+}); // Control tickdelay
 
 document.getElementById("tickdelay").addEventListener("input", function (e) {
   tickdelay = e.target.value;

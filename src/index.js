@@ -48,7 +48,7 @@ function gameTick() {
   if (!paused) {
     // Spawn new agent sometimes
     if (Math.random() < spawnspeed) {
-      world.spawnAgent("TEST_STRATEGY");
+      world.spawnAgent("PARKING_LOT_PREFERENCE");
     }
 
     // Move current agents
@@ -89,69 +89,80 @@ requestAnimationFrame(drawCanvas);
 // Draw graphs for time-to-park and time-to-goal
 // **********************************
 
-const timeToParkCanvas = document.getElementById('time-to-park').getContext('2d');
-const timeToGoalCanvas = document.getElementById('time-to-goal').getContext('2d');
+const timeToParkCanvas = document
+  .getElementById("time-to-park")
+  .getContext("2d");
+const timeToGoalCanvas = document
+  .getElementById("time-to-goal")
+  .getContext("2d");
 
 const timeToParkChart = new Chart(timeToParkCanvas, {
-  type: 'line',
+  type: "line",
   data: {
-    datasets: [{
-      label: 'Time to park',
-      data: [],
-      backgroundColor: 'rgba(255, 99, 132, 0.2)',
-      borderColor: 'rgba(255, 99, 132, 1)',
-      borderWidth: 1,
-      pointStyle: "cross"
-    }]
+    datasets: [
+      {
+        label: "Time to park",
+        data: [],
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
+        borderColor: "rgba(255, 99, 132, 1)",
+        borderWidth: 1,
+        pointStyle: "cross",
+      },
+    ],
   },
   options: {
     animation: false,
     spanGaps: true,
     scales: {
-      yAxes: [{
-        ticks: {
-          beginAtZero: true
-        }
-      }]
+      yAxes: [
+        {
+          ticks: {
+            beginAtZero: true,
+          },
+        },
+      ],
     },
     datasets: {
       line: {
-        pointRadius: 0
-      }
+        pointRadius: 0,
+      },
     },
-  }
+  },
 });
 
 const timeToGoalChart = new Chart(timeToGoalCanvas, {
-  type: 'line',
+  type: "line",
   data: {
-    datasets: [{
-      label: 'Time to goal',
-      data: [],
-      backgroundColor: 'rgba(255, 99, 132, 0.2)',
-      borderColor: 'rgba(255, 99, 132, 1)',
-      borderWidth: 1,
-      pointStyle: "cross"
-    }]
+    datasets: [
+      {
+        label: "Time to goal",
+        data: [],
+        backgroundColor: "rgba(255, 99, 132, 0.2)",
+        borderColor: "rgba(255, 99, 132, 1)",
+        borderWidth: 1,
+        pointStyle: "cross",
+      },
+    ],
   },
   options: {
     animation: false,
     spanGaps: true,
     scales: {
-      yAxes: [{
-        ticks: {
-          beginAtZero: true
-        }
-      }]
+      yAxes: [
+        {
+          ticks: {
+            beginAtZero: true,
+          },
+        },
+      ],
     },
     datasets: {
       line: {
-        pointRadius: 0
-      }
+        pointRadius: 0,
+      },
     },
-  }
+  },
 });
-
 
 export function addTimeToPark(data) {
   timeToParkChart.data.labels.push(timeToParkChart.data.labels.length);
@@ -168,4 +179,3 @@ export function addTimeToGoal(data) {
   });
   timeToGoalChart.update();
 }
-

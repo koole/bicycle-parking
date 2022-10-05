@@ -1737,7 +1737,8 @@ var World = /*#__PURE__*/function () {
     _classCallCheck(this, World);
 
     this.state = [];
-    this.agents = []; // Setup initial state
+    this.agents = [];
+    this.tickCount = 0; // Setup initial state
 
     var rows = worldmap.split("\n").filter(function (row) {
       return row.length > 0;
@@ -1884,6 +1885,7 @@ var World = /*#__PURE__*/function () {
   }, {
     key: "tick",
     value: function tick() {
+      this.tickCount++;
       this.agents.sort(function () {
         return 0.5 - Math.random();
       });
@@ -1894,7 +1896,12 @@ var World = /*#__PURE__*/function () {
       try {
         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var agent = _step2.value;
-          agent.act();
+
+          if (agent.type === "BIKE") {
+            agent.act();
+          } else if (agent.type === "PEDESTRIAN" && this.tickCount % 2 === 0) {
+            agent.act();
+          }
         }
       } catch (err) {
         _iterator2.e(err);
@@ -1956,6 +1963,12 @@ function reset() {
   DrawChart('time-to-goal', timeToGoalData);
 }
 
+function strategyName(strategy) {
+  return strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, function (s, c, d) {
+    return c ? c.toUpperCase() : ' ' + d.toUpperCase();
+  });
+}
+
 var selectedStrategies = STRATEGIES; // Reset button
 
 document.getElementById("reset").addEventListener("click", function () {
@@ -1985,9 +1998,7 @@ STRATEGIES.forEach(function (strategy) {
   var label = document.createElement("label");
   label.htmlFor = strategy;
   label.classList.add("form-check-label");
-  label.appendChild(document.createTextNode(strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, function (s, c, d) {
-    return c ? c.toUpperCase() : ' ' + d.toUpperCase();
-  })));
+  label.appendChild(document.createTextNode(strategyName(strategy)));
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
   container.appendChild(label);

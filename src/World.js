@@ -26,6 +26,8 @@ class World {
     this.state = [];
     this.agents = [];
 
+    this.tickCount = 0;
+
     // Setup initial state
     const rows = worldmap.split("\n").filter((row) => row.length > 0);
     const directionRows = mapDirection.split("\n").filter((row) => row.length > 0);
@@ -150,11 +152,16 @@ class World {
   }
 
   tick() {
+    this.tickCount++;
     this.agents.sort(function () {
       return 0.5 - Math.random();
     });
     for (const agent of this.agents) {
-      agent.act();
+      if(agent.type === "BIKE") {
+        agent.act();
+      } else if(agent.type === "PEDESTRIAN" && this.tickCount % 2 === 0) {
+        agent.act();
+      }
     }
   }
 }

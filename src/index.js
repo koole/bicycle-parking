@@ -19,6 +19,10 @@ function reset() {
   DrawChart('time-to-goal', timeToGoalData);
 }
 
+function strategyName(strategy) {
+  return strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, (s, c, d) => c ? c.toUpperCase() : ' ' + d.toUpperCase());
+}
+
 let selectedStrategies = STRATEGIES;
 
 // Reset button
@@ -47,7 +51,7 @@ STRATEGIES.forEach(strategy => {
   const label = document.createElement("label");
   label.htmlFor = strategy;
   label.classList.add("form-check-label");
-  label.appendChild(document.createTextNode(strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, (s, c, d) => c ? c.toUpperCase() : ' ' + d.toUpperCase())));
+  label.appendChild(document.createTextNode(strategyName(strategy)));
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
   container.appendChild(label);

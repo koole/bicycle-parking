@@ -31,12 +31,12 @@ class Agent {
 
   hasParked() {
     this.ticks_to_parked = this.ticks;
-    addTimeToPark(this.ticks_to_parked);
+    addTimeToPark(this.strategy, this.ticks_to_parked);
   }
 
   hasReachedGoal() {
     this.ticks_to_goal = this.ticks;
-    addTimeToGoal(this.ticks_to_goal);
+    addTimeToGoal(this.strategy, this.ticks_to_goal);
   }
 
   park() {

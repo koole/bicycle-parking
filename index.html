@@ -1,30 +1,60 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Bicycle simulation</title>
-    <meta charset="UTF-8" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  </head>
 
-  <body>
-    <div class="d-flex">
-      <aside class="vh-100 overflow-auto p-3">
-        <div class="d-grid gap-2">
-          <button class="btn btn-primary mb-3" id="play-pause">Pause</button>
-        </div>
-        <label for="tickdelay" class="form-label">Game tick delay</label>
+<head>
+  <title>Bicycle simulation</title>
+  <meta charset="UTF-8" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+    crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+
+<body>
+  <div class="d-flex">
+    <aside class="vh-100 overflow-auto p-3">
+      <h5>Controls</h5>
+      <div class="d-grid gap-2">
+        <button class="btn btn-primary mb-3" id="play-pause">Pause</button>
+      </div>
+      <div class="d-grid gap-2">
+        <button class="btn btn-sm btn-danger mb-3" id="reset">Reset</button>
+      </div>
+      <h5>Options</h5>
+      <div class="mb-3">
+        <div class="form-label fw-bolder">Agent strategies</div>
+        <div id="strategy-checkboxes"></div>
+      </div>
+      <div class="mb-3">
+        <label for="tickdelay" class="form-label fw-bolder">Game tick delay</label>
         <input type="range" class="form-range" id="tickdelay">
-        <label for="spawnspeed" class="form-label">Spawn speed</label>
+      </div>
+      <div class="mb-3">
+        <label for="spawnspeed" class="form-label fw-bolder">Spawn speed</label>
         <input type="range" class="form-range" id="spawnspeed" min="0" max="1" value="0.2" step="0.01">
-        <canvas id="time-to-park" width="400" height="400"></canvas>
-        <canvas id="time-to-goal" width="400" height="400"></canvas>
-      </aside>
-      <main class="bg-light vh-100 overflow-auto p-3 w-100 d-flex">
-        <canvas id="canvas" class="mw-100 mx-auto"></canvas>
-      </main>
-    </div>
-    <script src="src/index.js"></script>
-  </body>
+      </div>
+      <h5>Charts</h5>
+      <div class="mb-3">
+        <div class="form-label fw-bolder">Chart rendering</div>
+        <input type="checkbox" class="form-check-input" id="realtime-charts" checked>
+        <label class="form-check-label" for="realtime-charts">Update charts<div class="text-muted">(slower performance)</div></label>
+      </div>
+      <div class="mb-3">
+        <div class="form-label fw-bolder">Time to park</div>
+        <div id="time-to-park"></div>
+      </div>
+      <div class="mb-3">
+        <div class="form-label fw-bolder">Time to goal</div>
+        <div id="time-to-goal"></div>
+      </div>
+    </aside>
+    <main class="bg-light vh-100 overflow-auto p-3 w-100">
+      <canvas id="canvas" class="mw-100 mx-auto"></canvas>
+    </main>
+  </div>
+  <script src="src/index.js"></script>
+</body>
+
 </html>

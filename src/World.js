@@ -22,7 +22,7 @@ function getDirectionArray(direction) {
 }
 
 class World {
-  constructor(worldmap, mapDirection) {
+  constructor(worldmap, mapDirection, selectedStrategies) {
     this.state = [];
     this.agents = [];
 

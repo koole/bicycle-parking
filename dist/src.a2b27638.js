@@ -377,6 +377,15 @@ var Cell = /*#__PURE__*/function () {
       // ctx.fillText(this.allowed_direction, canvas_x + 2, canvas_y + 24);
       // // reset transparency
       // ctx.globalAlpha = 1;
+      // !! Draw coordinates
+      // ctx.font = '11px monospace';
+      // ctx.fillStyle = "black";
+      // // make text slightly transparent
+      // ctx.globalAlpha = 0.5;
+      // ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
+      // ctx.fillText(this.y, canvas_x, canvas_y + 22);
+      // // reset transparency
+      // ctx.globalAlpha = 1;
 
     } // Drawing utilities, nothing important after this point :)
 
@@ -488,13 +497,13 @@ var Agent = /*#__PURE__*/function () {
     key: "hasParked",
     value: function hasParked() {
       this.ticks_to_parked = this.ticks;
-      (0, _index.addTimeToPark)(this.ticks_to_parked);
+      (0, _index.addTimeToPark)(this.strategy, this.ticks_to_parked);
     }
   }, {
     key: "hasReachedGoal",
     value: function hasReachedGoal() {
       this.ticks_to_goal = this.ticks;
-      (0, _index.addTimeToGoal)(this.ticks_to_goal);
+      (0, _index.addTimeToGoal)(this.strategy, this.ticks_to_goal);
     }
   }, {
     key: "park",
@@ -562,6 +571,7 @@ var Agent = /*#__PURE__*/function () {
 
       switch (this.strategy) {
         case "TEST_STRATEGY":
+        case "TEST_STRATEGY_2":
           switch (this.stage) {
             case "ENTERING":
               var parkingCell = this.world.getRandomCellOfType("PARKING");
@@ -1721,7 +1731,7 @@ function getDirectionArray(direction) {
 }
 
 var World = /*#__PURE__*/function () {
-  function World(worldmap, mapDirection) {
+  function World(worldmap, mapDirection, selectedStrategies) {
     var _this = this;
 
     _classCallCheck(this, World);
@@ -1934,10 +1944,67 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+var STRATEGIES = ["TEST_STRATEGY", "TEST_STRATEGY_2"];
+var timeToParkData = [STRATEGIES];
+var timeToGoalData = [STRATEGIES];
+
+function reset() {
+  world = new _World.default(_map.default, _map.mapDirection);
+  timeToParkData = [STRATEGIES];
+  timeToGoalData = [STRATEGIES];
+  DrawChart('time-to-park', timeToParkData);
+  DrawChart('time-to-goal', timeToGoalData);
+}
+
+var selectedStrategies = STRATEGIES; // Reset button
+
+document.getElementById("reset").addEventListener("click", function () {
+  reset();
+}); // Create HTML checkboxes for each strategy, and add them and remove them to selectedStrategies when enabled/disabled
+
+var strategyCheckboxes = document.getElementById("strategy-checkboxes");
+STRATEGIES.forEach(function (strategy) {
+  var container = document.createElement("div");
+  container.classList.add("form-check");
+  var checkbox = document.createElement("input");
+  checkbox.classList.add("form-check-input");
+  checkbox.type = "checkbox";
+  checkbox.id = strategy;
+  checkbox.checked = true;
+  checkbox.addEventListener("change", function () {
+    if (checkbox.checked) {
+      selectedStrategies.push(strategy);
+    } else {
+      selectedStrategies = selectedStrategies.filter(function (s) {
+        return s !== strategy;
+      });
+    }
+
+    reset();
+  });
+  var label = document.createElement("label");
+  label.htmlFor = strategy;
+  label.classList.add("form-check-label");
+  label.appendChild(document.createTextNode(strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, function (s, c, d) {
+    return c ? c.toUpperCase() : ' ' + d.toUpperCase();
+  })));
+  strategyCheckboxes.appendChild(container);
+  container.appendChild(checkbox);
+  container.appendChild(label);
+});
 var squareSize = 32;
-var tickdelay = 100;
+var tickdelay = 20;
 var spawnspeed = 0.2;
-var paused = false; // **********************************
+var paused = false;
+var realtimeChart = true;
+var realtimeChartCheckbox = document.getElementById("realtime-charts");
+realtimeChartCheckbox.addEventListener("change", function () {
+  if (realtimeChartCheckbox.checked) {
+    realtimeChart = true;
+  } else {
+    realtimeChart = false;
+  }
+}); // **********************************
 // Controls
 // **********************************
 // Control play/pause button with "play-pause" id
@@ -1970,7 +2037,11 @@ function gameTick() {
   if (!paused) {
     // Spawn new agent sometimes
     if (Math.random() < spawnspeed) {
-      world.spawnAgent("TEST_STRATEGY");
+      // Pick random strategy from selectedStrategies
+      if (selectedStrategies.length > 0) {
+        var strategy = selectedStrategies[Math.floor(Math.random() * selectedStrategies.length)];
+        world.spawnAgent(strategy);
+      }
     } // Move current agents
 
 
@@ -2033,81 +2104,64 @@ requestAnimationFrame(drawCanvas); // **********************************
 // Draw graphs for time-to-park and time-to-goal
 // **********************************
 
-var timeToParkCanvas = document.getElementById('time-to-park').getContext('2d');
-var timeToGoalCanvas = document.getElementById('time-to-goal').getContext('2d');
-var timeToParkChart = new Chart(timeToParkCanvas, {
-  type: 'line',
-  data: {
-    datasets: [{
-      label: 'Time to park',
-      data: [],
-      backgroundColor: 'rgba(255, 99, 132, 0.2)',
-      borderColor: 'rgba(255, 99, 132, 1)',
-      borderWidth: 1,
-      pointStyle: "cross"
-    }]
-  },
-  options: {
-    animation: false,
-    spanGaps: true,
-    scales: {
-      yAxes: [{
-        ticks: {
-          beginAtZero: true
-        }
-      }]
-    },
-    datasets: {
-      line: {
-        pointRadius: 0
-      }
-    }
-  }
+google.charts.load('current', {
+  'packages': ['corechart']
 });
-var timeToGoalChart = new Chart(timeToGoalCanvas, {
-  type: 'line',
-  data: {
-    datasets: [{
-      label: 'Time to goal',
-      data: [],
-      backgroundColor: 'rgba(255, 99, 132, 0.2)',
-      borderColor: 'rgba(255, 99, 132, 1)',
-      borderWidth: 1,
-      pointStyle: "cross"
-    }]
-  },
-  options: {
-    animation: false,
-    spanGaps: true,
-    scales: {
-      yAxes: [{
-        ticks: {
-          beginAtZero: true
-        }
-      }]
-    },
-    datasets: {
-      line: {
-        pointRadius: 0
-      }
-    }
-  }
+google.charts.setOnLoadCallback(function () {
+  return DrawChart('time-to-park', timeToParkData);
 });
 
-function addTimeToPark(data) {
-  timeToParkChart.data.labels.push(timeToParkChart.data.labels.length);
-  timeToParkChart.data.datasets.forEach(function (dataset) {
-    dataset.data.push(data);
-  });
-  timeToParkChart.update();
+function DrawChart(id, data) {
+  // Create the data table.
+  var data = google.visualization.arrayToDataTable(data); // Set chart options
+
+  var options = {
+    'width': "100%",
+    'height': 300,
+    bar: {
+      gap: 0
+    },
+    chartArea: {
+      'width': '100%',
+      'height': '80%'
+    },
+    legend: {
+      'position': 'bottom'
+    },
+    interpolateNulls: false,
+    histogram: {
+      maxNumBuckets: 50,
+      minValue: 0,
+      maxValue: 150
+    }
+  }; // Instantiate and draw our chart, passing in some options.
+
+  var chart = new google.visualization.Histogram(document.getElementById(id));
+  chart.draw(data, options);
 }
 
-function addTimeToGoal(data) {
-  timeToGoalChart.data.labels.push(timeToGoalChart.data.labels.length);
-  timeToGoalChart.data.datasets.forEach(function (dataset) {
-    dataset.data.push(data);
-  });
-  timeToGoalChart.update();
+function addTimeToPark(strategy, data) {
+  // Create array of 0's, with length of number of strategies,
+  // and set the index of the strategy to the data 
+  var index = selectedStrategies.indexOf(strategy);
+  var row = Array(selectedStrategies.length).fill(0);
+  row[index] = data;
+  timeToParkData.push(row);
+
+  if (realtimeChart) {
+    DrawChart('time-to-park', timeToParkData);
+  }
+}
+
+function addTimeToGoal(strategy, data) {
+  var index = selectedStrategies.indexOf(strategy);
+  var row = Array(selectedStrategies.length).fill(null);
+  row[index] = data;
+  timeToGoalData.push(row);
+
+  if (realtimeChart) {
+    DrawChart('time-to-goal', timeToGoalData);
+  }
 }
 },{"./styles.css":"src/styles.css","./map":"src/map.js","./World":"src/World.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -2137,7 +2191,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59650" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53757" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

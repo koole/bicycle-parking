@@ -28,12 +28,12 @@ class Agent {
 
   hasParked() {
     this.ticks_to_parked = this.ticks;
-    addTimeToPark(this.ticks_to_parked);
+    addTimeToPark(this.strategy, this.ticks_to_parked);
   }
 
   hasReachedGoal() {
     this.ticks_to_goal = this.ticks;
-    addTimeToGoal(this.ticks_to_goal);
+    addTimeToGoal(this.strategy, this.ticks_to_goal);
   }
 
   park() {
@@ -104,6 +104,7 @@ class Agent {
     this.ticks += 1;
     switch (this.strategy) {
       case "TEST_STRATEGY":
+      case "TEST_STRATEGY_2":
         switch (this.stage) {
           case "ENTERING":
             const parkingCell = this.world.getRandomCellOfType("PARKING");

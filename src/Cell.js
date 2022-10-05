@@ -152,6 +152,16 @@ class Cell {
     // ctx.fillText(this.allowed_direction, canvas_x + 2, canvas_y + 24);
     // // reset transparency
     // ctx.globalAlpha = 1;
+
+    // !! Draw coordinates
+    // ctx.font = '11px monospace';
+    // ctx.fillStyle = "black";
+    // // make text slightly transparent
+    // ctx.globalAlpha = 0.5;
+    // ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
+    // ctx.fillText(this.y, canvas_x, canvas_y + 22);
+    // // reset transparency
+    // ctx.globalAlpha = 1;
   }
 
   // Drawing utilities, nothing important after this point :)

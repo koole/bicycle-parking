@@ -477,7 +477,10 @@ var Agent = /*#__PURE__*/function () {
     this.cell = cell;
     this.parked_cell = null;
     this.strategy = strategy;
-    this.move_to = null; // This is for storing the calculated path
+    this.move_to = null;
+    this.incoming = true; // Whether the agent is entering the sim or leaving.
+
+    this.lotPref = null; // This is for storing the calculated path
     // and not recalculating it every tick
 
     this.path = null;
@@ -560,121 +563,200 @@ var Agent = /*#__PURE__*/function () {
         this.world.moveAgent(this, nextCell);
         this.path.shift();
       }
-    } // WORK ON AGENT STRATS HERE -->
+    } ///////////////////////
+    // CONTROL FUNCTIONS //
+    ///////////////////////
 
   }, {
-    key: "act",
-    value: function act() {
+    key: "exiting",
+    value: function exiting() {
       var _this2 = this;
 
-      this.ticks += 1;
+      this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
+        _this2.stage = "MOVING_TO_EXIT";
+      });
+    }
+  }, {
+    key: "moveParkingLot",
+    value: function moveParkingLot() {
+      if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+        var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+        this.makeMove(nextCell);
+      } else {
+        if (this.incoming == true) {
+          this.stage = "PARKING";
+        } else {
+          this.stage = "UNPARKING";
+        }
+      }
+    }
+  }, {
+    key: "parking",
+    value: function parking() {
+      if (this.park()) {
+        this.stage = "LEAVING_PARKING";
+      } else {
+        console.log("Could not park");
+      }
+    }
+  }, {
+    key: "leavingParkingLot",
+    value: function leavingParkingLot() {
+      var _this3 = this;
 
-      switch (this.strategy) {
-        case "TEST_STRATEGY":
-        case "TEST_STRATEGY_2":
-          switch (this.stage) {
-            case "ENTERING":
-              var parkingCell = this.world.getRandomCellOfType("PARKING");
-              this.changeMoveTo(parkingCell.x, parkingCell.y, function () {
-                _this2.stage = "MOVING_TO_PARKING_ENTERING";
-              });
-              break;
+      var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+      this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+        _this3.stage = "MOVING_TO_GOAL";
+      });
+    }
+  }, {
+    key: "moveToGoal",
+    value: function moveToGoal() {
+      if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+        var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+        this.makeMove(nextCell);
+      } else {
+        this.stage = "IN_GOAL";
+        this.hasReachedGoal();
+      }
+    }
+  }, {
+    key: "inGoal",
+    value: function inGoal() {
+      if (Math.random() < 0.01) {
+        this.stage = "LEAVING_GOAL";
+        this.incoming = false;
+      }
+    }
+  }, {
+    key: "leavingGoal",
+    value: function leavingGoal() {
+      var _this4 = this;
 
-            case "MOVING_TO_PARKING_ENTERING":
-              if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-                var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-                this.makeMove(nextCell);
-              } else {
-                this.stage = "PARKING";
-              }
+      this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
+        _this4.stage = "MOVING_TO_PARKING_LEAVING";
+      });
+    } ///////////////////////
+    //    STRATEGIES     //
+    ///////////////////////
+    // 1) default: random lot, random spot.
+    // 2) parkingLotPreference: specific parking lot, random spot.
+    // 3) parkingLotSpotPreference: specific lot and spot.
+    // ADD MORE!
 
-              break;
+  }, {
+    key: "default",
+    value: function _default() {
+      var _this5 = this;
 
-            case "PARKING":
-              if (this.park()) {
-                this.stage = "LEAVING_PARKING";
-              } else {
-                console.log("Could not park");
-              }
+      switch (this.stage) {
+        case "ENTERING":
+          var parkingCell = this.world.getRandomCellOfType("PARKING");
+          this.changeMoveTo(parkingCell.x, parkingCell.y, function () {
+            _this5.stage = "MOVING_TO_PARKING_ENTERING";
+          });
+          break;
 
-              break;
+        case "MOVING_TO_PARKING_ENTERING":
+          this.moveParkingLot();
+          break;
 
-            case "LEAVING_PARKING":
-              var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
-              this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
-                _this2.stage = "MOVING_TO_GOAL";
-              });
-              break;
+        case "PARKING":
+          this.parking();
+          break;
 
-            case "MOVING_TO_GOAL":
-              if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-                var _nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+        case "LEAVING_PARKING":
+          this.leavingParkingLot();
+          break;
 
-                this.makeMove(_nextCell);
-              } else {
-                this.stage = "IN_GOAL";
-                this.hasReachedGoal();
-              }
+        case "MOVING_TO_GOAL":
+          this.moveToGoal();
+          break;
 
-              break;
+        case "IN_GOAL":
+          this.inGoal();
+          break;
 
-            case "IN_GOAL":
-              // Todo: Wait for a bit
-              this.stage = "LEAVING_GOAL";
-              break;
+        case "LEAVING_GOAL":
+          this.leavingGoal();
+          break;
 
-            case "LEAVING_GOAL":
-              this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
-                _this2.stage = "MOVING_TO_PARKING_LEAVING";
-              });
-              break;
+        case "MOVING_TO_PARKING_LEAVING":
+          this.moveParkingLot();
+          break;
 
-            case "MOVING_TO_PARKING_LEAVING":
-              if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-                var _nextCell2 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+        case "UNPARKING":
+          this.unpark();
+          this.stage = "LEAVING";
+          break;
 
-                this.makeMove(_nextCell2);
-              } else {
-                this.stage = "UNPARKING";
-              }
+        case "LEAVING":
+          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
+            _this5.stage = "MOVING_TO_EXIT";
+          });
+          break;
 
-              break;
-
-            case "UNPARKING":
-              this.unpark();
-              this.stage = "LEAVING";
-              break;
-
-            case "LEAVING":
-              this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
-                _this2.stage = "MOVING_TO_EXIT";
-              });
-              break;
-
-            case "MOVING_TO_EXIT":
-              if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-                var _nextCell3 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-                this.makeMove(_nextCell3);
-              } else {
-                this.stage = "EXITED";
-              }
-
-              break;
-
-            case "EXITED":
-              this.world.removeAgent(this);
-              break;
-
-            default:
-              console.log("Unknown stage: ", this.stage);
-              break;
+        case "MOVING_TO_EXIT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            this.makeMove(nextCell);
+          } else {
+            this.stage = "EXITED";
           }
 
           break;
 
+        case "EXITED":
+          this.world.removeAgent(this);
+          break;
+
         default:
-          console.log("Unknown strategy: ", this.strategy);
+          console.log("Unknown stage: ", this.stage);
+          break;
+      }
+    }
+  }, {
+    key: "parkingLotPreference",
+    value: function parkingLotPreference() {
+      var _this6 = this;
+
+      switch (this.stage) {
+        case "ENTERING":
+          var parkingLots = ["top", "middle", "left", "right"]; // this.lotPref = parkingLots[Math.floor(Math.random() * 0)];
+
+          this.changeMoveTo(19, 5, function () {
+            _this6.stage = "MOVING_TO_PARKING_ENTERING";
+          });
+          break;
+
+        case "MOVING_TO_PARKING_ENTERING":
+          this.moveParkingLot();
+
+          if (this.lotPref == "top") {
+            this.changeMoveTo(Math.floor(Math.random() * (29 - 20 + 1)) + 20, Math.floor(Math.random() * (6 - 4 + 1)) + 4);
+          }
+
+          this.strategy == "DEFAULT";
+          break;
+
+        default:
+          console.log("NO STAGE");
+      }
+    } ////////////////////////
+    // STRATEGY EXECUTION //
+    ////////////////////////
+
+  }, {
+    key: "act",
+    value: function act() {
+      this.ticks += 1;
+
+      if (this.strategy == "DEFAULT") {
+        this.default();
+      } else if (this.strategy == "PARKING_LOT_PREFERENCE") {
+        this.parkingLotPreference();
+      } else {
+        console.log("Unknown strategy: ", this.strategy);
       }
     }
   }]);
@@ -682,8 +764,8 @@ var Agent = /*#__PURE__*/function () {
   return Agent;
 }();
 
-var _default = Agent;
-exports.default = _default;
+var _default2 = Agent;
+exports.default = _default2;
 },{"./index":"src/index.js"}],"node_modules/easystarjs/src/instance.js":[function(require,module,exports) {
 /**
  * Represents a single instance of EasyStar.
@@ -1951,14 +2033,17 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var STRATEGIES = ["TEST_STRATEGY", "TEST_STRATEGY_2"];
-var timeToParkData = [STRATEGIES];
-var timeToGoalData = [STRATEGIES];
+var STRATEGIES = ["DEFAULT", "PARKING_LOT_PREFERENCE"]; // Set default selected strategies
+
+var selectedStrategies = ["DEFAULT" // "PARKING_LOT_PREFERENCE"
+];
+var timeToParkData = [selectedStrategies];
+var timeToGoalData = [selectedStrategies];
 
 function reset() {
   world = new _World.default(_map.default, _map.mapDirection);
-  timeToParkData = [STRATEGIES];
-  timeToGoalData = [STRATEGIES];
+  timeToParkData = [selectedStrategies];
+  timeToGoalData = [selectedStrategies];
   DrawChart('time-to-park', timeToParkData);
   DrawChart('time-to-goal', timeToGoalData);
 }
@@ -1969,7 +2054,14 @@ function strategyName(strategy) {
   });
 }
 
-var selectedStrategies = STRATEGIES; // Reset button
+var squareSize = 32;
+var tickdelay = 20;
+var spawnspeed = 0.2;
+var paused = false;
+var realtimeChart = true; // **********************************
+// Controls
+// **********************************
+// Reset button
 
 document.getElementById("reset").addEventListener("click", function () {
   reset();
@@ -1982,8 +2074,9 @@ STRATEGIES.forEach(function (strategy) {
   var checkbox = document.createElement("input");
   checkbox.classList.add("form-check-input");
   checkbox.type = "checkbox";
-  checkbox.id = strategy;
-  checkbox.checked = true;
+  checkbox.id = strategy; // Check the box if it's in selectedStrategies
+
+  checkbox.checked = selectedStrategies.includes(strategy);
   checkbox.addEventListener("change", function () {
     if (checkbox.checked) {
       selectedStrategies.push(strategy);
@@ -2002,12 +2095,8 @@ STRATEGIES.forEach(function (strategy) {
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
   container.appendChild(label);
-});
-var squareSize = 32;
-var tickdelay = 20;
-var spawnspeed = 0.2;
-var paused = false;
-var realtimeChart = true;
+}); // Control if the chart is updated in realtime
+
 var realtimeChartCheckbox = document.getElementById("realtime-charts");
 realtimeChartCheckbox.addEventListener("change", function () {
   if (realtimeChartCheckbox.checked) {
@@ -2015,10 +2104,7 @@ realtimeChartCheckbox.addEventListener("change", function () {
   } else {
     realtimeChart = false;
   }
-}); // **********************************
-// Controls
-// **********************************
-// Control play/pause button with "play-pause" id
+}); // Control play/pause button
 
 document.getElementById("play-pause").addEventListener("click", function () {
   if (document.getElementById("play-pause").innerHTML === "Play") {
@@ -2028,7 +2114,7 @@ document.getElementById("play-pause").addEventListener("click", function () {
     document.getElementById("play-pause").innerHTML = "Play";
     paused = true;
   }
-}); // Control tickdelay using range input with id "tickdelay"
+}); // Control tickdelay
 
 document.getElementById("tickdelay").addEventListener("input", function (e) {
   tickdelay = e.target.value;
@@ -2202,7 +2288,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53757" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61779" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

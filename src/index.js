@@ -5,8 +5,11 @@ import World from "./World";
 
 const STRATEGIES = [
   "DEFAULT",
-  "PARKING_LOT_PREFERENCE"
-]
+  "lotPref_NORTH",
+  "lotPref_EAST",
+  "lotPref_MID",
+  "lotPref_WEST",
+];
 
 // Set default selected strategies
 let selectedStrategies = [
@@ -21,12 +24,16 @@ function reset() {
   world = new World(worldmap, mapDirection);
   timeToParkData = [selectedStrategies];
   timeToGoalData = [selectedStrategies];
-  DrawChart('time-to-park', timeToParkData);
-  DrawChart('time-to-goal', timeToGoalData);
+  DrawChart("time-to-park", timeToParkData);
+  DrawChart("time-to-goal", timeToGoalData);
 }
 
 function strategyName(strategy) {
-  return strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, (s, c, d) => c ? c.toUpperCase() : ' ' + d.toUpperCase());
+  return strategy
+    .toLowerCase()
+    .replace(/^_*(.)|_+(.)/g, (s, c, d) =>
+      c ? c.toUpperCase() : " " + d.toUpperCase()
+    );
 }
 
 const squareSize = 32;
@@ -47,7 +54,7 @@ document.getElementById("reset").addEventListener("click", () => {
 
 // Create HTML checkboxes for each strategy, and add them and remove them to selectedStrategies when enabled/disabled
 const strategyCheckboxes = document.getElementById("strategy-checkboxes");
-STRATEGIES.forEach(strategy => {
+STRATEGIES.forEach((strategy) => {
   const container = document.createElement("div");
   container.classList.add("form-check");
   const checkbox = document.createElement("input");
@@ -60,7 +67,7 @@ STRATEGIES.forEach(strategy => {
     if (checkbox.checked) {
       selectedStrategies.push(strategy);
     } else {
-      selectedStrategies = selectedStrategies.filter(s => s !== strategy);
+      selectedStrategies = selectedStrategies.filter((s) => s !== strategy);
     }
     reset();
   });
@@ -120,7 +127,10 @@ function gameTick() {
     if (Math.random() < spawnspeed) {
       // Pick random strategy from selectedStrategies
       if (selectedStrategies.length > 0) {
-        const strategy = selectedStrategies[Math.floor(Math.random() * selectedStrategies.length)];
+        const strategy =
+          selectedStrategies[
+            Math.floor(Math.random() * selectedStrategies.length)
+          ];
         world.spawnAgent(strategy);
       }
     }
@@ -163,27 +173,28 @@ requestAnimationFrame(drawCanvas);
 // Draw graphs for time-to-park and time-to-goal
 // **********************************
 
-google.charts.load('current', { 'packages': ['corechart'] });
-google.charts.setOnLoadCallback(() => DrawChart('time-to-park', timeToParkData));
+google.charts.load("current", { packages: ["corechart"] });
+google.charts.setOnLoadCallback(() =>
+  DrawChart("time-to-park", timeToParkData)
+);
 
 function DrawChart(id, data) {
-
   // Create the data table.
   var data = google.visualization.arrayToDataTable(data);
 
   // Set chart options
   var options = {
-    'width': "100%",
-    'height': 300,
+    width: "100%",
+    height: 300,
     bar: { gap: 0 },
-    chartArea: { 'width': '100%', 'height': '80%' },
-    legend: { 'position': 'bottom' },
+    chartArea: { width: "100%", height: "80%" },
+    legend: { position: "bottom" },
     interpolateNulls: false,
     histogram: {
       maxNumBuckets: 50,
       minValue: 0,
-      maxValue: 150
-    }
+      maxValue: 150,
+    },
   };
 
   // Instantiate and draw our chart, passing in some options.
@@ -193,22 +204,22 @@ function DrawChart(id, data) {
 
 export function addTimeToPark(strategy, data) {
   // Create array of 0's, with length of number of strategies,
-  // and set the index of the strategy to the data 
-  const index = selectedStrategies.indexOf(strategy)
+  // and set the index of the strategy to the data
+  const index = selectedStrategies.indexOf(strategy);
   const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToParkData.push(row);
   if (realtimeChart) {
-    DrawChart('time-to-park', timeToParkData);
+    DrawChart("time-to-park", timeToParkData);
   }
 }
 
 export function addTimeToGoal(strategy, data) {
-  const index = selectedStrategies.indexOf(strategy)
+  const index = selectedStrategies.indexOf(strategy);
   const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToGoalData.push(row);
   if (realtimeChart) {
-    DrawChart('time-to-goal', timeToGoalData);
+    DrawChart("time-to-goal", timeToGoalData);
   }
 }

@@ -5,10 +5,11 @@ import World from "./World";
 
 const STRATEGIES = [
   "DEFAULT",
-  "lotPref_NORTH",
-  "lotPref_EAST",
-  "lotPref_MID",
-  "lotPref_WEST",
+  "lotPref",
+  //"lotPref_NORTH",
+  //"lotPref_EAST",
+  //"lotPref_MID",
+  //"lotPref_WEST",
 ];
 
 // Set default selected strategies

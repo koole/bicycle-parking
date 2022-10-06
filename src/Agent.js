@@ -10,9 +10,12 @@ class Agent {
     this.strategy = strategy;
     this.move_to = null;
     this.exitRate = 0.01; // The rate at which agents leave the building across stragegies.
-    this.failedToPark = 0; // Tracks how many times the agent failed to park, used to change preferences.
-    this.searchTime = 5; // How many ticks an agent is willing to search in a lot for a spot.
-    this.lotPreference = null;
+
+    // Variables for lotPreference
+    this.failedToPark = 0; // Tracks how many times the agent failed to park.
+    this.searchTime = 6; // How many ticks an agent is willing to search in a lot for a spot.
+    this.lotPreference = null; // Which lot is currently the preference to park for the agent.
+
     // This is for storing the calculated path
     // and not recalculating it every tick
     this.path = null;

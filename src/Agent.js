@@ -9,9 +9,10 @@ class Agent {
     this.parked_cell = null;
     this.strategy = strategy;
     this.move_to = null;
-    this.exitRate = 0.05; // The rate at which agents leave the building across stragegies.
+    this.exitRate = 0.01; // The rate at which agents leave the building across stragegies.
     this.failedToPark = 0; // Tracks how many times the agent failed to park, used to change preferences.
-
+    this.searchTime = 5; // How many ticks an agent is willing to search in a lot for a spot.
+    this.lotPreference = null;
     // This is for storing the calculated path
     // and not recalculating it every tick
     this.path = null;
@@ -106,33 +107,73 @@ class Agent {
   // CONTROL FUNCTIONS //
   ///////////////////////
 
+  // Generates a random value between min and max, not including max.
   randomValueInRange(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
-  // Picks a random parking spot based on which parking lot input. Does not include MAX.
-  randomSpot(location) {
+  // Takes in a lot and returns x, y coordinates next to it.
+  lotMove(location) {
     var coordinates = new Array(1);
 
     if (location == "north") {
       coordinates[0] = 19;
-      coordinates[1] = Math.floor(Math.random() * 5);
+      coordinates[1] = this.randomValueInRange(4, 7);
+    }
+
+    if (location == "east") {
+      coordinates[0] = this.randomValueInRange(23, 29);
+      coordinates[1] = this.randomValueInRange(21, 23);
+    }
+    if (location == "mid") {
+      coordinates[0] = 16;
+      coordinates[1] = 19;
+    }
+    if (location == "west") {
+      coordinates[0] = 3;
+      coordinates[1] = this.randomValueInRange(17, 20);
+    }
+
+    return coordinates;
+  }
+
+  // Takes a lot to search for parking in, returns x, y coordinates of a parking spot.
+  lotSearch(location) {
+    var coordinates = new Array(1);
+
+    if (location == "north") {
+      coordinates[0] = this.randomValueInRange(20, 30);
+      coordinates[1] = this.randomValueInRange(4, 7);
     }
     if (location == "east") {
-      coordinates[0] = Math.floor(Math.random() * 29);
-      coordinates[1] = Math.floor(Math.random() * (22 - 21 + 1) + 21);
+      coordinates[0] = this.randomValueInRange(23, 29);
+      if (Math.random() < 0.5) {
+        coordinates[1] = this.randomValueInRange(19, 21);
+      } else {
+        coordinates[1] = 23;
+      }
     }
+    if (location == "mid") {
+      coordinates[0] = this.randomValueInRange(10, 17);
+      coordinates[1] = this.randomValueInRange(17, 19);
+    }
+    if (location == "west") {
+      coordinates[0] = this.randomValueInRange(4, 6);
+      coordinates[1] = this.randomValueInRange(17, 20);
+    }
+
     return coordinates;
   }
 
   ///////////////////////
   //    STRATEGIES     //
   ///////////////////////
-  // 1) default: random lot, random spot.
-  // 2) parkingLotPreference: specific parking lot, random spot. - yorick
-  // 3) parkingLotSpotPreference: specific lot and spot. (TO DO)
+  // 1) DEFAULT - Random lot, random spot.
+  // 2) PARKING LOT PREFERENCE - Specific lot, random spot.
+  // 3) PARKING LOT/SPOT PREFERENCE - Specific lot, random spot.
   // ADD MORE!
 
+  // 1) DEFAULT - Random lot, random spot.
   default() {
     switch (this.stage) {
       case "ENTERING":
@@ -190,7 +231,6 @@ class Agent {
       case "IN_GOAL":
         if (Math.random() < this.exitRate) {
           this.stage = "LEAVING_GOAL";
-          this.incoming = false;
         }
         break;
       case "LEAVING_GOAL":
@@ -246,11 +286,13 @@ class Agent {
     }
   }
 
-  // 2) parkingLotPreference: specific parking lot, random spot. Full? Go to another lot (not in yet).
-  // The cutoff point to keep searching in lot, or move to another lot (TODO)
+  // 2) PARKING LOT PREFERENCE - Specific lot, random spot.
+  // There is a stragegy for each lot, so in total 4 switch statements.
+  // If the agent can't find a spot at the lot, they go to another lot.
   parkingLotPreferenceNorth() {
     switch (this.stage) {
       case "ENTERING":
+        this.lotPreference = "north";
         var coordinates = new Array(1);
 
         // If the agent spawns near north, check right side of the lot first.
@@ -283,13 +325,10 @@ class Agent {
         break;
 
       case "SEARCHING_IN_LOT":
-        this.changeMoveTo(
-          Math.floor(Math.random() * (29 - 20 + 1)) + 20,
-          Math.floor(Math.random() * (6 - 4 + 1)) + 4,
-          () => {
-            this.stage = "MOVING_TO_SPOT";
-          }
-        );
+        var coordinates = this.lotSearch(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
+          this.stage = "MOVING_TO_SPOT";
+        });
         break;
       case "MOVING_TO_SPOT":
         if (
@@ -311,8 +350,31 @@ class Agent {
           this.stage = "LEAVING_PARKING";
         } else {
           console.log("Could not park");
-          this.stage = "SEARCHING_IN_LOT";
+          this.failedToPark += 1;
+          if (this.failedToPark > this.searchTime) {
+            this.stage = "CHANGEPREF";
+            this.failedToPark = 0;
+          } else {
+            this.stage = "SEARCHING_IN_LOT";
+          }
         }
+        break;
+      case "CHANGEPREF":
+        var options = ["north", "east", "mid", "west"];
+
+        while (true) {
+          var lot = options[Math.floor(Math.random() * options.length)];
+
+          if (lot != this.lotPreference) {
+            this.lotPreference = lot;
+            break;
+          }
+        }
+
+        var coordinates = this.lotMove(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
+          this.stage = "MOVING_TO_LOT";
+        });
         break;
       case "LEAVING_PARKING":
         const buildingCell =
@@ -340,7 +402,6 @@ class Agent {
       case "IN_GOAL":
         if (Math.random() < this.exitRate) {
           this.stage = "LEAVING_GOAL";
-          this.incoming = false;
         }
         break;
       case "LEAVING_GOAL":
@@ -397,9 +458,8 @@ class Agent {
   parkingLotPreferenceEast() {
     switch (this.stage) {
       case "ENTERING":
-        var coordinates = new Array(1);
-        coordinates[0] = this.randomValueInRange(23, 29);
-        coordinates[1] = this.randomValueInRange(21, 23);
+        this.lotPreference = "east";
+        var coordinates = this.lotMove(this.lotPreference);
         this.changeMoveTo(coordinates[0], coordinates[1], () => {
           this.stage = "MOVING_TO_LOT";
         });
@@ -421,18 +481,12 @@ class Agent {
         break;
 
       case "SEARCHING_IN_LOT":
-        var x = Math.floor(Math.random() * (28 - 23 + 1) + 23);
-        var y = 0;
-
-        if (Math.random() < 0.5) {
-          y = Math.floor(Math.random() * (20 - 19 + 1) + 19);
-        } else {
-          y = 23;
-        }
-        this.changeMoveTo(x, y, () => {
+        var coordinates = this.lotSearch(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
           this.stage = "MOVING_TO_SPOT";
         });
         break;
+
       case "MOVING_TO_SPOT":
         if (
           this.calculatingPath == false &&
@@ -453,8 +507,31 @@ class Agent {
           this.stage = "LEAVING_PARKING";
         } else {
           console.log("Could not park");
-          this.stage = "SEARCHING_IN_LOT";
+          this.failedToPark += 1;
+          if (this.failedToPark > this.searchTime) {
+            this.stage = "CHANGEPREF";
+            this.failedToPark = 0;
+          } else {
+            this.stage = "SEARCHING_IN_LOT";
+          }
         }
+        break;
+      case "CHANGEPREF":
+        var options = ["north", "east", "mid", "west"];
+
+        while (true) {
+          var lot = options[Math.floor(Math.random() * options.length)];
+
+          if (lot != this.lotPreference) {
+            this.lotPreference = lot;
+            break;
+          }
+        }
+
+        var coordinates = this.lotMove(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
+          this.stage = "MOVING_TO_LOT";
+        });
         break;
       case "LEAVING_PARKING":
         const buildingCell =
@@ -482,7 +559,6 @@ class Agent {
       case "IN_GOAL":
         if (Math.random() < this.exitRate) {
           this.stage = "LEAVING_GOAL";
-          this.incoming = false;
         }
         break;
       case "LEAVING_GOAL":
@@ -539,7 +615,9 @@ class Agent {
   parkingLotPreferenceMid() {
     switch (this.stage) {
       case "ENTERING":
-        this.changeMoveTo(16, 19, () => {
+        this.lotPreference = "mid";
+        var coordinates = this.lotMove(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
           this.stage = "MOVING_TO_LOT";
         });
         break;
@@ -559,10 +637,8 @@ class Agent {
         }
         break;
       case "SEARCHING_IN_LOT":
-        var x = this.randomValueInRange(10, 17);
-        var y = this.randomValueInRange(17, 19);
-
-        this.changeMoveTo(x, y, () => {
+        var coordinates = this.lotSearch(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
           this.stage = "MOVING_TO_SPOT";
         });
         break;
@@ -586,8 +662,31 @@ class Agent {
           this.stage = "LEAVING_PARKING";
         } else {
           console.log("Could not park");
-          this.stage = "SEARCHING_IN_LOT";
+          this.failedToPark += 1;
+          if (this.failedToPark > this.searchTime) {
+            this.stage = "CHANGEPREF";
+            this.failedToPark = 0;
+          } else {
+            this.stage = "SEARCHING_IN_LOT";
+          }
         }
+        break;
+      case "CHANGEPREF":
+        var options = ["north", "east", "mid", "west"];
+
+        while (true) {
+          var lot = options[Math.floor(Math.random() * options.length)];
+
+          if (lot != this.lotPreference) {
+            this.lotPreference = lot;
+            break;
+          }
+        }
+
+        var coordinates = this.lotMove(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
+          this.stage = "MOVING_TO_LOT";
+        });
         break;
       case "LEAVING_PARKING":
         const buildingCell =
@@ -615,7 +714,6 @@ class Agent {
       case "IN_GOAL":
         if (Math.random() < this.exitRate) {
           this.stage = "LEAVING_GOAL";
-          this.incoming = false;
         }
         break;
       case "LEAVING_GOAL":
@@ -672,6 +770,7 @@ class Agent {
   parkingLotPreferenceWest() {
     switch (this.stage) {
       case "ENTERING":
+        this.lotPreference = "west";
         var coordinates = new Array(1);
         coordinates[0] = 3;
         coordinates[1] = this.randomValueInRange(17, 20);
@@ -695,10 +794,8 @@ class Agent {
         }
         break;
       case "SEARCHING_IN_LOT":
-        var x = this.randomValueInRange(4, 6);
-        var y = this.randomValueInRange(17, 20);
-
-        this.changeMoveTo(x, y, () => {
+        var coordinates = this.lotSearch(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
           this.stage = "MOVING_TO_SPOT";
         });
         break;
@@ -722,14 +819,31 @@ class Agent {
           this.stage = "LEAVING_PARKING";
         } else {
           console.log("Could not park");
-          this.stage = "SEARCHING_IN_LOT";
           this.failedToPark += 1;
-
-          if (failedToPark > 5) {
+          if (this.failedToPark > this.searchTime) {
             this.stage = "CHANGEPREF";
             this.failedToPark = 0;
+          } else {
+            this.stage = "SEARCHING_IN_LOT";
           }
         }
+        break;
+      case "CHANGEPREF":
+        var options = ["north", "east", "mid", "west"];
+
+        while (true) {
+          var lot = options[Math.floor(Math.random() * options.length)];
+
+          if (lot != this.lotPreference) {
+            this.lotPreference = lot;
+            break;
+          }
+        }
+
+        var coordinates = this.lotMove(this.lotPreference);
+        this.changeMoveTo(coordinates[0], coordinates[1], () => {
+          this.stage = "MOVING_TO_LOT";
+        });
         break;
       case "LEAVING_PARKING":
         const buildingCell =
@@ -757,7 +871,6 @@ class Agent {
       case "IN_GOAL":
         if (Math.random() < this.exitRate) {
           this.stage = "LEAVING_GOAL";
-          this.incoming = false;
         }
         break;
       case "LEAVING_GOAL":

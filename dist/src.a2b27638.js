@@ -502,10 +502,13 @@ var Agent = /*#__PURE__*/function () {
     this.parked_cell = null;
     this.strategy = strategy;
     this.move_to = null;
-    this.exitRate = 0.05; // The rate at which agents leave the building across stragegies.
+    this.exitRate = 0.01; // The rate at which agents leave the building across stragegies.
 
     this.failedToPark = 0; // Tracks how many times the agent failed to park, used to change preferences.
-    // This is for storing the calculated path
+
+    this.searchTime = 5; // How many ticks an agent is willing to search in a lot for a spot.
+
+    this.lotPreference = null; // This is for storing the calculated path
     // and not recalculating it every tick
 
     this.path = null;
@@ -591,36 +594,81 @@ var Agent = /*#__PURE__*/function () {
     } ///////////////////////
     // CONTROL FUNCTIONS //
     ///////////////////////
+    // Generates a random value between min and max, not including max.
 
   }, {
     key: "randomValueInRange",
     value: function randomValueInRange(min, max) {
       return Math.floor(Math.random() * (max - min) + min);
-    } // Picks a random parking spot based on which parking lot input. Does not include MAX.
+    } // Takes in a lot and returns x, y coordinates next to it.
 
   }, {
-    key: "randomSpot",
-    value: function randomSpot(location) {
+    key: "lotMove",
+    value: function lotMove(location) {
       var coordinates = new Array(1);
 
       if (location == "north") {
         coordinates[0] = 19;
-        coordinates[1] = Math.floor(Math.random() * 5);
+        coordinates[1] = this.randomValueInRange(4, 7);
       }
 
       if (location == "east") {
-        coordinates[0] = Math.floor(Math.random() * 29);
-        coordinates[1] = Math.floor(Math.random() * (22 - 21 + 1) + 21);
+        coordinates[0] = this.randomValueInRange(23, 29);
+        coordinates[1] = this.randomValueInRange(21, 23);
+      }
+
+      if (location == "mid") {
+        coordinates[0] = 16;
+        coordinates[1] = 19;
+      }
+
+      if (location == "west") {
+        coordinates[0] = 3;
+        coordinates[1] = this.randomValueInRange(17, 20);
+      }
+
+      return coordinates;
+    } // Takes a lot to search for parking in, returns x, y coordinates of a parking spot.
+
+  }, {
+    key: "lotSearch",
+    value: function lotSearch(location) {
+      var coordinates = new Array(1);
+
+      if (location == "north") {
+        coordinates[0] = this.randomValueInRange(20, 30);
+        coordinates[1] = this.randomValueInRange(4, 7);
+      }
+
+      if (location == "east") {
+        coordinates[0] = this.randomValueInRange(23, 29);
+
+        if (Math.random() < 0.5) {
+          coordinates[1] = this.randomValueInRange(19, 21);
+        } else {
+          coordinates[1] = 23;
+        }
+      }
+
+      if (location == "mid") {
+        coordinates[0] = this.randomValueInRange(10, 17);
+        coordinates[1] = this.randomValueInRange(17, 19);
+      }
+
+      if (location == "west") {
+        coordinates[0] = this.randomValueInRange(4, 6);
+        coordinates[1] = this.randomValueInRange(17, 20);
       }
 
       return coordinates;
     } ///////////////////////
     //    STRATEGIES     //
     ///////////////////////
-    // 1) default: random lot, random spot.
-    // 2) parkingLotPreference: specific parking lot, random spot. - yorick
-    // 3) parkingLotSpotPreference: specific lot and spot. (TO DO)
+    // 1) DEFAULT - Random lot, random spot.
+    // 2) PARKING LOT PREFERENCE - Specific lot, random spot.
+    // 3) PARKING LOT/SPOT PREFERENCE - Specific lot, random spot.
     // ADD MORE!
+    // 1) DEFAULT - Random lot, random spot.
 
   }, {
     key: "default",
@@ -677,7 +725,6 @@ var Agent = /*#__PURE__*/function () {
         case "IN_GOAL":
           if (Math.random() < this.exitRate) {
             this.stage = "LEAVING_GOAL";
-            this.incoming = false;
           }
 
           break;
@@ -729,8 +776,9 @@ var Agent = /*#__PURE__*/function () {
           console.log("Unknown stage: ", this.stage);
           break;
       }
-    } // 2) parkingLotPreference: specific parking lot, random spot. Full? Go to another lot (not in yet).
-    // The cutoff point to keep searching in lot, or move to another lot (TODO)
+    } // 2) PARKING LOT PREFERENCE - Specific lot, random spot.
+    // There is a stragegy for each lot, so in total 4 switch statements.
+    // If the agent can't find a spot at the lot, they go to another lot.
 
   }, {
     key: "parkingLotPreferenceNorth",
@@ -739,6 +787,7 @@ var Agent = /*#__PURE__*/function () {
 
       switch (this.stage) {
         case "ENTERING":
+          this.lotPreference = "north";
           var coordinates = new Array(1); // If the agent spawns near north, check right side of the lot first.
 
           if (this.spawn.x == 35 && this.spawn.y == 5) {
@@ -765,7 +814,8 @@ var Agent = /*#__PURE__*/function () {
           break;
 
         case "SEARCHING_IN_LOT":
-          this.changeMoveTo(Math.floor(Math.random() * (29 - 20 + 1)) + 20, Math.floor(Math.random() * (6 - 4 + 1)) + 4, function () {
+          var coordinates = this.lotSearch(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
             _this3.stage = "MOVING_TO_SPOT";
           });
           break;
@@ -786,9 +836,34 @@ var Agent = /*#__PURE__*/function () {
             this.stage = "LEAVING_PARKING";
           } else {
             console.log("Could not park");
-            this.stage = "SEARCHING_IN_LOT";
+            this.failedToPark += 1;
+
+            if (this.failedToPark > this.searchTime) {
+              this.stage = "CHANGEPREF";
+              this.failedToPark = 0;
+            } else {
+              this.stage = "SEARCHING_IN_LOT";
+            }
           }
 
+          break;
+
+        case "CHANGEPREF":
+          var options = ["north", "east", "mid", "west"];
+
+          while (true) {
+            var lot = options[Math.floor(Math.random() * options.length)];
+
+            if (lot != this.lotPreference) {
+              this.lotPreference = lot;
+              break;
+            }
+          }
+
+          var coordinates = this.lotMove(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
+            _this3.stage = "MOVING_TO_LOT";
+          });
           break;
 
         case "LEAVING_PARKING":
@@ -813,7 +888,6 @@ var Agent = /*#__PURE__*/function () {
         case "IN_GOAL":
           if (Math.random() < this.exitRate) {
             this.stage = "LEAVING_GOAL";
-            this.incoming = false;
           }
 
           break;
@@ -872,9 +946,8 @@ var Agent = /*#__PURE__*/function () {
 
       switch (this.stage) {
         case "ENTERING":
-          var coordinates = new Array(1);
-          coordinates[0] = this.randomValueInRange(23, 29);
-          coordinates[1] = this.randomValueInRange(21, 23);
+          this.lotPreference = "east";
+          var coordinates = this.lotMove(this.lotPreference);
           this.changeMoveTo(coordinates[0], coordinates[1], function () {
             _this4.stage = "MOVING_TO_LOT";
           });
@@ -891,16 +964,8 @@ var Agent = /*#__PURE__*/function () {
           break;
 
         case "SEARCHING_IN_LOT":
-          var x = Math.floor(Math.random() * (28 - 23 + 1) + 23);
-          var y = 0;
-
-          if (Math.random() < 0.5) {
-            y = Math.floor(Math.random() * (20 - 19 + 1) + 19);
-          } else {
-            y = 23;
-          }
-
-          this.changeMoveTo(x, y, function () {
+          var coordinates = this.lotSearch(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
             _this4.stage = "MOVING_TO_SPOT";
           });
           break;
@@ -921,9 +986,34 @@ var Agent = /*#__PURE__*/function () {
             this.stage = "LEAVING_PARKING";
           } else {
             console.log("Could not park");
-            this.stage = "SEARCHING_IN_LOT";
+            this.failedToPark += 1;
+
+            if (this.failedToPark > this.searchTime) {
+              this.stage = "CHANGEPREF";
+              this.failedToPark = 0;
+            } else {
+              this.stage = "SEARCHING_IN_LOT";
+            }
           }
 
+          break;
+
+        case "CHANGEPREF":
+          var options = ["north", "east", "mid", "west"];
+
+          while (true) {
+            var lot = options[Math.floor(Math.random() * options.length)];
+
+            if (lot != this.lotPreference) {
+              this.lotPreference = lot;
+              break;
+            }
+          }
+
+          var coordinates = this.lotMove(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
+            _this4.stage = "MOVING_TO_LOT";
+          });
           break;
 
         case "LEAVING_PARKING":
@@ -948,7 +1038,6 @@ var Agent = /*#__PURE__*/function () {
         case "IN_GOAL":
           if (Math.random() < this.exitRate) {
             this.stage = "LEAVING_GOAL";
-            this.incoming = false;
           }
 
           break;
@@ -1007,7 +1096,9 @@ var Agent = /*#__PURE__*/function () {
 
       switch (this.stage) {
         case "ENTERING":
-          this.changeMoveTo(16, 19, function () {
+          this.lotPreference = "mid";
+          var coordinates = this.lotMove(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
             _this5.stage = "MOVING_TO_LOT";
           });
           break;
@@ -1023,9 +1114,8 @@ var Agent = /*#__PURE__*/function () {
           break;
 
         case "SEARCHING_IN_LOT":
-          var x = this.randomValueInRange(10, 17);
-          var y = this.randomValueInRange(17, 19);
-          this.changeMoveTo(x, y, function () {
+          var coordinates = this.lotSearch(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
             _this5.stage = "MOVING_TO_SPOT";
           });
           break;
@@ -1046,9 +1136,34 @@ var Agent = /*#__PURE__*/function () {
             this.stage = "LEAVING_PARKING";
           } else {
             console.log("Could not park");
-            this.stage = "SEARCHING_IN_LOT";
+            this.failedToPark += 1;
+
+            if (this.failedToPark > this.searchTime) {
+              this.stage = "CHANGEPREF";
+              this.failedToPark = 0;
+            } else {
+              this.stage = "SEARCHING_IN_LOT";
+            }
           }
 
+          break;
+
+        case "CHANGEPREF":
+          var options = ["north", "east", "mid", "west"];
+
+          while (true) {
+            var lot = options[Math.floor(Math.random() * options.length)];
+
+            if (lot != this.lotPreference) {
+              this.lotPreference = lot;
+              break;
+            }
+          }
+
+          var coordinates = this.lotMove(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
+            _this5.stage = "MOVING_TO_LOT";
+          });
           break;
 
         case "LEAVING_PARKING":
@@ -1073,7 +1188,6 @@ var Agent = /*#__PURE__*/function () {
         case "IN_GOAL":
           if (Math.random() < this.exitRate) {
             this.stage = "LEAVING_GOAL";
-            this.incoming = false;
           }
 
           break;
@@ -1132,6 +1246,7 @@ var Agent = /*#__PURE__*/function () {
 
       switch (this.stage) {
         case "ENTERING":
+          this.lotPreference = "west";
           var coordinates = new Array(1);
           coordinates[0] = 3;
           coordinates[1] = this.randomValueInRange(17, 20);
@@ -1151,9 +1266,8 @@ var Agent = /*#__PURE__*/function () {
           break;
 
         case "SEARCHING_IN_LOT":
-          var x = this.randomValueInRange(4, 6);
-          var y = this.randomValueInRange(17, 20);
-          this.changeMoveTo(x, y, function () {
+          var coordinates = this.lotSearch(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
             _this6.stage = "MOVING_TO_SPOT";
           });
           break;
@@ -1174,15 +1288,34 @@ var Agent = /*#__PURE__*/function () {
             this.stage = "LEAVING_PARKING";
           } else {
             console.log("Could not park");
-            this.stage = "SEARCHING_IN_LOT";
             this.failedToPark += 1;
 
-            if (failedToPark > 5) {
+            if (this.failedToPark > this.searchTime) {
               this.stage = "CHANGEPREF";
               this.failedToPark = 0;
+            } else {
+              this.stage = "SEARCHING_IN_LOT";
             }
           }
 
+          break;
+
+        case "CHANGEPREF":
+          var options = ["north", "east", "mid", "west"];
+
+          while (true) {
+            var lot = options[Math.floor(Math.random() * options.length)];
+
+            if (lot != this.lotPreference) {
+              this.lotPreference = lot;
+              break;
+            }
+          }
+
+          var coordinates = this.lotMove(this.lotPreference);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
+            _this6.stage = "MOVING_TO_LOT";
+          });
           break;
 
         case "LEAVING_PARKING":
@@ -1207,7 +1340,6 @@ var Agent = /*#__PURE__*/function () {
         case "IN_GOAL":
           if (Math.random() < this.exitRate) {
             this.stage = "LEAVING_GOAL";
-            this.incoming = false;
           }
 
           break;
@@ -2814,7 +2946,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "38849" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "37685" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

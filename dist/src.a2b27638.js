@@ -215,7 +215,7 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
-var MAX_PARKED_BIKES = 8;
+var MAX_PARKED_BIKES = 4;
 
 var Cell = /*#__PURE__*/function () {
   function Cell(world, type, x, y, allowed_direction) {
@@ -249,28 +249,28 @@ var Cell = /*#__PURE__*/function () {
       if (agent.type === "BIKE" && this.agents.filter(function (_ref) {
         var type = _ref.type;
         return type === "BIKE";
-      }).length >= 2) {
+      }).length >= 20) {
         return false;
       }
 
       if (agent.type === "PEDESTRIAN" && this.agents.filter(function (_ref2) {
         var type = _ref2.type;
         return type === "PEDESTRIAN";
-      }).length >= 3) {
+      }).length >= 30) {
         return false;
       }
 
       if (agent.type === "BIKE" && this.agents.filter(function (_ref3) {
         var type = _ref3.type;
         return type === "PEDESTRIAN";
-      }).length >= 2) {
+      }).length >= 20) {
         return false;
       }
 
       if (agent.type === "PEDESTRIAN" && this.agents.filter(function (_ref4) {
         var type = _ref4.type;
         return type === "BIKE";
-      }).length >= 3) {
+      }).length >= 30) {
         return false;
       }
 
@@ -318,7 +318,13 @@ var Cell = /*#__PURE__*/function () {
       if (this.type === "PARKING") {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(canvas_x + 2, canvas_y + squareSize - 8, squareSize - 4, 4);
-        ctx.fillStyle = "#316cf4";
+
+        if (this.bikes == MAX_PARKED_BIKES) {
+          ctx.fillStyle = "#ff0707";
+        } else {
+          ctx.fillStyle = "#316cf4";
+        }
+
         ctx.fillRect(canvas_x + 2, canvas_y + squareSize - 8, (squareSize + 4) * (this.bikes / MAX_PARKED_BIKES), 4);
       }
 
@@ -358,19 +364,36 @@ var Cell = /*#__PURE__*/function () {
             }
           });
         }
-      } // !! Debug to show number of agents in cell
-      // if(["SPAWN", "BIKE_PATH", "PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"].includes(this.type)) {
-      //   ctx.font = '12px monospace';
+      } //!! Debug to show number of agents in cell
+      // if (
+      //   [
+      //     "SPAWN",
+      //     "BIKE_PATH",
+      //     "PEDESTRIAN_PATH",
+      //     "ALL_PATH",
+      //     "PARKING",
+      //     "BUILDING_ENTRANCE",
+      //   ].includes(this.type)
+      // ) {
+      //   ctx.font = "12px monospace";
       //   ctx.fillStyle = "black";
       //   // make text slightly transparent
       //   ctx.globalAlpha = 0.3;
-      //   ctx.fillText("B:" + this.agents.filter(({type}) => type === "BIKE").length, canvas_x + 2, canvas_y + 12);
-      //   ctx.fillText("P:" + this.agents.filter(({type}) => type === "PEDESTRIAN").length, canvas_x + 2, canvas_y + 24);
+      //   ctx.fillText(
+      //     "B:" + this.agents.filter(({ type }) => type === "BIKE").length,
+      //     canvas_x + 2,
+      //     canvas_y + 12
+      //   );
+      //   ctx.fillText(
+      //     "P:" + this.agents.filter(({ type }) => type === "PEDESTRIAN").length,
+      //     canvas_x + 2,
+      //     canvas_y + 24
+      //   );
       //   // reset transparency
       //   ctx.globalAlpha = 1;
       // }
       // !! Draws directions in which agents are allowed to move
-      // ctx.font = '14px monospace';
+      // ctx.font = "14px monospace";
       // ctx.fillStyle = "black";
       // // make text slightly transparent
       // ctx.globalAlpha = 0.5;
@@ -378,15 +401,16 @@ var Cell = /*#__PURE__*/function () {
       // // reset transparency
       // ctx.globalAlpha = 1;
       // !! Draw coordinates
-      // ctx.font = '11px monospace';
-      // ctx.fillStyle = "black";
-      // // make text slightly transparent
-      // ctx.globalAlpha = 0.5;
-      // ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
-      // ctx.fillText(this.y, canvas_x, canvas_y + 22);
-      // // reset transparency
-      // ctx.globalAlpha = 1;
 
+
+      ctx.font = "11px monospace";
+      ctx.fillStyle = "black"; // make text slightly transparent
+
+      ctx.globalAlpha = 0.5;
+      ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
+      ctx.fillText(this.y, canvas_x, canvas_y + 22); // reset transparency
+
+      ctx.globalAlpha = 1;
     } // Drawing utilities, nothing important after this point :)
 
   }, {
@@ -478,9 +502,10 @@ var Agent = /*#__PURE__*/function () {
     this.parked_cell = null;
     this.strategy = strategy;
     this.move_to = null;
-    this.incoming = true; // Whether the agent is entering the sim or leaving.
+    this.exitRate = 0.05; // The rate at which agents leave the building across stragegies.
 
-    this.lotPref = null; // This is for storing the calculated path
+    this.failedToPark = 0; // Tracks how many times the agent failed to park, used to change preferences.
+    // This is for storing the calculated path
     // and not recalculating it every tick
 
     this.path = null;
@@ -568,121 +593,506 @@ var Agent = /*#__PURE__*/function () {
     ///////////////////////
 
   }, {
-    key: "exiting",
-    value: function exiting() {
-      var _this2 = this;
+    key: "randomValueInRange",
+    value: function randomValueInRange(min, max) {
+      return Math.floor(Math.random() * (max - min) + min);
+    } // Picks a random parking spot based on which parking lot input. Does not include MAX.
 
-      this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
-        _this2.stage = "MOVING_TO_EXIT";
-      });
-    }
   }, {
-    key: "moveParkingLot",
-    value: function moveParkingLot() {
-      if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-        var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-        this.makeMove(nextCell);
-      } else {
-        if (this.incoming == true) {
-          this.stage = "PARKING";
-        } else {
-          this.stage = "UNPARKING";
-        }
-      }
-    }
-  }, {
-    key: "parking",
-    value: function parking() {
-      if (this.park()) {
-        this.stage = "LEAVING_PARKING";
-      } else {
-        console.log("Could not park");
-      }
-    }
-  }, {
-    key: "leavingParkingLot",
-    value: function leavingParkingLot() {
-      var _this3 = this;
+    key: "randomSpot",
+    value: function randomSpot(location) {
+      var coordinates = new Array(1);
 
-      var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
-      this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
-        _this3.stage = "MOVING_TO_GOAL";
-      });
-    }
-  }, {
-    key: "moveToGoal",
-    value: function moveToGoal() {
-      if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-        var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-        this.makeMove(nextCell);
-      } else {
-        this.stage = "IN_GOAL";
-        this.hasReachedGoal();
+      if (location == "north") {
+        coordinates[0] = 19;
+        coordinates[1] = Math.floor(Math.random() * 5);
       }
-    }
-  }, {
-    key: "inGoal",
-    value: function inGoal() {
-      if (Math.random() < 0.01) {
-        this.stage = "LEAVING_GOAL";
-        this.incoming = false;
-      }
-    }
-  }, {
-    key: "leavingGoal",
-    value: function leavingGoal() {
-      var _this4 = this;
 
-      this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
-        _this4.stage = "MOVING_TO_PARKING_LEAVING";
-      });
+      if (location == "east") {
+        coordinates[0] = Math.floor(Math.random() * 29);
+        coordinates[1] = Math.floor(Math.random() * (22 - 21 + 1) + 21);
+      }
+
+      return coordinates;
     } ///////////////////////
     //    STRATEGIES     //
     ///////////////////////
     // 1) default: random lot, random spot.
-    // 2) parkingLotPreference: specific parking lot, random spot.
-    // 3) parkingLotSpotPreference: specific lot and spot.
+    // 2) parkingLotPreference: specific parking lot, random spot. - yorick
+    // 3) parkingLotSpotPreference: specific lot and spot. (TO DO)
     // ADD MORE!
 
   }, {
     key: "default",
     value: function _default() {
-      var _this5 = this;
+      var _this2 = this;
 
       switch (this.stage) {
         case "ENTERING":
           var parkingCell = this.world.getRandomCellOfType("PARKING");
           this.changeMoveTo(parkingCell.x, parkingCell.y, function () {
-            _this5.stage = "MOVING_TO_PARKING_ENTERING";
+            _this2.stage = "MOVING_TO_PARKING_ENTERING";
           });
           break;
 
         case "MOVING_TO_PARKING_ENTERING":
-          this.moveParkingLot();
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            this.makeMove(nextCell);
+          } else {
+            this.stage = "PARKING";
+          }
+
           break;
 
         case "PARKING":
-          this.parking();
+          if (this.park()) {
+            this.stage = "LEAVING_PARKING";
+          } else {
+            console.log("Could not park");
+            this.stage = "ENTERING";
+          }
+
           break;
 
         case "LEAVING_PARKING":
-          this.leavingParkingLot();
+          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+            _this2.stage = "MOVING_TO_GOAL";
+          });
           break;
 
         case "MOVING_TO_GOAL":
-          this.moveToGoal();
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell);
+          } else {
+            this.stage = "IN_GOAL";
+            this.hasReachedGoal();
+          }
+
           break;
 
         case "IN_GOAL":
-          this.inGoal();
+          if (Math.random() < this.exitRate) {
+            this.stage = "LEAVING_GOAL";
+            this.incoming = false;
+          }
+
           break;
 
         case "LEAVING_GOAL":
-          this.leavingGoal();
+          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
+            _this2.stage = "MOVING_TO_PARKING_LEAVING";
+          });
           break;
 
         case "MOVING_TO_PARKING_LEAVING":
-          this.moveParkingLot();
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell2 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell2);
+          } else {
+            this.stage = "UNPARKING";
+          }
+
+          break;
+
+        case "UNPARKING":
+          this.unpark();
+          this.stage = "LEAVING";
+          break;
+
+        case "LEAVING":
+          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
+            _this2.stage = "MOVING_TO_EXIT";
+          });
+          break;
+
+        case "MOVING_TO_EXIT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell3 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell3);
+          } else {
+            this.stage = "EXITED";
+          }
+
+          break;
+
+        case "EXITED":
+          this.world.removeAgent(this);
+          break;
+
+        default:
+          console.log("Unknown stage: ", this.stage);
+          break;
+      }
+    } // 2) parkingLotPreference: specific parking lot, random spot. Full? Go to another lot (not in yet).
+    // The cutoff point to keep searching in lot, or move to another lot (TODO)
+
+  }, {
+    key: "parkingLotPreferenceNorth",
+    value: function parkingLotPreferenceNorth() {
+      var _this3 = this;
+
+      switch (this.stage) {
+        case "ENTERING":
+          var coordinates = new Array(1); // If the agent spawns near north, check right side of the lot first.
+
+          if (this.spawn.x == 35 && this.spawn.y == 5) {
+            coordinates[0] = 30;
+            coordinates[1] = this.randomValueInRange(4, 7);
+          } else {
+            coordinates[0] = 19;
+            coordinates[1] = this.randomValueInRange(4, 7);
+          }
+
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
+            _this3.stage = "MOVING_TO_LOT";
+          });
+          break;
+
+        case "MOVING_TO_LOT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            this.makeMove(nextCell);
+          } else {
+            this.stage = "SEARCHING_IN_LOT";
+          }
+
+          break;
+
+        case "SEARCHING_IN_LOT":
+          this.changeMoveTo(Math.floor(Math.random() * (29 - 20 + 1)) + 20, Math.floor(Math.random() * (6 - 4 + 1)) + 4, function () {
+            _this3.stage = "MOVING_TO_SPOT";
+          });
+          break;
+
+        case "MOVING_TO_SPOT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell4 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell4);
+          } else {
+            this.stage = "PARKING";
+          }
+
+          break;
+
+        case "PARKING":
+          if (this.park()) {
+            this.stage = "LEAVING_PARKING";
+          } else {
+            console.log("Could not park");
+            this.stage = "SEARCHING_IN_LOT";
+          }
+
+          break;
+
+        case "LEAVING_PARKING":
+          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+            _this3.stage = "MOVING_TO_GOAL";
+          });
+          break;
+
+        case "MOVING_TO_GOAL":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell5 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell5);
+          } else {
+            this.stage = "IN_GOAL";
+            this.hasReachedGoal();
+          }
+
+          break;
+
+        case "IN_GOAL":
+          if (Math.random() < this.exitRate) {
+            this.stage = "LEAVING_GOAL";
+            this.incoming = false;
+          }
+
+          break;
+
+        case "LEAVING_GOAL":
+          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
+            _this3.stage = "MOVING_TO_PARKING_LEAVING";
+          });
+          break;
+
+        case "MOVING_TO_PARKING_LEAVING":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell6 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell6);
+          } else {
+            this.stage = "UNPARKING";
+          }
+
+          break;
+
+        case "UNPARKING":
+          this.unpark();
+          this.stage = "LEAVING";
+          break;
+
+        case "LEAVING":
+          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
+            _this3.stage = "MOVING_TO_EXIT";
+          });
+          break;
+
+        case "MOVING_TO_EXIT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell7 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell7);
+          } else {
+            this.stage = "EXITED";
+          }
+
+          break;
+
+        case "EXITED":
+          this.world.removeAgent(this);
+          break;
+
+        default:
+          console.log("NO STAGE");
+      }
+    }
+  }, {
+    key: "parkingLotPreferenceEast",
+    value: function parkingLotPreferenceEast() {
+      var _this4 = this;
+
+      switch (this.stage) {
+        case "ENTERING":
+          var coordinates = new Array(1);
+          coordinates[0] = this.randomValueInRange(23, 29);
+          coordinates[1] = this.randomValueInRange(21, 23);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
+            _this4.stage = "MOVING_TO_LOT";
+          });
+          break;
+
+        case "MOVING_TO_LOT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            this.makeMove(nextCell);
+          } else {
+            this.stage = "SEARCHING_IN_LOT";
+          }
+
+          break;
+
+        case "SEARCHING_IN_LOT":
+          var x = Math.floor(Math.random() * (28 - 23 + 1) + 23);
+          var y = 0;
+
+          if (Math.random() < 0.5) {
+            y = Math.floor(Math.random() * (20 - 19 + 1) + 19);
+          } else {
+            y = 23;
+          }
+
+          this.changeMoveTo(x, y, function () {
+            _this4.stage = "MOVING_TO_SPOT";
+          });
+          break;
+
+        case "MOVING_TO_SPOT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell8 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell8);
+          } else {
+            this.stage = "PARKING";
+          }
+
+          break;
+
+        case "PARKING":
+          if (this.park()) {
+            this.stage = "LEAVING_PARKING";
+          } else {
+            console.log("Could not park");
+            this.stage = "SEARCHING_IN_LOT";
+          }
+
+          break;
+
+        case "LEAVING_PARKING":
+          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+            _this4.stage = "MOVING_TO_GOAL";
+          });
+          break;
+
+        case "MOVING_TO_GOAL":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell9 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell9);
+          } else {
+            this.stage = "IN_GOAL";
+            this.hasReachedGoal();
+          }
+
+          break;
+
+        case "IN_GOAL":
+          if (Math.random() < this.exitRate) {
+            this.stage = "LEAVING_GOAL";
+            this.incoming = false;
+          }
+
+          break;
+
+        case "LEAVING_GOAL":
+          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
+            _this4.stage = "MOVING_TO_PARKING_LEAVING";
+          });
+          break;
+
+        case "MOVING_TO_PARKING_LEAVING":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell10 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell10);
+          } else {
+            this.stage = "UNPARKING";
+          }
+
+          break;
+
+        case "UNPARKING":
+          this.unpark();
+          this.stage = "LEAVING";
+          break;
+
+        case "LEAVING":
+          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
+            _this4.stage = "MOVING_TO_EXIT";
+          });
+          break;
+
+        case "MOVING_TO_EXIT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell11 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell11);
+          } else {
+            this.stage = "EXITED";
+          }
+
+          break;
+
+        case "EXITED":
+          this.world.removeAgent(this);
+          break;
+
+        default:
+          console.log("NO STAGE");
+      }
+    }
+  }, {
+    key: "parkingLotPreferenceMid",
+    value: function parkingLotPreferenceMid() {
+      var _this5 = this;
+
+      switch (this.stage) {
+        case "ENTERING":
+          this.changeMoveTo(16, 19, function () {
+            _this5.stage = "MOVING_TO_LOT";
+          });
+          break;
+
+        case "MOVING_TO_LOT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            this.makeMove(nextCell);
+          } else {
+            this.stage = "SEARCHING_IN_LOT";
+          }
+
+          break;
+
+        case "SEARCHING_IN_LOT":
+          var x = this.randomValueInRange(10, 17);
+          var y = this.randomValueInRange(17, 19);
+          this.changeMoveTo(x, y, function () {
+            _this5.stage = "MOVING_TO_SPOT";
+          });
+          break;
+
+        case "MOVING_TO_SPOT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell12 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell12);
+          } else {
+            this.stage = "PARKING";
+          }
+
+          break;
+
+        case "PARKING":
+          if (this.park()) {
+            this.stage = "LEAVING_PARKING";
+          } else {
+            console.log("Could not park");
+            this.stage = "SEARCHING_IN_LOT";
+          }
+
+          break;
+
+        case "LEAVING_PARKING":
+          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+            _this5.stage = "MOVING_TO_GOAL";
+          });
+          break;
+
+        case "MOVING_TO_GOAL":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell13 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell13);
+          } else {
+            this.stage = "IN_GOAL";
+            this.hasReachedGoal();
+          }
+
+          break;
+
+        case "IN_GOAL":
+          if (Math.random() < this.exitRate) {
+            this.stage = "LEAVING_GOAL";
+            this.incoming = false;
+          }
+
+          break;
+
+        case "LEAVING_GOAL":
+          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
+            _this5.stage = "MOVING_TO_PARKING_LEAVING";
+          });
+          break;
+
+        case "MOVING_TO_PARKING_LEAVING":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell14 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell14);
+          } else {
+            this.stage = "UNPARKING";
+          }
+
           break;
 
         case "UNPARKING":
@@ -698,8 +1108,9 @@ var Agent = /*#__PURE__*/function () {
 
         case "MOVING_TO_EXIT":
           if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-            this.makeMove(nextCell);
+            var _nextCell15 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell15);
           } else {
             this.stage = "EXITED";
           }
@@ -711,38 +1122,147 @@ var Agent = /*#__PURE__*/function () {
           break;
 
         default:
-          console.log("Unknown stage: ", this.stage);
-          break;
+          console.log("NO STAGE");
       }
     }
   }, {
-    key: "parkingLotPreference",
-    value: function parkingLotPreference() {
+    key: "parkingLotPreferenceWest",
+    value: function parkingLotPreferenceWest() {
       var _this6 = this;
 
       switch (this.stage) {
         case "ENTERING":
-          var parkingLots = ["top", "middle", "left", "right"]; // this.lotPref = parkingLots[Math.floor(Math.random() * 0)];
-
-          this.changeMoveTo(19, 5, function () {
-            _this6.stage = "MOVING_TO_PARKING_ENTERING";
+          var coordinates = new Array(1);
+          coordinates[0] = 3;
+          coordinates[1] = this.randomValueInRange(17, 20);
+          this.changeMoveTo(coordinates[0], coordinates[1], function () {
+            _this6.stage = "MOVING_TO_LOT";
           });
           break;
 
-        case "MOVING_TO_PARKING_ENTERING":
-          this.moveParkingLot();
-
-          if (this.lotPref == "top") {
-            this.changeMoveTo(Math.floor(Math.random() * (29 - 20 + 1)) + 20, Math.floor(Math.random() * (6 - 4 + 1)) + 4);
+        case "MOVING_TO_LOT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            this.makeMove(nextCell);
+          } else {
+            this.stage = "SEARCHING_IN_LOT";
           }
 
-          this.strategy == "DEFAULT";
+          break;
+
+        case "SEARCHING_IN_LOT":
+          var x = this.randomValueInRange(4, 6);
+          var y = this.randomValueInRange(17, 20);
+          this.changeMoveTo(x, y, function () {
+            _this6.stage = "MOVING_TO_SPOT";
+          });
+          break;
+
+        case "MOVING_TO_SPOT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell16 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell16);
+          } else {
+            this.stage = "PARKING";
+          }
+
+          break;
+
+        case "PARKING":
+          if (this.park()) {
+            this.stage = "LEAVING_PARKING";
+          } else {
+            console.log("Could not park");
+            this.stage = "SEARCHING_IN_LOT";
+            this.failedToPark += 1;
+
+            if (failedToPark > 5) {
+              this.stage = "CHANGEPREF";
+              this.failedToPark = 0;
+            }
+          }
+
+          break;
+
+        case "LEAVING_PARKING":
+          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+            _this6.stage = "MOVING_TO_GOAL";
+          });
+          break;
+
+        case "MOVING_TO_GOAL":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell17 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell17);
+          } else {
+            this.stage = "IN_GOAL";
+            this.hasReachedGoal();
+          }
+
+          break;
+
+        case "IN_GOAL":
+          if (Math.random() < this.exitRate) {
+            this.stage = "LEAVING_GOAL";
+            this.incoming = false;
+          }
+
+          break;
+
+        case "LEAVING_GOAL":
+          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
+            _this6.stage = "MOVING_TO_PARKING_LEAVING";
+          });
+          break;
+
+        case "MOVING_TO_PARKING_LEAVING":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell18 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell18);
+          } else {
+            this.stage = "UNPARKING";
+          }
+
+          break;
+
+        case "UNPARKING":
+          this.unpark();
+          this.stage = "LEAVING";
+          break;
+
+        case "LEAVING":
+          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
+            _this6.stage = "MOVING_TO_EXIT";
+          });
+          break;
+
+        case "MOVING_TO_EXIT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell19 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell19);
+          } else {
+            this.stage = "EXITED";
+          }
+
+          break;
+
+        case "EXITED":
+          this.world.removeAgent(this);
           break;
 
         default:
           console.log("NO STAGE");
       }
-    } ////////////////////////
+    } // 3) parkingLotSpotPreference: specific lot and spot. Full? Spread out search from spot.
+
+  }, {
+    key: "parkingLotSpotPreference",
+    value: function parkingLotSpotPreference() {} ////////////////////////
     // STRATEGY EXECUTION //
     ////////////////////////
 
@@ -753,8 +1273,14 @@ var Agent = /*#__PURE__*/function () {
 
       if (this.strategy == "DEFAULT") {
         this.default();
-      } else if (this.strategy == "PARKING_LOT_PREFERENCE") {
-        this.parkingLotPreference();
+      } else if (this.strategy == "lotPref_NORTH") {
+        this.parkingLotPreferenceNorth();
+      } else if (this.strategy == "lotPref_EAST") {
+        this.parkingLotPreferenceEast();
+      } else if (this.strategy == "lotPref_MID") {
+        this.parkingLotPreferenceMid();
+      } else if (this.strategy == "lotPref_WEST") {
+        this.parkingLotPreferenceWest();
       } else {
         console.log("Unknown strategy: ", this.strategy);
       }
@@ -2033,7 +2559,7 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var STRATEGIES = ["DEFAULT", "PARKING_LOT_PREFERENCE"]; // Set default selected strategies
+var STRATEGIES = ["DEFAULT", "lotPref_NORTH", "lotPref_EAST", "lotPref_MID", "lotPref_WEST"]; // Set default selected strategies
 
 var selectedStrategies = ["DEFAULT" // "PARKING_LOT_PREFERENCE"
 ];
@@ -2044,13 +2570,13 @@ function reset() {
   world = new _World.default(_map.default, _map.mapDirection);
   timeToParkData = [selectedStrategies];
   timeToGoalData = [selectedStrategies];
-  DrawChart('time-to-park', timeToParkData);
-  DrawChart('time-to-goal', timeToGoalData);
+  DrawChart("time-to-park", timeToParkData);
+  DrawChart("time-to-goal", timeToGoalData);
 }
 
 function strategyName(strategy) {
   return strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, function (s, c, d) {
-    return c ? c.toUpperCase() : ' ' + d.toUpperCase();
+    return c ? c.toUpperCase() : " " + d.toUpperCase();
   });
 }
 
@@ -2201,11 +2727,11 @@ requestAnimationFrame(drawCanvas); // **********************************
 // Draw graphs for time-to-park and time-to-goal
 // **********************************
 
-google.charts.load('current', {
-  'packages': ['corechart']
+google.charts.load("current", {
+  packages: ["corechart"]
 });
 google.charts.setOnLoadCallback(function () {
-  return DrawChart('time-to-park', timeToParkData);
+  return DrawChart("time-to-park", timeToParkData);
 });
 
 function DrawChart(id, data) {
@@ -2213,17 +2739,17 @@ function DrawChart(id, data) {
   var data = google.visualization.arrayToDataTable(data); // Set chart options
 
   var options = {
-    'width': "100%",
-    'height': 300,
+    width: "100%",
+    height: 300,
     bar: {
       gap: 0
     },
     chartArea: {
-      'width': '100%',
-      'height': '80%'
+      width: "100%",
+      height: "80%"
     },
     legend: {
-      'position': 'bottom'
+      position: "bottom"
     },
     interpolateNulls: false,
     histogram: {
@@ -2239,14 +2765,14 @@ function DrawChart(id, data) {
 
 function addTimeToPark(strategy, data) {
   // Create array of 0's, with length of number of strategies,
-  // and set the index of the strategy to the data 
+  // and set the index of the strategy to the data
   var index = selectedStrategies.indexOf(strategy);
   var row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToParkData.push(row);
 
   if (realtimeChart) {
-    DrawChart('time-to-park', timeToParkData);
+    DrawChart("time-to-park", timeToParkData);
   }
 }
 
@@ -2257,7 +2783,7 @@ function addTimeToGoal(strategy, data) {
   timeToGoalData.push(row);
 
   if (realtimeChart) {
-    DrawChart('time-to-goal', timeToGoalData);
+    DrawChart("time-to-goal", timeToGoalData);
   }
 }
 },{"./styles.css":"src/styles.css","./map":"src/map.js","./World":"src/World.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
@@ -2288,7 +2814,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61779" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "38849" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

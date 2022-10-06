@@ -1,4 +1,4 @@
-const MAX_PARKED_BIKES = 8;
+const MAX_PARKED_BIKES = 4;
 
 class Cell {
   constructor(world, type, x, y, allowed_direction) {
@@ -26,25 +26,25 @@ class Cell {
     // or 2 agent of type BIKE and 1 agents of type PEDESTRIAN
     if (
       agent.type === "BIKE" &&
-      this.agents.filter(({ type }) => type === "BIKE").length >= 2
+      this.agents.filter(({ type }) => type === "BIKE").length >= 20
     ) {
       return false;
     }
     if (
       agent.type === "PEDESTRIAN" &&
-      this.agents.filter(({ type }) => type === "PEDESTRIAN").length >= 3
+      this.agents.filter(({ type }) => type === "PEDESTRIAN").length >= 30
     ) {
       return false;
     }
     if (
       agent.type === "BIKE" &&
-      this.agents.filter(({ type }) => type === "PEDESTRIAN").length >= 2
+      this.agents.filter(({ type }) => type === "PEDESTRIAN").length >= 20
     ) {
       return false;
     }
     if (
       agent.type === "PEDESTRIAN" &&
-      this.agents.filter(({ type }) => type === "BIKE").length >= 3
+      this.agents.filter(({ type }) => type === "BIKE").length >= 30
     ) {
       return false;
     }
@@ -86,7 +86,12 @@ class Cell {
     if (this.type === "PARKING") {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(canvas_x + 2, canvas_y + squareSize - 8, squareSize - 4, 4);
-      ctx.fillStyle = "#316cf4";
+
+      if (this.bikes == MAX_PARKED_BIKES) {
+        ctx.fillStyle = "#ff0707";
+      } else {
+        ctx.fillStyle = "#316cf4";
+      }
       ctx.fillRect(
         canvas_x + 2,
         canvas_y + squareSize - 8,
@@ -132,20 +137,37 @@ class Cell {
       }
     }
 
-    // !! Debug to show number of agents in cell
-    // if(["SPAWN", "BIKE_PATH", "PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"].includes(this.type)) {
-    //   ctx.font = '12px monospace';
+    //!! Debug to show number of agents in cell
+    // if (
+    //   [
+    //     "SPAWN",
+    //     "BIKE_PATH",
+    //     "PEDESTRIAN_PATH",
+    //     "ALL_PATH",
+    //     "PARKING",
+    //     "BUILDING_ENTRANCE",
+    //   ].includes(this.type)
+    // ) {
+    //   ctx.font = "12px monospace";
     //   ctx.fillStyle = "black";
     //   // make text slightly transparent
     //   ctx.globalAlpha = 0.3;
-    //   ctx.fillText("B:" + this.agents.filter(({type}) => type === "BIKE").length, canvas_x + 2, canvas_y + 12);
-    //   ctx.fillText("P:" + this.agents.filter(({type}) => type === "PEDESTRIAN").length, canvas_x + 2, canvas_y + 24);
+    //   ctx.fillText(
+    //     "B:" + this.agents.filter(({ type }) => type === "BIKE").length,
+    //     canvas_x + 2,
+    //     canvas_y + 12
+    //   );
+    //   ctx.fillText(
+    //     "P:" + this.agents.filter(({ type }) => type === "PEDESTRIAN").length,
+    //     canvas_x + 2,
+    //     canvas_y + 24
+    //   );
     //   // reset transparency
     //   ctx.globalAlpha = 1;
     // }
 
     // !! Draws directions in which agents are allowed to move
-    // ctx.font = '14px monospace';
+    // ctx.font = "14px monospace";
     // ctx.fillStyle = "black";
     // // make text slightly transparent
     // ctx.globalAlpha = 0.5;
@@ -154,14 +176,14 @@ class Cell {
     // ctx.globalAlpha = 1;
 
     // !! Draw coordinates
-    // ctx.font = '11px monospace';
-    // ctx.fillStyle = "black";
-    // // make text slightly transparent
-    // ctx.globalAlpha = 0.5;
-    // ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
-    // ctx.fillText(this.y, canvas_x, canvas_y + 22);
-    // // reset transparency
-    // ctx.globalAlpha = 1;
+    ctx.font = "11px monospace";
+    ctx.fillStyle = "black";
+    // make text slightly transparent
+    ctx.globalAlpha = 0.5;
+    ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
+    ctx.fillText(this.y, canvas_x, canvas_y + 22);
+    // reset transparency
+    ctx.globalAlpha = 1;
   }
 
   // Drawing utilities, nothing important after this point :)

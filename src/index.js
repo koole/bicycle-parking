@@ -5,17 +5,15 @@ import World from "./World";
 
 const STRATEGIES = [
   "DEFAULT",
-  "lotPref_NORTH",
-  "lotPref_EAST",
-  "lotPref_MID",
-  "lotPref_WEST",
+  "lotPref",
   "closest",
 ];
 
 // Set default selected strategies
 let selectedStrategies = [
   "DEFAULT",
-  // "PARKING_LOT_PREFERENCE"
+  "lotPref",
+  "closest",
 ];
 
 var timeToParkData = [selectedStrategies];

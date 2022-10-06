@@ -9,6 +9,7 @@ const STRATEGIES = [
   "lotPref_EAST",
   "lotPref_MID",
   "lotPref_WEST",
+  "closest",
 ];
 
 // Set default selected strategies

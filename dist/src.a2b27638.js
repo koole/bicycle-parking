@@ -2537,16 +2537,35 @@ function drawSpawnRate(currentTick) {
   var barHeight = height / maxSpawnRateLimit;
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#fbe7a5";
-  ctx.fillRect(0, 0, width, height);
+  ctx.fillRect(0, 0, width, height); // Plot bar for spawn rate at corresponding tick
 
   for (var i = 0; i < automatedLoopLength; i++) {
     ctx.fillStyle = "#f6c344";
     ctx.fillRect(i * barWidth, height - spawnRates[i] * barHeight, barWidth, spawnRates[i] * barHeight);
-  }
+  } // Plot a line every 20%
+
+
+  for (var i = 0; i < maxSpawnRateLimit; i += 0.2) {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#c49c35";
+    ctx.beginPath();
+    ctx.moveTo(0, height - i * barHeight);
+    ctx.lineTo(width, height - i * barHeight);
+    ctx.stroke(); // Add text
+
+    ctx.fillStyle = "#c49c35";
+    ctx.font = "20px Arial";
+    ctx.fillText(Math.floor(i * 100) + "%", width - 42, height - i * barHeight - 3);
+  } // Plot the current spawn rate
+
 
   var currentIndex = currentTick % automatedLoopLength;
   ctx.fillStyle = "#312708";
-  ctx.fillRect(currentIndex * barWidth, height - spawnRates[currentIndex] * barHeight - 2, barWidth * 4, spawnRates[currentIndex] * barHeight + 2);
+  ctx.fillRect(currentIndex * barWidth, height - spawnRates[currentIndex] * barHeight - 2, barWidth * 4, spawnRates[currentIndex] * barHeight + 2); // Draw small circle on top of line
+
+  ctx.beginPath();
+  ctx.arc(currentIndex * barWidth + barWidth * 2, height - spawnRates[currentIndex] * barHeight, 5, 0, 2 * Math.PI);
+  ctx.fill();
 }
 
 drawSpawnRate(currentTick);

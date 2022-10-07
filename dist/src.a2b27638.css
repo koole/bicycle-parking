@@ -11,4 +11,10 @@ aside {
   transition: none !important;
 }
 
+#spawn-rate {
+  width: 100%;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid #ddc57d;
+}
+
 /*# sourceMappingURL=/src.a2b27638.css.map */

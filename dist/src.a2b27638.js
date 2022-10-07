@@ -197,7 +197,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.mapDirection = exports.default = void 0;
 var map = "\n____________________________________\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\n_bbw______________aa____________bb__\n_bbw______________aappppppppppa_bb__\n_bbw______________aappppppppppaaaaaS\n_bbw______________aappppppppppaaaaaE\n_bbw______________aa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbwwwooooooooooooaa________________\n_bbappoooopppppppoaa________________\n_bbappoooopppppppoaa________________\n_bbappooooooooooaaaa___pppppp_______\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwoooooooooooXaaaaaaaaaaaaaaaaaS\n_bbwwwooooooooooooaaaaaaaaaaaaaaaaaE\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwooooooooooooaa________________\n_bbaaa____________aa________________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbw_____________aaaaa______________\n_bbw______________aaaaa_____________\n_bbw______________aaaaa_____________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_ESw________________________________\n";
-var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
+var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhawaawa\n_sna______________aahhhhhhhhhhaeaaea\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
 exports.mapDirection = mapDirection;
 var _default = map;
 exports.default = _default;
@@ -313,7 +313,31 @@ var Cell = /*#__PURE__*/function () {
       var color = "#fefefe";
       color = this.getCellColor(color);
       ctx.fillStyle = color;
-      ctx.fillRect(canvas_x, canvas_y, squareSize, squareSize); // Draw progress bar for amount of parked bikes
+      ctx.fillRect(canvas_x, canvas_y, squareSize, squareSize); // !! Draws directions in which agents are allowed to move
+
+      ctx.font = "16px monospace";
+      ctx.fillStyle = "#ffffff"; // make text slightly transparent
+
+      ctx.globalAlpha = 0.8;
+      var arrow = "";
+
+      if (this.allowed_direction === "n") {
+        arrow = "↑";
+      } else if (this.allowed_direction === "s") {
+        arrow = "↓";
+      } else if (this.allowed_direction === "e") {
+        arrow = "→";
+      } else if (this.allowed_direction === "w") {
+        arrow = "←";
+      } else if (this.allowed_direction === "h") {
+        arrow = "↔";
+      } else if (this.allowed_direction === "v") {
+        arrow = "↕";
+      }
+
+      ctx.fillText(arrow, canvas_x + 11, canvas_y + 20); // reset transparency
+
+      ctx.globalAlpha = 1; // Draw progress bar for amount of parked bikes
 
       if (this.type === "PARKING") {
         ctx.fillStyle = "#ffffff";
@@ -392,14 +416,6 @@ var Cell = /*#__PURE__*/function () {
       //   // reset transparency
       //   ctx.globalAlpha = 1;
       // }
-      // !! Draws directions in which agents are allowed to move
-      // ctx.font = "14px monospace";
-      // ctx.fillStyle = "black";
-      // // make text slightly transparent
-      // ctx.globalAlpha = 0.5;
-      // ctx.fillText(this.allowed_direction, canvas_x + 2, canvas_y + 24);
-      // // reset transparency
-      // ctx.globalAlpha = 1;
       // !! Draw coordinates
       // ctx.font = "11px monospace";
       // ctx.fillStyle = "black";
@@ -2628,27 +2644,14 @@ function gameTick() {
     drawSpawnRate(currentTick);
 
     if (experimentMode) {
-      // Update #experiment-progress progress bar width
       document.getElementById("experiment-progress").style.width = currentTick / experiment_ticks * 100 + "%";
     }
 
     if (experimentMode && currentTick > experiment_ticks) {
-      window.alert("Simulation ended, paused.");
-      paused = true;
-      DrawChart("time-to-park", timeToParkData);
-      DrawChart("time-to-goal", timeToGoalData);
-
-      if (window.confirm("Download data as CSV?")) {
-        downloadCSV(csvRowsPark, "time-to-park");
-        downloadCSV(csvRowsGoal, "time-to-goal");
-      }
-
+      openResultsModal();
+      document.getElementById("experiment-progress").style.width = "0%";
       experimentMode = false;
     }
-  }
-
-  if (experimentMode) {
-    document.getElementById("experiment-progress").style.width = currentTick / experiment_ticks * 100 + "%";
   }
 
   setTimeout(gameTick, tickdelay);
@@ -2717,16 +2720,32 @@ google.charts.setOnLoadCallback(function () {
 }); // Render charts onclick of #render-charts
 
 document.getElementById("render-charts").addEventListener("click", function () {
+  openResultsModal();
+});
+document.getElementById("closeResultsModal").addEventListener("click", function () {
+  closeResultsModal();
+});
+
+function openResultsModal() {
   DrawChart("time-to-park", timeToParkData);
   DrawChart("time-to-goal", timeToGoalData);
-});
+  document.getElementById("resultsModal").style.display = "block";
+  document.getElementById("resultsModalBackdrop").style.display = "block";
+  paused = true;
+}
+
+function closeResultsModal() {
+  document.getElementById("resultsModal").style.display = "none";
+  document.getElementById("resultsModalBackdrop").style.display = "none";
+  paused = false;
+}
 
 function DrawChart(id, data) {
   // Create the data table.
   var data = google.visualization.arrayToDataTable(data); // Set chart options
 
   var options = {
-    width: "100%",
+    width: "1100",
     height: 300,
     bar: {
       gap: 0

@@ -224,23 +224,13 @@ function gameTick() {
     currentTick++;
     drawSpawnRate(currentTick);
     if (experimentMode) {
-      // Update #experiment-progress progress bar width
       document.getElementById("experiment-progress").style.width = (currentTick / experiment_ticks) * 100 + "%";
     }
     if (experimentMode && currentTick > experiment_ticks) {
-      window.alert("Simulation ended, paused.");
-      paused = true;
-      DrawChart("time-to-park", timeToParkData);
-      DrawChart("time-to-goal", timeToGoalData);
-      if (window.confirm("Download data as CSV?")) {
-        downloadCSV(csvRowsPark, `time-to-park`);
-        downloadCSV(csvRowsGoal, `time-to-goal`);
-      }
+      openResultsModal();
+      document.getElementById("experiment-progress").style.width = "0%";
       experimentMode = false;
     }
-  }
-  if (experimentMode) {
-    document.getElementById("experiment-progress").style.width = (currentTick / experiment_ticks) * 100 + "%";
   }
   setTimeout(gameTick, tickdelay);
 }
@@ -288,10 +278,26 @@ google.charts.setOnLoadCallback(() => {
 
 // Render charts onclick of #render-charts
 document.getElementById("render-charts").addEventListener("click", () => {
-  DrawChart("time-to-park", timeToParkData);
-  DrawChart("time-to-goal", timeToGoalData);
+  openResultsModal();
 });
 
+document.getElementById("closeResultsModal").addEventListener("click", () => {
+  closeResultsModal();
+});
+
+function openResultsModal() {
+  DrawChart("time-to-park", timeToParkData);
+  DrawChart("time-to-goal", timeToGoalData);
+  document.getElementById("resultsModal").style.display = "block";
+  document.getElementById("resultsModalBackdrop").style.display = "block";
+  paused = true;
+}
+
+function closeResultsModal() {
+  document.getElementById("resultsModal").style.display = "none";
+  document.getElementById("resultsModalBackdrop").style.display = "none";
+  paused = false;
+}
 
 function DrawChart(id, data) {
   // Create the data table.
@@ -299,7 +305,7 @@ function DrawChart(id, data) {
 
   // Set chart options
   var options = {
-    width: "100%",
+    width: "1100",
     height: 300,
     bar: { gap: 0 },
     chartArea: { width: "100%", height: "80%" },

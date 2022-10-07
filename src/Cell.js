@@ -82,6 +82,30 @@ class Cell {
     ctx.fillStyle = color;
     ctx.fillRect(canvas_x, canvas_y, squareSize, squareSize);
 
+    // !! Draws directions in which agents are allowed to move
+    ctx.font = "16px monospace";
+    ctx.fillStyle = "#ffffff";
+    // make text slightly transparent
+    ctx.globalAlpha = 0.8;
+    let arrow = "";
+    if (this.allowed_direction === "n") {
+      arrow = "↑";
+    } else if (this.allowed_direction === "s") {
+      arrow = "↓";
+    } else if (this.allowed_direction === "e") {
+      arrow = "→";
+    } else if (this.allowed_direction === "w") {
+      arrow = "←";
+    } else if (this.allowed_direction === "h") {
+      arrow = "↔";
+    } else if (this.allowed_direction === "v") {
+      arrow = "↕";
+    }
+
+    ctx.fillText(arrow, canvas_x + 11, canvas_y + 20);
+    // reset transparency
+    ctx.globalAlpha = 1;
+
     // Draw progress bar for amount of parked bikes
     if (this.type === "PARKING") {
       ctx.fillStyle = "#ffffff";
@@ -165,15 +189,6 @@ class Cell {
     //   // reset transparency
     //   ctx.globalAlpha = 1;
     // }
-
-    // !! Draws directions in which agents are allowed to move
-    // ctx.font = "14px monospace";
-    // ctx.fillStyle = "black";
-    // // make text slightly transparent
-    // ctx.globalAlpha = 0.5;
-    // ctx.fillText(this.allowed_direction, canvas_x + 2, canvas_y + 24);
-    // // reset transparency
-    // ctx.globalAlpha = 1;
 
     // !! Draw coordinates
     // ctx.font = "11px monospace";

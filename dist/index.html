@@ -11,7 +11,7 @@
 
 <body>
   <div class="d-flex">
-    <aside class="vh-100 overflow-auto p-3">
+    <aside class="vh-100 overflow-auto p-3 border-end">
       <h5>Controls</h5>
       <div class="d-grid gap-2">
         <button class="btn btn-primary mb-1" id="play-pause">Pause</button>
@@ -84,30 +84,10 @@
         <label for="spawnspeed" class="form-label fw-bolder">Manual Probability <span id="manual-spawn-rate-display" class="fw-lighter">20%</span></label>
         <input type="range" class="form-range" id="spawnspeed" min="0" max="1" value="0.2" step="0.01" disabled="">
       </div>
-      <h5>Charts</h5>
+      <h5>Results & export</h5>
       <div class="mb-3">
-        <div class="form-label fw-bolder">Update charts</div>
         <div class="d-grid gap-2">
-          <button class="btn btn-sm btn-outline-primary" id="render-charts">Update charts</button>
-        </div>
-      </div>
-      <div class="mb-3">
-        <div class="form-label fw-bolder">Time to goal</div>
-        <div id="time-to-goal"></div>
-      </div>
-      <div class="mb-3">
-        <div class="form-label fw-bolder">Time to park</div>
-        <div id="time-to-park"></div>
-      </div>
-      <h5>Export</h5>
-      <div class="mb-3">
-        <div class="form-label fw-bolder">Time to goal</div>
-        <div class="d-grid gap-2">
-          <button class="btn btn-sm btn-primary mb-3" id="export-park">Export CSV</button>
-        </div>
-        <div class="form-label fw-bolder">Time to park</div>
-        <div class="d-grid gap-2">
-          <button class="btn btn-sm btn-primary mb-3" id="export-goal">Export CSV</button>
+          <button class="btn btn-primary" id="render-charts">Plot results & export data</button>
         </div>
       </div>
     </aside>
@@ -115,6 +95,31 @@
       <canvas id="canvas" class=""></canvas>
     </main>
   </div>
+  <div class="modal show" id="resultsModal" tabindex="-1" style="display: hidden;">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Results</h1>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <div class="form-label fw-bolder">Time to goal</div>
+            <div id="time-to-goal"></div>
+            <button class="btn btn-sm btn-primary mb-3" id="export-park">Export data as CSV</button>
+          </div>
+          <div class="mb-3">
+            <div class="form-label fw-bolder">Time to park</div>
+            <div id="time-to-park"></div>
+            <button class="btn btn-sm btn-primary mb-3" id="export-goal">Export data as CSV</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="closeResultsModal" class="btn btn-primary" data-bs-dismiss="modal">Close & continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show" id="resultsModalBackdrop" style="display: none;"></div>
   <script src="/src.a2b27638.js"></script>
 </body>
 

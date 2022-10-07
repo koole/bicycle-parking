@@ -374,7 +374,13 @@ var Cell = /*#__PURE__*/function () {
 
         if (bikeAgents.length > 0) {
           bikeAgents.forEach(function (agent, i) {
-            _this.drawBike(ctx, x * squareSize + i * 10, y * squareSize);
+            // If the current agents is moving to the left or right in the agent's paths next step
+            // then draw the bike in the horizontal position
+            if (agent.path && agent.path.length > 0 && agent.path[0].x === agent.cell.x) {
+              _this.drawBike(ctx, x * squareSize, y * squareSize, "vertical", i);
+            } else {
+              _this.drawBike(ctx, x * squareSize, y * squareSize, "horizontal", i);
+            }
           });
 
           if (pedestrianAgents.length > 0) {
@@ -465,9 +471,14 @@ var Cell = /*#__PURE__*/function () {
     }
   }, {
     key: "drawBike",
-    value: function drawBike(ctx, x, y) {
+    value: function drawBike(ctx, x, y, orientation, i) {
       ctx.fillStyle = "#222529";
-      ctx.fillRect(x + 6, y + 2, 5, 20);
+
+      if (orientation === "vertical") {
+        ctx.fillRect(x + 6 + 10 * i, y + 2, 5, 20);
+      } else {
+        ctx.fillRect(x + 2, y + 6 + 10 * i, 20, 5);
+      }
     }
   }, {
     key: "drawPedestrian",

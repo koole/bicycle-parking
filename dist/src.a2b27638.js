@@ -2718,13 +2718,15 @@ function DrawChart(id, data, max) {
     interpolateNulls: false,
     chartArea: {
       left: 10,
-      top: 0
+      top: 0,
+      bottom: 35
     },
     histogram: {
       bucketSize: 20,
       maxNumBuckets: 50,
       minValue: 0,
-      maxValue: max
+      maxValue: max,
+      lastBucketPercentile: 5
     }
   }; // Instantiate and draw our chart, passing in some options.
 

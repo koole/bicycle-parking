@@ -300,12 +300,13 @@ function DrawChart(id, data, max) {
     height: 300,
     bar: { gap: 0 },
     interpolateNulls: false,
-    chartArea: { left: 10, top: 0 },
+    chartArea: { left: 10, top: 0, bottom: 35 },
     histogram: {
       bucketSize: 20,
       maxNumBuckets: 50,
       minValue: 0,
       maxValue: max,
+      lastBucketPercentile: 5
     },
   };
 

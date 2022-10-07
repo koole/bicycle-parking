@@ -633,11 +633,11 @@ class Agent {
   ////////////////////////
   act() {
     this.ticks += 1;
-    if (this.strategy == "DEFAULT") {
+    if (this.strategy == "RANDOM_CHOICE") {
       this.default();
-    } else if (this.strategy == "lotPref") {
+    } else if (this.strategy == "LOT_PREFERENCE") {
       this.parkingLotPreference();
-    } else if (this.strategy == "closest") {
+    } else if (this.strategy == "CLOSEST_SPOT") {
       this.closest_strat();
     } else {
       console.log("Unknown strategy: ", this.strategy);

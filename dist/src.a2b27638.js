@@ -1148,11 +1148,11 @@ var Agent = /*#__PURE__*/function () {
     value: function act() {
       this.ticks += 1;
 
-      if (this.strategy == "DEFAULT") {
+      if (this.strategy == "RANDOM_CHOICE") {
         this.default();
-      } else if (this.strategy == "lotPref") {
+      } else if (this.strategy == "LOT_PREFERENCE") {
         this.parkingLotPreference();
-      } else if (this.strategy == "closest") {
+      } else if (this.strategy == "CLOSEST_SPOT") {
         this.closest_strat();
       } else {
         console.log("Unknown strategy: ", this.strategy);
@@ -2412,7 +2412,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.addTimeToGoal = addTimeToGoal;
 exports.addTimeToPark = addTimeToPark;
-exports.automated_loop_length = void 0;
 
 require("./styles.css");
 
@@ -2440,15 +2439,15 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var STRATEGIES = ["DEFAULT", "lotPref", "closest"]; // Set default selected strategies
+var STRATEGIES = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"]; // Set default selected strategies
 
-var selectedStrategies = ["DEFAULT", "lotPref", "closest"];
+var selectedStrategies = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
 var csvRowsPark = "strategy,time\n";
 var csvRowsGoal = "strategy,time\n";
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
 var experimentMode = false;
-var experiment_ticks = 10000;
+var experimentTicks = 10000;
 var currentTick = 0;
 
 function reset() {
@@ -2468,7 +2467,7 @@ function strategyName(strategy) {
 }
 
 var squareSize = 32;
-var tickdelay = 20;
+var tickDelay = 20;
 var spawnspeed = 0.2;
 var paused = false; // Onclick of #experiment-mode, start experiment
 
@@ -2482,73 +2481,72 @@ document.getElementById("experiment-mode").onclick = function () {
 // Spawn rate waves
 
 
-var automated_loop_length = 500;
-exports.automated_loop_length = automated_loop_length;
-var min_spawn_rate = 0.2;
-var max_spawn_rate = 1;
-var max_limit = 1; // return value for current bin using sine wave between min and max, over length of automated_loop_length
+var automatedLoopLength = 500;
+var minSpawnRate = 0.2;
+var maxSpawnRate = 1;
+var maxLimit = 1; // return value for current bin using sine wave between min and max, over length of automatedLoopLength
 
-function getSpawnRate(current_bin) {
-  return min_spawn_rate + (max_spawn_rate - min_spawn_rate) * Math.pow((Math.sin(current_bin / automated_loop_length * 2 * Math.PI) + 1) / 2, 2);
+function getSpawnRate(currentBin) {
+  return minSpawnRate + (maxSpawnRate - minSpawnRate) * Math.pow((Math.sin(currentBin / automatedLoopLength * 2 * Math.PI) + 1) / 2, 2);
 } // Create array of spawn rates of length automated_loop_length
 
 
-var spawn_rates = [];
+var spawnRates = [];
 
 function updateSpawnRates() {
-  spawn_rates = [];
+  spawnRates = [];
 
-  for (var i = 0; i < automated_loop_length; i++) {
-    spawn_rates.push(getSpawnRate(i));
+  for (var i = 0; i < automatedLoopLength; i++) {
+    spawnRates.push(getSpawnRate(i));
   }
 }
 
 updateSpawnRates(); // Draw bars for spawn_rate on canvas
 
 function drawSpawnRate(currentTick) {
-  document.getElementById("automated-spawn-rate-display").innerHTML = Math.floor(spawn_rates[currentTick % automated_loop_length] * 100) + "%";
+  document.getElementById("automated-spawn-rate-display").innerHTML = Math.floor(spawnRates[currentTick % automatedLoopLength] * 100) + "%";
   var canvas = document.getElementById("spawn-rate");
   var ctx = canvas.getContext("2d");
   var width = canvas.width;
   var height = canvas.height;
-  var barWidth = width / automated_loop_length;
-  var barHeight = height / max_limit;
+  var barWidth = width / automatedLoopLength;
+  var barHeight = height / maxLimit;
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#fbe7a5";
   ctx.fillRect(0, 0, width, height);
 
-  for (var i = 0; i < automated_loop_length; i++) {
+  for (var i = 0; i < automatedLoopLength; i++) {
     ctx.fillStyle = "#f6c344";
-    ctx.fillRect(i * barWidth, height - spawn_rates[i] * barHeight, barWidth, spawn_rates[i] * barHeight);
+    ctx.fillRect(i * barWidth, height - spawnRates[i] * barHeight, barWidth, spawnRates[i] * barHeight);
   }
 
-  var currentI = currentTick % automated_loop_length;
+  var currentIndex = currentTick % automatedLoopLength;
   ctx.fillStyle = "#312708";
-  ctx.fillRect(currentI * barWidth, height - spawn_rates[currentI] * barHeight - 2, barWidth * 4, spawn_rates[currentI] * barHeight + 2);
+  ctx.fillRect(currentIndex * barWidth, height - spawnRates[currentIndex] * barHeight - 2, barWidth * 4, spawnRates[currentIndex] * barHeight + 2);
 }
 
 drawSpawnRate(currentTick);
-var spawn_rate_type = "auto"; // Switch between spawn rate types
+var spawnRateType = "auto"; // Switch between spawn rate types
 
 document.getElementById("spawnrate-radio-auto").addEventListener("change", function (event) {
-  spawn_rate_type = event.target.value;
+  spawnRateType = event.target.value;
   document.getElementById("spawnspeed").disabled = true;
 });
 document.getElementById("spawnrate-radio-manual").addEventListener("change", function (event) {
-  spawn_rate_type = event.target.value;
+  spawnRateType = event.target.value;
   document.getElementById("spawnspeed").disabled = false;
 }); // Switch between max_spawn_rate value
 
 document.getElementById("automatedPeak1").addEventListener("change", function (event) {
-  max_spawn_rate = 1;
+  maxSpawnRate = 1;
   updateSpawnRates();
 });
 document.getElementById("automatedPeak2").addEventListener("change", function (event) {
-  max_spawn_rate = 0.66;
+  maxSpawnRate = 0.66;
   updateSpawnRates();
 });
 document.getElementById("automatedPeak3").addEventListener("change", function (event) {
-  max_spawn_rate = 0.33;
+  maxSpawnRate = 0.33;
   updateSpawnRates();
 }); // Reset button
 
@@ -2597,7 +2595,7 @@ document.getElementById("play-pause").addEventListener("click", function () {
 }); // Control tickdelay
 
 document.getElementById("tickdelay").addEventListener("input", function (e) {
-  tickdelay = e.target.value;
+  tickDelay = e.target.value;
 });
 document.getElementById("spawnspeed").addEventListener("input", function (e) {
   spawnspeed = e.target.value;
@@ -2616,8 +2614,8 @@ function gameTick() {
     // Spawn new agent sometimes
     var rate = spawnspeed;
 
-    if (spawn_rate_type === "auto") {
-      rate = spawn_rates[currentTick % automated_loop_length];
+    if (spawnRateType === "auto") {
+      rate = spawnRates[currentTick % automatedLoopLength];
     }
 
     if (Math.random() < rate) {
@@ -2634,17 +2632,17 @@ function gameTick() {
     drawSpawnRate(currentTick);
 
     if (experimentMode) {
-      document.getElementById("experiment-progress").style.width = currentTick / experiment_ticks * 100 + "%";
+      document.getElementById("experiment-progress").style.width = currentTick / experimentTicks * 100 + "%";
     }
 
-    if (experimentMode && currentTick > experiment_ticks) {
+    if (experimentMode && currentTick > experimentTicks) {
       openResultsModal();
       document.getElementById("experiment-progress").style.width = "0%";
       experimentMode = false;
     }
   }
 
-  setTimeout(gameTick, tickdelay);
+  setTimeout(gameTick, tickDelay);
 }
 
 gameTick(); // **********************************
@@ -2770,9 +2768,10 @@ function DrawChart(id, data, max) {
       top: 0
     },
     histogram: {
+      bucketSize: 20,
       maxNumBuckets: 50,
       minValue: 0,
-      maxValue: max + 40
+      maxValue: max
     }
   }; // Instantiate and draw our chart, passing in some options.
 
@@ -2815,7 +2814,7 @@ function downloadCSV(csv, filename) {
     type: "text/csv"
   });
   downloadLink = document.createElement("a");
-  downloadLink.download = filename + "===".concat(selectedStrategies.join("-"), "===peak-").concat(max_spawn_rate, ".csv"); // Add hidden download link
+  downloadLink.download = filename + "===".concat(selectedStrategies.join("-"), "===peak-").concat(maxSpawnRate, ".csv"); // Add hidden download link
 
   downloadLink.href = window.URL.createObjectURL(csvFile);
   downloadLink.style.display = "none";

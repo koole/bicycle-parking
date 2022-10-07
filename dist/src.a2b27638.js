@@ -401,16 +401,15 @@ var Cell = /*#__PURE__*/function () {
       // // reset transparency
       // ctx.globalAlpha = 1;
       // !! Draw coordinates
+      // ctx.font = "11px monospace";
+      // ctx.fillStyle = "black";
+      // // make text slightly transparent
+      // ctx.globalAlpha = 0.5;
+      // ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
+      // ctx.fillText(this.y, canvas_x, canvas_y + 22);
+      // // reset transparency
+      // ctx.globalAlpha = 1;
 
-
-      ctx.font = "11px monospace";
-      ctx.fillStyle = "black"; // make text slightly transparent
-
-      ctx.globalAlpha = 0.5;
-      ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
-      ctx.fillText(this.y, canvas_x, canvas_y + 22); // reset transparency
-
-      ctx.globalAlpha = 1;
     } // Drawing utilities, nothing important after this point :)
 
   }, {
@@ -2425,6 +2424,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 var STRATEGIES = ["DEFAULT", "lotPref", "closest"]; // Set default selected strategies
 
 var selectedStrategies = ["DEFAULT", "lotPref", "closest"];
+var csvRowsPark = "strategy,time\n";
+var csvRowsGoal = "strategy,time\n";
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
 
@@ -2632,6 +2633,7 @@ function addTimeToPark(strategy, data) {
   var row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToParkData.push(row);
+  csvRowsPark += "".concat(strategy, ",").concat(data, "\n");
 
   if (realtimeChart) {
     DrawChart("time-to-park", timeToParkData);
@@ -2643,10 +2645,36 @@ function addTimeToGoal(strategy, data) {
   var row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToGoalData.push(row);
+  csvRowsGoal += "".concat(strategy, ",").concat(data, "\n");
 
   if (realtimeChart) {
     DrawChart("time-to-goal", timeToGoalData);
   }
+} // When button with id "export-park" is clicked, download the csv file with the data
+
+
+document.getElementById("export-park").addEventListener("click", function () {
+  downloadCSV(csvRowsPark, "park.csv");
+}); // When button with id "export-goal" is clicked, download the csv file with the data
+
+document.getElementById("export-goal").addEventListener("click", function () {
+  downloadCSV(csvRowsGoal, "goal.csv");
+}); // Function to download the csv file
+
+function downloadCSV(csv, filename) {
+  var csvFile;
+  var downloadLink; // CSV file
+
+  csvFile = new Blob([csv], {
+    type: "text/csv"
+  });
+  downloadLink = document.createElement("a");
+  downloadLink.download = filename; // Add hidden download link
+
+  downloadLink.href = window.URL.createObjectURL(csvFile);
+  downloadLink.style.display = "none";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
 }
 },{"./styles.css":"src/styles.css","./map":"src/map.js","./World":"src/World.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];

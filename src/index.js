@@ -16,6 +16,9 @@ let selectedStrategies = [
   "closest",
 ];
 
+var csvRowsPark = "strategy,time\n";
+var csvRowsGoal = "strategy,time\n";
+
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
 
@@ -128,7 +131,7 @@ function gameTick() {
       if (selectedStrategies.length > 0) {
         const strategy =
           selectedStrategies[
-            Math.floor(Math.random() * selectedStrategies.length)
+          Math.floor(Math.random() * selectedStrategies.length)
           ];
         world.spawnAgent(strategy);
       }
@@ -208,6 +211,7 @@ export function addTimeToPark(strategy, data) {
   const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToParkData.push(row);
+  csvRowsPark += (`${strategy},${data}\n`)
   if (realtimeChart) {
     DrawChart("time-to-park", timeToParkData);
   }
@@ -218,7 +222,37 @@ export function addTimeToGoal(strategy, data) {
   const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToGoalData.push(row);
+  csvRowsGoal += (`${strategy},${data}\n`)
   if (realtimeChart) {
     DrawChart("time-to-goal", timeToGoalData);
   }
+}
+
+// When button with id "export-park" is clicked, download the csv file with the data
+document.getElementById("export-park").addEventListener("click", () => {
+  downloadCSV(csvRowsPark, "park.csv");
+}
+);
+
+// When button with id "export-goal" is clicked, download the csv file with the data
+document.getElementById("export-goal").addEventListener("click", () => {
+  downloadCSV(csvRowsGoal, "goal.csv");
+}
+);
+
+// Function to download the csv file
+function downloadCSV(csv, filename) {
+  var csvFile;
+  var downloadLink;
+
+  // CSV file
+  csvFile = new Blob([csv], { type: "text/csv" });
+  downloadLink = document.createElement("a");
+  downloadLink.download = filename;
+
+  // Add hidden download link
+  downloadLink.href = window.URL.createObjectURL(csvFile);
+  downloadLink.style.display = "none";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
 }

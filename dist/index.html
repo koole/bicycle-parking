@@ -36,15 +36,27 @@
       <div class="mb-3">
         <div class="form-label fw-bolder">Chart rendering</div>
         <input type="checkbox" class="form-check-input" id="realtime-charts" checked="">
-        <label class="form-check-label" for="realtime-charts">Update charts<div class="text-muted">(slower performance)</div></label>
+        <label class="form-check-label" for="realtime-charts">Update charts<div class="text-muted">(slow performance)
+          </div></label>
+      </div>
+      <div class="mb-3">
+        <div class="form-label fw-bolder">Time to goal</div>
+        <div id="time-to-goal"></div>
       </div>
       <div class="mb-3">
         <div class="form-label fw-bolder">Time to park</div>
         <div id="time-to-park"></div>
       </div>
+      <h5>Export</h5>
       <div class="mb-3">
         <div class="form-label fw-bolder">Time to goal</div>
-        <div id="time-to-goal"></div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-sm btn-primary mb-3" id="export-park">Export CSV</button>
+        </div>
+        <div class="form-label fw-bolder">Time to park</div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-sm btn-primary mb-3" id="export-goal">Export CSV</button>
+        </div>
       </div>
     </aside>
     <main class="bg-light vh-100 overflow-auto p-3 w-100">

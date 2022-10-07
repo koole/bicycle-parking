@@ -27,21 +27,6 @@
             speed)</span></label>
         <input type="range" class="form-range" id="tickdelay">
       </div>
-      <div class="rounded bg-light p-3 mb-3 border">
-        <h5>Experiment mode</h5>
-        <p class="text-muted mb-2">Will restart the simulation with currently set parameters, then pause and show
-          results
-          after 10.000 ticks.</p>
-        <div>
-          <div class="d-grid gap-2">
-            <button class="btn btn-primary mb-1" id="experiment-mode">Start experiment</button>
-          </div>
-          <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-              aria-label="Basic example" style="width: 0%" id="experiment-progress"></div>
-          </div>
-        </div>
-      </div>
       <h5>Simulation parameters</h5>
       <div class="mb-3">
         <div class="form-label fw-bolder">Agent strategies</div>
@@ -104,6 +89,21 @@
       <canvas id="canvas" class=""></canvas>
     </main>
     <aside class="vh-100 overflow-auto p-3 border-start">
+      <div class="rounded bg-light p-3 mb-3 border">
+        <h5>Experiment mode</h5>
+        <p class="text-muted mb-2">Will restart the simulation with currently set parameters, then pause and show
+          results
+          after 10.000 ticks.</p>
+        <div>
+          <div class="d-grid gap-2">
+            <button class="btn btn-success mb-1" id="experiment-mode">Start experiment</button>
+          </div>
+          <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+              aria-label="Basic example" style="width: 0%" id="experiment-progress"></div>
+          </div>
+        </div>
+      </div>
       <h5>Display options</h5>
       <div class="mb-3">
         <div class="form-check">

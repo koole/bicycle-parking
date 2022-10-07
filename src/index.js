@@ -14,18 +14,10 @@ const maxSpawnRateLimit = 1;
 // Parameter variable setup
 // **********************************
 
-const STRATEGIES = [
-  "RANDOM_CHOICE",
-  "LOT_PREFERENCE",
-  "CLOSEST_SPOT",
-];
+const STRATEGIES = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
 
 // Set default selected strategies
-let selectedStrategies = [
-  "RANDOM_CHOICE",
-  "LOT_PREFERENCE",
-  "CLOSEST_SPOT",
-];
+let selectedStrategies = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
 
 var currentTick = 0;
 
@@ -78,23 +70,29 @@ document.getElementById("experiment-mode").onclick = function () {
   reset();
   experimentMode = true;
   paused = false;
-}
+};
 
 // **********************************
 // User Controls
 // **********************************
-
 
 // -- Spawn rate control
 // **********************************
 
 // return value for current bin using sine wave between min and max, over length of automatedLoopLength
 function getSpawnRate(currentBin) {
-  return minSpawnRate + (maxSpawnRate - minSpawnRate) * Math.pow((Math.sin((currentBin / automatedLoopLength) * 2 * Math.PI) + 1) / 2, 2);
+  return (
+    minSpawnRate +
+    (maxSpawnRate - minSpawnRate) *
+      Math.pow(
+        (Math.sin((currentBin / automatedLoopLength) * 2 * Math.PI) + 1) / 2,
+        2
+      )
+  );
 }
 
 // Create array of spawn rates of length automated_loop_length
-let spawnRates = []
+let spawnRates = [];
 function updateSpawnRates() {
   spawnRates = [];
   for (var i = 0; i < automatedLoopLength; i++) {
@@ -105,7 +103,8 @@ updateSpawnRates();
 
 // Draw bars for spawn_rate on canvas
 function drawSpawnRate(currentTick) {
-  document.getElementById("automated-spawn-rate-display").innerHTML = Math.floor(spawnRates[currentTick % automatedLoopLength] * 100) + "%";
+  document.getElementById("automated-spawn-rate-display").innerHTML =
+    Math.floor(spawnRates[currentTick % automatedLoopLength] * 100) + "%";
   const canvas = document.getElementById("spawn-rate");
   const ctx = canvas.getContext("2d");
   const width = canvas.width;
@@ -119,7 +118,12 @@ function drawSpawnRate(currentTick) {
   // Plot bar for spawn rate at corresponding tick
   for (var i = 0; i < automatedLoopLength; i++) {
     ctx.fillStyle = "#f6c344";
-    ctx.fillRect(i * barWidth, height - spawnRates[i] * barHeight, barWidth, spawnRates[i] * barHeight);
+    ctx.fillRect(
+      i * barWidth,
+      height - spawnRates[i] * barHeight,
+      barWidth,
+      spawnRates[i] * barHeight
+    );
   }
 
   // Plot a line every 20%
@@ -133,49 +137,74 @@ function drawSpawnRate(currentTick) {
     // Add text
     ctx.fillStyle = "#c49c35";
     ctx.font = "20px Arial";
-    ctx.fillText(Math.floor(i * 100) + "%", width - 42, height - i * barHeight - 3);
+    ctx.fillText(
+      Math.floor(i * 100) + "%",
+      width - 42,
+      height - i * barHeight - 3
+    );
   }
 
   // Plot the current spawn rate
-  const currentIndex = (currentTick % automatedLoopLength)
+  const currentIndex = currentTick % automatedLoopLength;
   ctx.fillStyle = "#312708";
-  ctx.fillRect(currentIndex * barWidth, height - spawnRates[currentIndex] * barHeight - 2, barWidth * 4, spawnRates[currentIndex] * barHeight + 2);
+  ctx.fillRect(
+    currentIndex * barWidth,
+    height - spawnRates[currentIndex] * barHeight - 2,
+    barWidth * 4,
+    spawnRates[currentIndex] * barHeight + 2
+  );
   // Draw small circle on top of line
   ctx.beginPath();
-  ctx.arc(currentIndex * barWidth + barWidth * 2, height - spawnRates[currentIndex] * barHeight, 5, 0, 2 * Math.PI);
+  ctx.arc(
+    currentIndex * barWidth + barWidth * 2,
+    height - spawnRates[currentIndex] * barHeight,
+    5,
+    0,
+    2 * Math.PI
+  );
   ctx.fill();
 }
 drawSpawnRate(currentTick);
 
 document.getElementById("spawnspeed").addEventListener("input", (e) => {
   spawnspeed = e.target.value;
-  document.getElementById("manual-spawn-rate-display").innerHTML = Math.round(spawnspeed * 100) + "%";
+  document.getElementById("manual-spawn-rate-display").innerHTML =
+    Math.round(spawnspeed * 100) + "%";
 });
 
 // Switch between spawn rate types
-document.getElementById("spawnrate-radio-auto").addEventListener("change", function (event) {
-  spawnRateType = event.target.value;
-  document.getElementById("spawnspeed").disabled = true;
-});
-document.getElementById("spawnrate-radio-manual").addEventListener("change", function (event) {
-  spawnRateType = event.target.value;
-  document.getElementById("spawnspeed").disabled = false;
-});
+document
+  .getElementById("spawnrate-radio-auto")
+  .addEventListener("change", function (event) {
+    spawnRateType = event.target.value;
+    document.getElementById("spawnspeed").disabled = true;
+  });
+document
+  .getElementById("spawnrate-radio-manual")
+  .addEventListener("change", function (event) {
+    spawnRateType = event.target.value;
+    document.getElementById("spawnspeed").disabled = false;
+  });
 
 // Switch between max_spawn_rate value
-document.getElementById("automatedPeak1").addEventListener("change", function (event) {
-  maxSpawnRate = 1;
-  updateSpawnRates();
-});
-document.getElementById("automatedPeak2").addEventListener("change", function (event) {
-  maxSpawnRate = 0.66;
-  updateSpawnRates();
-});
-document.getElementById("automatedPeak3").addEventListener("change", function (event) {
-  maxSpawnRate = 0.33;
-  updateSpawnRates();
-});
-
+document
+  .getElementById("automatedPeak1")
+  .addEventListener("change", function (event) {
+    maxSpawnRate = 1;
+    updateSpawnRates();
+  });
+document
+  .getElementById("automatedPeak2")
+  .addEventListener("change", function (event) {
+    maxSpawnRate = 0.66;
+    updateSpawnRates();
+  });
+document
+  .getElementById("automatedPeak3")
+  .addEventListener("change", function (event) {
+    maxSpawnRate = 0.33;
+    updateSpawnRates();
+  });
 
 // -- Reset button
 // **********************************
@@ -249,7 +278,6 @@ document.getElementById("draw-count").addEventListener("change", (e) => {
   drawCount = e.target.checked;
 });
 
-
 // **********************************
 // Data gathering functions used by the agents
 // **********************************
@@ -259,7 +287,7 @@ export function addTimeToPark(strategy, data) {
   const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToParkData.push(row);
-  csvRowsPark += (`${strategy},${data}\n`)
+  csvRowsPark += `${strategy},${data}\n`;
 }
 
 export function addTimeToGoal(strategy, data) {
@@ -267,7 +295,7 @@ export function addTimeToGoal(strategy, data) {
   const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToGoalData.push(row);
-  csvRowsGoal += (`${strategy},${data}\n`)
+  csvRowsGoal += `${strategy},${data}\n`;
 }
 
 // **********************************
@@ -328,7 +356,7 @@ function DrawChart(id, data, max) {
       maxNumBuckets: 50,
       minValue: 0,
       maxValue: max,
-      lastBucketPercentile: 5
+      lastBucketPercentile: 5,
     },
   };
 
@@ -336,7 +364,6 @@ function DrawChart(id, data, max) {
   var chart = new google.visualization.Histogram(document.getElementById(id));
   chart.draw(data, options);
 }
-
 
 // **********************************
 // Read worldmap and create worldData
@@ -350,7 +377,6 @@ let world = new World(worldmap, mapDirection);
 
 function gameTick() {
   if (!paused) {
-
     // Spawn new agent sometimes
     let rate = spawnspeed;
     if (spawnRateType === "auto") {
@@ -362,7 +388,7 @@ function gameTick() {
       if (selectedStrategies.length > 0) {
         const strategy =
           selectedStrategies[
-          Math.floor(Math.random() * selectedStrategies.length)
+            Math.floor(Math.random() * selectedStrategies.length)
           ];
         world.spawnAgent(strategy);
       }
@@ -373,7 +399,8 @@ function gameTick() {
     currentTick++;
     drawSpawnRate(currentTick);
     if (experimentMode) {
-      document.getElementById("experiment-progress").style.width = (currentTick / experimentTicks) * 100 + "%";
+      document.getElementById("experiment-progress").style.width =
+        (currentTick / experimentTicks) * 100 + "%";
     }
     if (experimentMode && currentTick > experimentTicks) {
       openResultsModal();
@@ -414,7 +441,6 @@ function drawCanvas() {
 
 requestAnimationFrame(drawCanvas);
 
-
 // **********************************
 // Download CSV data to file
 // **********************************
@@ -422,13 +448,11 @@ requestAnimationFrame(drawCanvas);
 // When button with id "export-park" is clicked, download the csv file with the data
 document.getElementById("export-park").addEventListener("click", () => {
   downloadCSV(csvRowsPark, `time-to-park`);
-}
-);
+});
 // When button with id "export-goal" is clicked, download the csv file with the data
 document.getElementById("export-goal").addEventListener("click", () => {
   downloadCSV(csvRowsGoal, `time-to-goal`);
-}
-);
+});
 // Function to download the csv file
 function downloadCSV(csv, filename) {
   var csvFile;
@@ -437,7 +461,8 @@ function downloadCSV(csv, filename) {
   // CSV file
   csvFile = new Blob([csv], { type: "text/csv" });
   downloadLink = document.createElement("a");
-  downloadLink.download = filename + `===${selectedStrategies.join("-")}===peak-${maxSpawnRate}.csv`;
+  downloadLink.download =
+    filename + `===${selectedStrategies.join("-")}===peak-${maxSpawnRate}.csv`;
 
   // Add hidden download link
   downloadLink.href = window.URL.createObjectURL(csvFile);

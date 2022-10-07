@@ -252,10 +252,25 @@ var ctx = c.getContext("2d");
 ctx.canvas.width = canvasWidth;
 ctx.canvas.height = canvasHeight;
 
+// Control variables using checkboxes
+var drawDirection = false;
+var drawCoords = false;
+var drawCount = false;
+
+document.getElementById("draw-direction").addEventListener("change", (e) => {
+  drawDirection = e.target.checked;
+});
+document.getElementById("draw-coords").addEventListener("change", (e) => {
+  drawCoords = e.target.checked;
+});
+document.getElementById("draw-count").addEventListener("change", (e) => {
+  drawCount = e.target.checked;
+});
+
 function drawCanvas() {
   for (const [y, row] of world.state.entries()) {
     for (const [x, cell] of row.entries()) {
-      cell.draw(ctx, x, y, squareSize);
+      cell.draw(ctx, x, y, squareSize, drawDirection, drawCoords, drawCount);
     }
   }
   requestAnimationFrame(drawCanvas);

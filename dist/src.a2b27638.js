@@ -305,7 +305,7 @@ var Cell = /*#__PURE__*/function () {
     }
   }, {
     key: "draw",
-    value: function draw(ctx, x, y, squareSize) {
+    value: function draw(ctx, x, y, squareSize, drawDirection, drawCoords, drawCount) {
       var _this = this;
 
       var canvas_x = x * squareSize;
@@ -315,36 +315,39 @@ var Cell = /*#__PURE__*/function () {
       ctx.fillStyle = color;
       ctx.fillRect(canvas_x, canvas_y, squareSize, squareSize); // !! Draws directions in which agents are allowed to move
 
-      ctx.font = "16px monospace";
-      ctx.fillStyle = "#ffffff"; // make text slightly transparent
+      if (drawDirection) {
+        ctx.font = "16px monospace";
+        ctx.fillStyle = "#ffffff"; // make text slightly transparent
 
-      ctx.globalAlpha = 0.8;
-      var arrow = "";
+        ctx.globalAlpha = 0.8;
+        var arrow = "";
 
-      if (this.allowed_direction === "n") {
-        arrow = "↑";
-      } else if (this.allowed_direction === "s") {
-        arrow = "↓";
-      } else if (this.allowed_direction === "e") {
-        arrow = "→";
-      } else if (this.allowed_direction === "w") {
-        arrow = "←";
-      } else if (this.allowed_direction === "h") {
-        arrow = "↔";
-      } else if (this.allowed_direction === "v") {
-        arrow = "↕";
-      }
+        if (this.allowed_direction === "n") {
+          arrow = "↑";
+        } else if (this.allowed_direction === "s") {
+          arrow = "↓";
+        } else if (this.allowed_direction === "e") {
+          arrow = "→";
+        } else if (this.allowed_direction === "w") {
+          arrow = "←";
+        } else if (this.allowed_direction === "h") {
+          arrow = "↔";
+        } else if (this.allowed_direction === "v") {
+          arrow = "↕";
+        }
 
-      ctx.fillText(arrow, canvas_x + 11, canvas_y + 20); // reset transparency
+        ctx.fillText(arrow, canvas_x + 11, canvas_y + 20); // reset transparency
 
-      ctx.globalAlpha = 1; // Draw progress bar for amount of parked bikes
+        ctx.globalAlpha = 1;
+      } // Draw progress bar for amount of parked bikes
+
 
       if (this.type === "PARKING") {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(canvas_x + 2, canvas_y + squareSize - 8, squareSize - 4, 4);
 
         if (this.bikes == MAX_PARKED_BIKES) {
-          ctx.fillStyle = "#ff0707";
+          ctx.fillStyle = "#dc3545";
         } else {
           ctx.fillStyle = "#316cf4";
         }
@@ -353,12 +356,12 @@ var Cell = /*#__PURE__*/function () {
       }
 
       if (this.type === "BUILDING_ENTRANCE") {
-        ctx.fillStyle = "#000000";
-        ctx.font = "12px monospace";
-        ctx.fillText("" + this.agents.filter(function (_ref5) {
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "16px monospace";
+        ctx.fillText("" + String(this.agents.filter(function (_ref5) {
           var type = _ref5.type;
           return type === "PEDESTRIAN";
-        }).length, canvas_x + 2, canvas_y + 24);
+        }).length).padStart(3, '0'), canvas_x + 1.5, canvas_y + 21);
       } else {
         var bikeAgents = this.agents.filter(function (_ref6) {
           var type = _ref6.type;
@@ -389,43 +392,32 @@ var Cell = /*#__PURE__*/function () {
           });
         }
       } //!! Debug to show number of agents in cell
-      // if (
-      //   [
-      //     "SPAWN",
-      //     "BIKE_PATH",
-      //     "PEDESTRIAN_PATH",
-      //     "ALL_PATH",
-      //     "PARKING",
-      //     "BUILDING_ENTRANCE",
-      //   ].includes(this.type)
-      // ) {
-      //   ctx.font = "12px monospace";
-      //   ctx.fillStyle = "black";
-      //   // make text slightly transparent
-      //   ctx.globalAlpha = 0.3;
-      //   ctx.fillText(
-      //     "B:" + this.agents.filter(({ type }) => type === "BIKE").length,
-      //     canvas_x + 2,
-      //     canvas_y + 12
-      //   );
-      //   ctx.fillText(
-      //     "P:" + this.agents.filter(({ type }) => type === "PEDESTRIAN").length,
-      //     canvas_x + 2,
-      //     canvas_y + 24
-      //   );
-      //   // reset transparency
-      //   ctx.globalAlpha = 1;
-      // }
-      // !! Draw coordinates
-      // ctx.font = "11px monospace";
-      // ctx.fillStyle = "black";
-      // // make text slightly transparent
-      // ctx.globalAlpha = 0.5;
-      // ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
-      // ctx.fillText(this.y, canvas_x, canvas_y + 22);
-      // // reset transparency
-      // ctx.globalAlpha = 1;
 
+
+      if (drawCount && ["SPAWN", "BIKE_PATH", "PEDESTRIAN_PATH", "ALL_PATH", "PARKING", "BUILDING_ENTRANCE"].includes(this.type)) {
+        ctx.font = "12px monospace";
+        ctx.fillStyle = "black";
+        ctx.globalAlpha = 0.3;
+        ctx.fillText("B:" + this.agents.filter(function (_ref8) {
+          var type = _ref8.type;
+          return type === "BIKE";
+        }).length, canvas_x + 2, canvas_y + 12);
+        ctx.fillText("P:" + this.agents.filter(function (_ref9) {
+          var type = _ref9.type;
+          return type === "PEDESTRIAN";
+        }).length, canvas_x + 2, canvas_y + 24);
+        ctx.globalAlpha = 1;
+      } // !! Draw coordinates
+
+
+      if (drawCoords) {
+        ctx.font = "11px monospace";
+        ctx.fillStyle = "black";
+        ctx.globalAlpha = 0.5;
+        ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
+        ctx.fillText(this.y, canvas_x, canvas_y + 22);
+        ctx.globalAlpha = 1;
+      }
     } // Drawing utilities, nothing important after this point :)
 
   }, {
@@ -2668,7 +2660,20 @@ var canvasHeight = gridHeight * squareSize;
 var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
 ctx.canvas.width = canvasWidth;
-ctx.canvas.height = canvasHeight;
+ctx.canvas.height = canvasHeight; // Control variables using checkboxes
+
+var drawDirection = false;
+var drawCoords = false;
+var drawCount = false;
+document.getElementById("draw-direction").addEventListener("change", function (e) {
+  drawDirection = e.target.checked;
+});
+document.getElementById("draw-coords").addEventListener("change", function (e) {
+  drawCoords = e.target.checked;
+});
+document.getElementById("draw-count").addEventListener("change", function (e) {
+  drawCount = e.target.checked;
+});
 
 function drawCanvas() {
   var _iterator = _createForOfIteratorHelper(world.state.entries()),
@@ -2689,7 +2694,7 @@ function drawCanvas() {
               x = _step2$value[0],
               cell = _step2$value[1];
 
-          cell.draw(ctx, x, y, squareSize);
+          cell.draw(ctx, x, y, squareSize, drawDirection, drawCoords, drawCount);
         }
       } catch (err) {
         _iterator2.e(err);

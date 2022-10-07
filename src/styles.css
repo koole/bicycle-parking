@@ -3,7 +3,8 @@ body {
 }
 
 aside {
-  width: 400px;
+  width: 333px;
+  flex: 333px 0 0 !important;
 }
 
 .progress-bar {

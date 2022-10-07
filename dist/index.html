@@ -19,24 +19,29 @@
       <div class="d-grid gap-2">
         <button class="btn btn-sm btn-danger mb-3" id="reset">Reset</button>
       </div>
-      <h5>Experiment mode</h5>
-      <div class="mb-3">
-        <div class="d-grid gap-2">
-          <button class="btn btn-primary mb-1" id="experiment-mode">Start experiment</button>
-        </div>
-        <div class="progress">
-          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-label="Basic example" style="width: 0%" id="experiment-progress"></div>
-        </div>
-      </div>
-      <h5>Options</h5>
-      <div class="mb-3">
-        <div class="form-label fw-bolder">Agent strategies</div>
-        <div id="strategy-checkboxes"></div>
-      </div>
       <div class="mb-3">
         <label for="tickdelay" class="form-label fw-bolder">Game tick delay <span class="text-muted fw-lighter">(sim
             speed)</span></label>
         <input type="range" class="form-range" id="tickdelay">
+      </div>
+      <div class="rounded bg-light p-3 mb-3 border">
+        <h5>Experiment mode</h5>
+        <p class="text-muted mb-2">Will restart the simulation with currently set parameters, then pause and show
+          results
+          after 10.000 ticks.</p>
+        <div>
+          <div class="d-grid gap-2">
+            <button class="btn btn-primary mb-1" id="experiment-mode">Start experiment</button>
+          </div>
+          <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-label="Basic example" style="width: 0%" id="experiment-progress"></div>
+          </div>
+        </div>
+      </div>
+      <h5>Simulation parameters</h5>
+      <div class="mb-3">
+        <div class="form-label fw-bolder">Agent strategies</div>
+        <div id="strategy-checkboxes"></div>
       </div>
       <h5>Spawn Probability</h5>
       <div class="mb-3">
@@ -54,7 +59,7 @@
         </div>
       </div>
       <div class="mb-3">
-        <label for="spawnspeed" class="form-label fw-bolder">Automated Probability <span id="automated-spawn-rate-display" class="fw-lighter">0</span></label>
+        <label for="spawnspeed" class="form-label fw-bolder">Automated Probability <span id="automated-spawn-rate-display" class="fw-lighter bg-success font-monospace text-light px-1 rounded">0</span></label>
         <div class="bg-light p-2 mb-1 border rounded">
           <span class="fw-bolder">Peak:</span>
           <div class="form-check-inline">
@@ -81,8 +86,34 @@
         </div>
       </div>
       <div class="mb-3">
-        <label for="spawnspeed" class="form-label fw-bolder">Manual Probability <span id="manual-spawn-rate-display" class="fw-lighter">20%</span></label>
+        <label for="spawnspeed" class="form-label fw-bolder">Manual Probability <span id="manual-spawn-rate-display" class="fw-lighter bg-success font-monospace text-light px-1 rounded">20%</span></label>
         <input type="range" class="form-range" id="spawnspeed" min="0" max="1" value="0.2" step="0.01" disabled="">
+      </div>
+    </aside>
+    <main class="bg-light vh-100 p-3 w-100 d-flex justify-content-center">
+      <canvas id="canvas" class=""></canvas>
+    </main>
+    <aside class="vh-100 overflow-auto p-3 border-start">
+      <h5>Display options</h5>
+      <div class="mb-3">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="draw-direction">
+          <label class="form-check-label" for="draw-direction">
+            Draw allowed directions
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="draw-coords">
+          <label class="form-check-label" for="draw-coords">
+            Draw cell coordinates
+          </label>
+        </div>
+        <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="draw-count">
+        <label class="form-check-label" for="draw-count">
+          Draw agent counts
+        </label>
+      </div>
       </div>
       <h5>Results & export</h5>
       <div class="mb-3">
@@ -91,9 +122,6 @@
         </div>
       </div>
     </aside>
-    <main class="bg-light vh-100 p-3 w-100 d-flex justify-content-center">
-      <canvas id="canvas" class=""></canvas>
-    </main>
   </div>
   <div class="modal show" id="resultsModal" tabindex="-1" style="display: hidden;">
     <div class="modal-dialog modal-dialog-scrollable modal-xl">
@@ -114,7 +142,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" id="closeResultsModal" class="btn btn-primary" data-bs-dismiss="modal">Close & continue</button>
+          <button type="button" id="closeResultsModal" class="btn btn-primary" data-bs-dismiss="modal">Close &
+            continue</button>
         </div>
       </div>
     </div>

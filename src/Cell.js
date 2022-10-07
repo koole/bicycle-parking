@@ -71,7 +71,7 @@ class Cell {
     this.bikes--;
   }
 
-  draw(ctx, x, y, squareSize) {
+  draw(ctx, x, y, squareSize, drawDirection, drawCoords, drawCount) {
     const canvas_x = x * squareSize;
     const canvas_y = y * squareSize;
 
@@ -83,28 +83,29 @@ class Cell {
     ctx.fillRect(canvas_x, canvas_y, squareSize, squareSize);
 
     // !! Draws directions in which agents are allowed to move
-    ctx.font = "16px monospace";
-    ctx.fillStyle = "#ffffff";
-    // make text slightly transparent
-    ctx.globalAlpha = 0.8;
-    let arrow = "";
-    if (this.allowed_direction === "n") {
-      arrow = "↑";
-    } else if (this.allowed_direction === "s") {
-      arrow = "↓";
-    } else if (this.allowed_direction === "e") {
-      arrow = "→";
-    } else if (this.allowed_direction === "w") {
-      arrow = "←";
-    } else if (this.allowed_direction === "h") {
-      arrow = "↔";
-    } else if (this.allowed_direction === "v") {
-      arrow = "↕";
+    if (drawDirection) {
+      ctx.font = "16px monospace";
+      ctx.fillStyle = "#ffffff";
+      // make text slightly transparent
+      ctx.globalAlpha = 0.8;
+      let arrow = "";
+      if (this.allowed_direction === "n") {
+        arrow = "↑";
+      } else if (this.allowed_direction === "s") {
+        arrow = "↓";
+      } else if (this.allowed_direction === "e") {
+        arrow = "→";
+      } else if (this.allowed_direction === "w") {
+        arrow = "←";
+      } else if (this.allowed_direction === "h") {
+        arrow = "↔";
+      } else if (this.allowed_direction === "v") {
+        arrow = "↕";
+      }
+      ctx.fillText(arrow, canvas_x + 11, canvas_y + 20);
+      // reset transparency
+      ctx.globalAlpha = 1;
     }
-
-    ctx.fillText(arrow, canvas_x + 11, canvas_y + 20);
-    // reset transparency
-    ctx.globalAlpha = 1;
 
     // Draw progress bar for amount of parked bikes
     if (this.type === "PARKING") {
@@ -112,7 +113,7 @@ class Cell {
       ctx.fillRect(canvas_x + 2, canvas_y + squareSize - 8, squareSize - 4, 4);
 
       if (this.bikes == MAX_PARKED_BIKES) {
-        ctx.fillStyle = "#ff0707";
+        ctx.fillStyle = "#dc3545";
       } else {
         ctx.fillStyle = "#316cf4";
       }
@@ -125,12 +126,12 @@ class Cell {
     }
 
     if (this.type === "BUILDING_ENTRANCE") {
-      ctx.fillStyle = "#000000";
-      ctx.font = "12px monospace";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "16px monospace";
       ctx.fillText(
-        "" + this.agents.filter(({ type }) => type === "PEDESTRIAN").length,
-        canvas_x + 2,
-        canvas_y + 24
+        "" + String(this.agents.filter(({ type }) => type === "PEDESTRIAN").length).padStart(3, '0'),
+        canvas_x + 1.5,
+        canvas_y + 21
       );
     } else {
       const bikeAgents = this.agents.filter(({ type }) => type === "BIKE");
@@ -162,43 +163,42 @@ class Cell {
     }
 
     //!! Debug to show number of agents in cell
-    // if (
-    //   [
-    //     "SPAWN",
-    //     "BIKE_PATH",
-    //     "PEDESTRIAN_PATH",
-    //     "ALL_PATH",
-    //     "PARKING",
-    //     "BUILDING_ENTRANCE",
-    //   ].includes(this.type)
-    // ) {
-    //   ctx.font = "12px monospace";
-    //   ctx.fillStyle = "black";
-    //   // make text slightly transparent
-    //   ctx.globalAlpha = 0.3;
-    //   ctx.fillText(
-    //     "B:" + this.agents.filter(({ type }) => type === "BIKE").length,
-    //     canvas_x + 2,
-    //     canvas_y + 12
-    //   );
-    //   ctx.fillText(
-    //     "P:" + this.agents.filter(({ type }) => type === "PEDESTRIAN").length,
-    //     canvas_x + 2,
-    //     canvas_y + 24
-    //   );
-    //   // reset transparency
-    //   ctx.globalAlpha = 1;
-    // }
+    if (
+      drawCount &&
+      [
+        "SPAWN",
+        "BIKE_PATH",
+        "PEDESTRIAN_PATH",
+        "ALL_PATH",
+        "PARKING",
+        "BUILDING_ENTRANCE",
+      ].includes(this.type)
+    ) {
+      ctx.font = "12px monospace";
+      ctx.fillStyle = "black";
+      ctx.globalAlpha = 0.3;
+      ctx.fillText(
+        "B:" + this.agents.filter(({ type }) => type === "BIKE").length,
+        canvas_x + 2,
+        canvas_y + 12
+      );
+      ctx.fillText(
+        "P:" + this.agents.filter(({ type }) => type === "PEDESTRIAN").length,
+        canvas_x + 2,
+        canvas_y + 24
+      );
+      ctx.globalAlpha = 1;
+    }
 
     // !! Draw coordinates
-    // ctx.font = "11px monospace";
-    // ctx.fillStyle = "black";
-    // // make text slightly transparent
-    // ctx.globalAlpha = 0.5;
-    // ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
-    // ctx.fillText(this.y, canvas_x, canvas_y + 22);
-    // // reset transparency
-    // ctx.globalAlpha = 1;
+    if (drawCoords) {
+      ctx.font = "11px monospace";
+      ctx.fillStyle = "black";
+      ctx.globalAlpha = 0.5;
+      ctx.fillText(this.x + ",", canvas_x, canvas_y + 10);
+      ctx.fillText(this.y, canvas_x, canvas_y + 22);
+      ctx.globalAlpha = 1;
+    }
   }
 
   // Drawing utilities, nothing important after this point :)

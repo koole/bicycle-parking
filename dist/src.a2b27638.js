@@ -2450,16 +2450,35 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+// **********************************
+// Static config variables
+// **********************************
+var experimentTicks = 10000;
+var automatedLoopLength = 500;
+var maxSpawnRateLimit = 1; // **********************************
+// Parameter variable setup
+// **********************************
+
 var STRATEGIES = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"]; // Set default selected strategies
 
 var selectedStrategies = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
+var currentTick = 0;
 var csvRowsPark = "strategy,time\n";
 var csvRowsGoal = "strategy,time\n";
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
 var experimentMode = false;
-var experimentTicks = 10000;
-var currentTick = 0;
+var spawnRateType = "auto"; // Config for automated spawn rate
+
+var minSpawnRate = 0.2;
+var maxSpawnRate = 1; // Default tickDelay and spawnspeed
+
+var tickDelay = 20;
+var spawnspeed = 0.2;
+var paused = false; // **********************************
+// Utility functions
+// **********************************
+// Reset keeps current settings, but clears the world and restarts the simulation
 
 function reset() {
   world = new _World.default(_map.default, _map.mapDirection);
@@ -2469,33 +2488,27 @@ function reset() {
   csvRowsGoal = "strategy,time\n";
   currentTick = 0;
   experimentMode = false;
-}
+} // Turns stragegy name into a nice display name
+
 
 function strategyName(strategy) {
   return strategy.toLowerCase().replace(/^_*(.)|_+(.)/g, function (s, c, d) {
     return c ? c.toUpperCase() : " " + d.toUpperCase();
   });
-}
+} // Onclick of #experiment-mode, start experiment
 
-var squareSize = 32;
-var tickDelay = 20;
-var spawnspeed = 0.2;
-var paused = false; // Onclick of #experiment-mode, start experiment
 
 document.getElementById("experiment-mode").onclick = function () {
   reset();
   experimentMode = true;
   paused = false;
 }; // **********************************
-// Controls
+// User Controls
 // **********************************
-// Spawn rate waves
+// -- Spawn rate control
+// **********************************
+// return value for current bin using sine wave between min and max, over length of automatedLoopLength
 
-
-var automatedLoopLength = 500;
-var minSpawnRate = 0.2;
-var maxSpawnRate = 1;
-var maxLimit = 1; // return value for current bin using sine wave between min and max, over length of automatedLoopLength
 
 function getSpawnRate(currentBin) {
   return minSpawnRate + (maxSpawnRate - minSpawnRate) * Math.pow((Math.sin(currentBin / automatedLoopLength * 2 * Math.PI) + 1) / 2, 2);
@@ -2521,7 +2534,7 @@ function drawSpawnRate(currentTick) {
   var width = canvas.width;
   var height = canvas.height;
   var barWidth = width / automatedLoopLength;
-  var barHeight = height / maxLimit;
+  var barHeight = height / maxSpawnRateLimit;
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#fbe7a5";
   ctx.fillRect(0, 0, width, height);
@@ -2537,7 +2550,10 @@ function drawSpawnRate(currentTick) {
 }
 
 drawSpawnRate(currentTick);
-var spawnRateType = "auto"; // Switch between spawn rate types
+document.getElementById("spawnspeed").addEventListener("input", function (e) {
+  spawnspeed = e.target.value;
+  document.getElementById("manual-spawn-rate-display").innerHTML = Math.round(spawnspeed * 100) + "%";
+}); // Switch between spawn rate types
 
 document.getElementById("spawnrate-radio-auto").addEventListener("change", function (event) {
   spawnRateType = event.target.value;
@@ -2559,11 +2575,14 @@ document.getElementById("automatedPeak2").addEventListener("change", function (e
 document.getElementById("automatedPeak3").addEventListener("change", function (event) {
   maxSpawnRate = 0.33;
   updateSpawnRates();
-}); // Reset button
+}); // -- Reset button
+// **********************************
 
 document.getElementById("reset").addEventListener("click", function () {
   reset();
-}); // Create HTML checkboxes for each strategy, and add them and remove them to selectedStrategies when enabled/disabled
+}); // -- Strategy selection
+// **********************************
+// Create HTML checkboxes for each strategy, and add them and remove them to selectedStrategies when enabled/disabled
 
 var strategyCheckboxes = document.getElementById("strategy-checkboxes");
 STRATEGIES.forEach(function (strategy) {
@@ -2572,8 +2591,7 @@ STRATEGIES.forEach(function (strategy) {
   var checkbox = document.createElement("input");
   checkbox.classList.add("form-check-input");
   checkbox.type = "checkbox";
-  checkbox.id = strategy; // Check the box if it's in selectedStrategies
-
+  checkbox.id = strategy;
   checkbox.checked = selectedStrategies.includes(strategy);
   checkbox.addEventListener("change", function () {
     if (checkbox.checked) {
@@ -2593,7 +2611,8 @@ STRATEGIES.forEach(function (strategy) {
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
   container.appendChild(label);
-}); // Control play/pause button
+}); // -- Play/pause button
+// **********************************
 
 document.getElementById("play-pause").addEventListener("click", function () {
   if (document.getElementById("play-pause").innerHTML === "Play") {
@@ -2603,71 +2622,13 @@ document.getElementById("play-pause").addEventListener("click", function () {
     document.getElementById("play-pause").innerHTML = "Play";
     paused = true;
   }
-}); // Control tickdelay
+}); // -- Tickdelay
+// **********************************
 
 document.getElementById("tickdelay").addEventListener("input", function (e) {
   tickDelay = e.target.value;
-});
-document.getElementById("spawnspeed").addEventListener("input", function (e) {
-  spawnspeed = e.target.value;
-  document.getElementById("manual-spawn-rate-display").innerHTML = Math.round(spawnspeed * 100) + "%";
-}); // **********************************
-// Read worldmap and create worldData
+}); // -- Display options
 // **********************************
-
-var world = new _World.default(_map.default, _map.mapDirection); // **********************************
-// This is where the simulation loop
-// goes later or something
-// **********************************
-
-function gameTick() {
-  if (!paused) {
-    // Spawn new agent sometimes
-    var rate = spawnspeed;
-
-    if (spawnRateType === "auto") {
-      rate = spawnRates[currentTick % automatedLoopLength];
-    }
-
-    if (Math.random() < rate) {
-      // Pick random strategy from selectedStrategies
-      if (selectedStrategies.length > 0) {
-        var strategy = selectedStrategies[Math.floor(Math.random() * selectedStrategies.length)];
-        world.spawnAgent(strategy);
-      }
-    } // Move current agents
-
-
-    world.tick();
-    currentTick++;
-    drawSpawnRate(currentTick);
-
-    if (experimentMode) {
-      document.getElementById("experiment-progress").style.width = currentTick / experimentTicks * 100 + "%";
-    }
-
-    if (experimentMode && currentTick > experimentTicks) {
-      openResultsModal();
-      document.getElementById("experiment-progress").style.width = "0%";
-      experimentMode = false;
-    }
-  }
-
-  setTimeout(gameTick, tickDelay);
-}
-
-gameTick(); // **********************************
-// Draw world state to canvas
-// **********************************
-
-var gridWidth = world.state[0].length;
-var gridHeight = world.state.length;
-var canvasWidth = gridWidth * squareSize;
-var canvasHeight = gridHeight * squareSize;
-var c = document.getElementById("canvas");
-var ctx = c.getContext("2d");
-ctx.canvas.width = canvasWidth;
-ctx.canvas.height = canvasHeight; // Control variables using checkboxes
 
 var drawDirection = false;
 var drawCoords = false;
@@ -2680,47 +2641,28 @@ document.getElementById("draw-coords").addEventListener("change", function (e) {
 });
 document.getElementById("draw-count").addEventListener("change", function (e) {
   drawCount = e.target.checked;
-});
+}); // **********************************
+// Data gathering functions used by the agents
+// **********************************
 
-function drawCanvas() {
-  var _iterator = _createForOfIteratorHelper(world.state.entries()),
-      _step;
-
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var _step$value = _slicedToArray(_step.value, 2),
-          y = _step$value[0],
-          row = _step$value[1];
-
-      var _iterator2 = _createForOfIteratorHelper(row.entries()),
-          _step2;
-
-      try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var _step2$value = _slicedToArray(_step2.value, 2),
-              x = _step2$value[0],
-              cell = _step2$value[1];
-
-          cell.draw(ctx, x, y, squareSize, drawDirection, drawCoords, drawCount);
-        }
-      } catch (err) {
-        _iterator2.e(err);
-      } finally {
-        _iterator2.f();
-      }
-    }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
-  }
-
-  requestAnimationFrame(drawCanvas);
+function addTimeToPark(strategy, data) {
+  var index = selectedStrategies.indexOf(strategy);
+  var row = Array(selectedStrategies.length).fill(null);
+  row[index] = data;
+  timeToParkData.push(row);
+  csvRowsPark += "".concat(strategy, ",").concat(data, "\n");
 }
 
-requestAnimationFrame(drawCanvas); // **********************************
-// Draw graphs for time-to-park and time-to-goal
+function addTimeToGoal(strategy, data) {
+  var index = selectedStrategies.indexOf(strategy);
+  var row = Array(selectedStrategies.length).fill(null);
+  row[index] = data;
+  timeToGoalData.push(row);
+  csvRowsGoal += "".concat(strategy, ",").concat(data, "\n");
+} // **********************************
+// Results modal
 // **********************************
+
 
 google.charts.load("current", {
   packages: ["corechart"]
@@ -2788,26 +2730,105 @@ function DrawChart(id, data, max) {
 
   var chart = new google.visualization.Histogram(document.getElementById(id));
   chart.draw(data, options);
+} // **********************************
+// Read worldmap and create worldData
+// **********************************
+
+
+var world = new _World.default(_map.default, _map.mapDirection); // **********************************
+// This runs the simulation loop every tick
+// **********************************
+
+function gameTick() {
+  if (!paused) {
+    // Spawn new agent sometimes
+    var rate = spawnspeed;
+
+    if (spawnRateType === "auto") {
+      rate = spawnRates[currentTick % automatedLoopLength];
+    }
+
+    if (Math.random() < rate) {
+      // Pick random strategy from selectedStrategies
+      if (selectedStrategies.length > 0) {
+        var strategy = selectedStrategies[Math.floor(Math.random() * selectedStrategies.length)];
+        world.spawnAgent(strategy);
+      }
+    } // Move current agents
+
+
+    world.tick();
+    currentTick++;
+    drawSpawnRate(currentTick);
+
+    if (experimentMode) {
+      document.getElementById("experiment-progress").style.width = currentTick / experimentTicks * 100 + "%";
+    }
+
+    if (experimentMode && currentTick > experimentTicks) {
+      openResultsModal();
+      document.getElementById("experiment-progress").style.width = "0%";
+      experimentMode = false;
+    }
+  }
+
+  setTimeout(gameTick, tickDelay);
 }
 
-function addTimeToPark(strategy, data) {
-  // Create array of 0's, with length of number of strategies,
-  // and set the index of the strategy to the data
-  var index = selectedStrategies.indexOf(strategy);
-  var row = Array(selectedStrategies.length).fill(null);
-  row[index] = data;
-  timeToParkData.push(row);
-  csvRowsPark += "".concat(strategy, ",").concat(data, "\n");
+gameTick(); // **********************************
+// Draw world state to canvas
+// **********************************
+
+var squareSize = 32;
+var gridWidth = world.state[0].length;
+var gridHeight = world.state.length;
+var canvasWidth = gridWidth * squareSize;
+var canvasHeight = gridHeight * squareSize;
+var c = document.getElementById("canvas");
+var ctx = c.getContext("2d");
+ctx.canvas.width = canvasWidth;
+ctx.canvas.height = canvasHeight;
+
+function drawCanvas() {
+  var _iterator = _createForOfIteratorHelper(world.state.entries()),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var _step$value = _slicedToArray(_step.value, 2),
+          y = _step$value[0],
+          row = _step$value[1];
+
+      var _iterator2 = _createForOfIteratorHelper(row.entries()),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var _step2$value = _slicedToArray(_step2.value, 2),
+              x = _step2$value[0],
+              cell = _step2$value[1];
+
+          cell.draw(ctx, x, y, squareSize, drawDirection, drawCoords, drawCount);
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  requestAnimationFrame(drawCanvas);
 }
 
-function addTimeToGoal(strategy, data) {
-  var index = selectedStrategies.indexOf(strategy);
-  var row = Array(selectedStrategies.length).fill(null);
-  row[index] = data;
-  timeToGoalData.push(row);
-  csvRowsGoal += "".concat(strategy, ",").concat(data, "\n");
-} // When button with id "export-park" is clicked, download the csv file with the data
-
+requestAnimationFrame(drawCanvas); // **********************************
+// Download CSV data to file
+// **********************************
+// When button with id "export-park" is clicked, download the csv file with the data
 
 document.getElementById("export-park").addEventListener("click", function () {
   downloadCSV(csvRowsPark, "time-to-park");
@@ -2860,7 +2881,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61779" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64167" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

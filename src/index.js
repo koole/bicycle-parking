@@ -3,6 +3,17 @@ import worldmap, { mapDirection } from "./map";
 
 import World from "./World";
 
+// **********************************
+// Static config variables
+// **********************************
+const experimentTicks = 10000;
+const automatedLoopLength = 500;
+const maxSpawnRateLimit = 1;
+
+// **********************************
+// Parameter variable setup
+// **********************************
+
 const STRATEGIES = [
   "RANDOM_CHOICE",
   "LOT_PREFERENCE",
@@ -16,6 +27,8 @@ let selectedStrategies = [
   "CLOSEST_SPOT",
 ];
 
+var currentTick = 0;
+
 var csvRowsPark = "strategy,time\n";
 var csvRowsGoal = "strategy,time\n";
 
@@ -23,10 +36,24 @@ var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
 
 var experimentMode = false;
-const experimentTicks = 10000;
 
-var currentTick = 0;
+let spawnRateType = "auto";
 
+// Config for automated spawn rate
+const minSpawnRate = 0.2;
+var maxSpawnRate = 1;
+
+// Default tickDelay and spawnspeed
+let tickDelay = 20;
+let spawnspeed = 0.2;
+
+let paused = false;
+
+// **********************************
+// Utility functions
+// **********************************
+
+// Reset keeps current settings, but clears the world and restarts the simulation
 function reset() {
   world = new World(worldmap, mapDirection);
   timeToParkData = [selectedStrategies];
@@ -37,6 +64,7 @@ function reset() {
   experimentMode = false;
 }
 
+// Turns stragegy name into a nice display name
 function strategyName(strategy) {
   return strategy
     .toLowerCase()
@@ -45,12 +73,6 @@ function strategyName(strategy) {
     );
 }
 
-const squareSize = 32;
-
-let tickDelay = 20;
-let spawnspeed = 0.2;
-let paused = false;
-
 // Onclick of #experiment-mode, start experiment
 document.getElementById("experiment-mode").onclick = function () {
   reset();
@@ -58,16 +80,13 @@ document.getElementById("experiment-mode").onclick = function () {
   paused = false;
 }
 
-
 // **********************************
-// Controls
+// User Controls
 // **********************************
 
-// Spawn rate waves
-const automatedLoopLength = 500;
-const minSpawnRate = 0.2;
-var maxSpawnRate = 1;
-const maxLimit = 1;
+
+// -- Spawn rate control
+// **********************************
 
 // return value for current bin using sine wave between min and max, over length of automatedLoopLength
 function getSpawnRate(currentBin) {
@@ -92,7 +111,7 @@ function drawSpawnRate(currentTick) {
   const width = canvas.width;
   const height = canvas.height;
   const barWidth = width / automatedLoopLength;
-  const barHeight = height / maxLimit;
+  const barHeight = height / maxSpawnRateLimit;
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#fbe7a5";
   ctx.fillRect(0, 0, width, height);
@@ -106,7 +125,10 @@ function drawSpawnRate(currentTick) {
 }
 drawSpawnRate(currentTick);
 
-let spawnRateType = "auto";
+document.getElementById("spawnspeed").addEventListener("input", (e) => {
+  spawnspeed = e.target.value;
+  document.getElementById("manual-spawn-rate-display").innerHTML = Math.round(spawnspeed * 100) + "%";
+});
 
 // Switch between spawn rate types
 document.getElementById("spawnrate-radio-auto").addEventListener("change", function (event) {
@@ -133,11 +155,15 @@ document.getElementById("automatedPeak3").addEventListener("change", function (e
 });
 
 
+// -- Reset button
+// **********************************
 
-// Reset button
 document.getElementById("reset").addEventListener("click", () => {
   reset();
 });
+
+// -- Strategy selection
+// **********************************
 
 // Create HTML checkboxes for each strategy, and add them and remove them to selectedStrategies when enabled/disabled
 const strategyCheckboxes = document.getElementById("strategy-checkboxes");
@@ -148,7 +174,6 @@ STRATEGIES.forEach((strategy) => {
   checkbox.classList.add("form-check-input");
   checkbox.type = "checkbox";
   checkbox.id = strategy;
-  // Check the box if it's in selectedStrategies
   checkbox.checked = selectedStrategies.includes(strategy);
   checkbox.addEventListener("change", () => {
     if (checkbox.checked) {
@@ -167,7 +192,9 @@ STRATEGIES.forEach((strategy) => {
   container.appendChild(label);
 });
 
-// Control play/pause button
+// -- Play/pause button
+// **********************************
+
 document.getElementById("play-pause").addEventListener("click", () => {
   if (document.getElementById("play-pause").innerHTML === "Play") {
     document.getElementById("play-pause").innerHTML = "Pause";
@@ -178,15 +205,115 @@ document.getElementById("play-pause").addEventListener("click", () => {
   }
 });
 
-// Control tickdelay
+// -- Tickdelay
+// **********************************
 document.getElementById("tickdelay").addEventListener("input", (e) => {
   tickDelay = e.target.value;
 });
 
-document.getElementById("spawnspeed").addEventListener("input", (e) => {
-  spawnspeed = e.target.value;
-  document.getElementById("manual-spawn-rate-display").innerHTML = Math.round(spawnspeed * 100) + "%";
+// -- Display options
+// **********************************
+var drawDirection = false;
+var drawCoords = false;
+var drawCount = false;
+
+document.getElementById("draw-direction").addEventListener("change", (e) => {
+  drawDirection = e.target.checked;
 });
+document.getElementById("draw-coords").addEventListener("change", (e) => {
+  drawCoords = e.target.checked;
+});
+document.getElementById("draw-count").addEventListener("change", (e) => {
+  drawCount = e.target.checked;
+});
+
+
+// **********************************
+// Data gathering functions used by the agents
+// **********************************
+
+export function addTimeToPark(strategy, data) {
+  const index = selectedStrategies.indexOf(strategy);
+  const row = Array(selectedStrategies.length).fill(null);
+  row[index] = data;
+  timeToParkData.push(row);
+  csvRowsPark += (`${strategy},${data}\n`)
+}
+
+export function addTimeToGoal(strategy, data) {
+  const index = selectedStrategies.indexOf(strategy);
+  const row = Array(selectedStrategies.length).fill(null);
+  row[index] = data;
+  timeToGoalData.push(row);
+  csvRowsGoal += (`${strategy},${data}\n`)
+}
+
+// **********************************
+// Results modal
+// **********************************
+
+google.charts.load("current", { packages: ["corechart"] });
+google.charts.setOnLoadCallback(() => {
+  DrawChart("time-to-park", timeToParkData, 0);
+  DrawChart("time-to-goal", timeToGoalData, 0);
+});
+// Render charts onclick of #render-charts
+document.getElementById("render-charts").addEventListener("click", () => {
+  openResultsModal();
+});
+document.getElementById("closeResultsModal").addEventListener("click", () => {
+  closeResultsModal();
+});
+
+function openResultsModal() {
+  // Get maximum value of combined timeToParkData and timeToGoalData
+  let max = 0;
+  timeToParkData.forEach((row) => {
+    if (row[1] > max) {
+      max = row[1];
+    }
+  });
+  timeToGoalData.forEach((row) => {
+    if (row[1] > max) {
+      max = row[1];
+    }
+  });
+
+  DrawChart("time-to-park", timeToParkData, max);
+  DrawChart("time-to-goal", timeToGoalData, max);
+  document.getElementById("resultsModal").style.display = "block";
+  document.getElementById("resultsModalBackdrop").style.display = "block";
+  paused = true;
+}
+function closeResultsModal() {
+  document.getElementById("resultsModal").style.display = "none";
+  document.getElementById("resultsModalBackdrop").style.display = "none";
+  paused = false;
+}
+function DrawChart(id, data, max) {
+  // Create the data table.
+  var data = google.visualization.arrayToDataTable(data);
+
+  // Set chart options
+  var options = {
+    width: "1100",
+    height: 300,
+    bar: { gap: 0 },
+    interpolateNulls: false,
+    chartArea: { left: 10, top: 0 },
+    histogram: {
+      bucketSize: 20,
+      maxNumBuckets: 50,
+      minValue: 0,
+      maxValue: max,
+    },
+  };
+
+  // Instantiate and draw our chart, passing in some options.
+  var chart = new google.visualization.Histogram(document.getElementById(id));
+  chart.draw(data, options);
+}
+
 
 // **********************************
 // Read worldmap and create worldData
@@ -195,17 +322,18 @@ document.getElementById("spawnspeed").addEventListener("input", (e) => {
 let world = new World(worldmap, mapDirection);
 
 // **********************************
-// This is where the simulation loop
-// goes later or something
+// This runs the simulation loop every tick
 // **********************************
 
 function gameTick() {
   if (!paused) {
+
     // Spawn new agent sometimes
     let rate = spawnspeed;
     if (spawnRateType === "auto") {
       rate = spawnRates[currentTick % automatedLoopLength];
     }
+
     if (Math.random() < rate) {
       // Pick random strategy from selectedStrategies
       if (selectedStrategies.length > 0) {
@@ -239,6 +367,8 @@ gameTick();
 // Draw world state to canvas
 // **********************************
 
+const squareSize = 32;
+
 const gridWidth = world.state[0].length;
 const gridHeight = world.state.length;
 
@@ -249,21 +379,6 @@ var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
 ctx.canvas.width = canvasWidth;
 ctx.canvas.height = canvasHeight;
-
-// Control variables using checkboxes
-var drawDirection = false;
-var drawCoords = false;
-var drawCount = false;
-
-document.getElementById("draw-direction").addEventListener("change", (e) => {
-  drawDirection = e.target.checked;
-});
-document.getElementById("draw-coords").addEventListener("change", (e) => {
-  drawCoords = e.target.checked;
-});
-document.getElementById("draw-count").addEventListener("change", (e) => {
-  drawCount = e.target.checked;
-});
 
 function drawCanvas() {
   for (const [y, row] of world.state.entries()) {
@@ -276,107 +391,21 @@ function drawCanvas() {
 
 requestAnimationFrame(drawCanvas);
 
+
 // **********************************
-// Draw graphs for time-to-park and time-to-goal
+// Download CSV data to file
 // **********************************
-
-google.charts.load("current", { packages: ["corechart"] });
-google.charts.setOnLoadCallback(() => {
-  DrawChart("time-to-park", timeToParkData, 0);
-  DrawChart("time-to-goal", timeToGoalData, 0);
-});
-
-
-// Render charts onclick of #render-charts
-document.getElementById("render-charts").addEventListener("click", () => {
-  openResultsModal();
-});
-
-document.getElementById("closeResultsModal").addEventListener("click", () => {
-  closeResultsModal();
-});
-
-function openResultsModal() {
-  // Get maximum value of combined timeToParkData and timeToGoalData
-  let max = 0;
-  timeToParkData.forEach((row) => {
-    if (row[1] > max) {
-      max = row[1];
-    }
-  });
-  timeToGoalData.forEach((row) => {
-    if (row[1] > max) {
-      max = row[1];
-    }
-  });
-
-  DrawChart("time-to-park", timeToParkData, max);
-  DrawChart("time-to-goal", timeToGoalData, max);
-  document.getElementById("resultsModal").style.display = "block";
-  document.getElementById("resultsModalBackdrop").style.display = "block";
-  paused = true;
-}
-
-function closeResultsModal() {
-  document.getElementById("resultsModal").style.display = "none";
-  document.getElementById("resultsModalBackdrop").style.display = "none";
-  paused = false;
-}
-
-function DrawChart(id, data, max) {
-  // Create the data table.
-  var data = google.visualization.arrayToDataTable(data);
-
-  // Set chart options
-  var options = {
-    width: "1100",
-    height: 300,
-    bar: { gap: 0 },
-    interpolateNulls: false,
-    chartArea: { left: 10, top: 0 },
-    histogram: {
-      bucketSize: 20,
-      maxNumBuckets: 50,
-      minValue: 0,
-      maxValue: max,
-    },
-  };
-
-  // Instantiate and draw our chart, passing in some options.
-  var chart = new google.visualization.Histogram(document.getElementById(id));
-  chart.draw(data, options);
-}
-
-export function addTimeToPark(strategy, data) {
-  // Create array of 0's, with length of number of strategies,
-  // and set the index of the strategy to the data
-  const index = selectedStrategies.indexOf(strategy);
-  const row = Array(selectedStrategies.length).fill(null);
-  row[index] = data;
-  timeToParkData.push(row);
-  csvRowsPark += (`${strategy},${data}\n`)
-}
-
-export function addTimeToGoal(strategy, data) {
-  const index = selectedStrategies.indexOf(strategy);
-  const row = Array(selectedStrategies.length).fill(null);
-  row[index] = data;
-  timeToGoalData.push(row);
-  csvRowsGoal += (`${strategy},${data}\n`)
-}
 
 // When button with id "export-park" is clicked, download the csv file with the data
 document.getElementById("export-park").addEventListener("click", () => {
   downloadCSV(csvRowsPark, `time-to-park`);
 }
 );
-
 // When button with id "export-goal" is clicked, download the csv file with the data
 document.getElementById("export-goal").addEventListener("click", () => {
   downloadCSV(csvRowsGoal, `time-to-goal`);
 }
 );
-
 // Function to download the csv file
 function downloadCSV(csv, filename) {
   var csvFile;

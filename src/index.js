@@ -33,8 +33,6 @@ function reset() {
   timeToGoalData = [selectedStrategies];
   csvRowsPark = "strategy,time\n";
   csvRowsGoal = "strategy,time\n";
-  DrawChart("time-to-park", timeToParkData);
-  DrawChart("time-to-goal", timeToGoalData);
   currentTick = 0;
   experimentMode = false;
 }
@@ -282,12 +280,10 @@ requestAnimationFrame(drawCanvas);
 // Draw graphs for time-to-park and time-to-goal
 // **********************************
 
-const charts = {};
-
 google.charts.load("current", { packages: ["corechart"] });
 google.charts.setOnLoadCallback(() => {
-  DrawChart("time-to-park", timeToParkData);
-  DrawChart("time-to-goal", timeToGoalData);
+  DrawChart("time-to-park", timeToParkData, 0);
+  DrawChart("time-to-goal", timeToGoalData, 0);
 });
 
 
@@ -301,8 +297,21 @@ document.getElementById("closeResultsModal").addEventListener("click", () => {
 });
 
 function openResultsModal() {
-  DrawChart("time-to-park", timeToParkData);
-  DrawChart("time-to-goal", timeToGoalData);
+  // Get maximum value of combined timeToParkData and timeToGoalData
+  let max = 0;
+  timeToParkData.forEach((row) => {
+    if (row[1] > max) {
+      max = row[1];
+    }
+  });
+  timeToGoalData.forEach((row) => {
+    if (row[1] > max) {
+      max = row[1];
+    }
+  });
+  
+  DrawChart("time-to-park", timeToParkData, max);
+  DrawChart("time-to-goal", timeToGoalData, max);
   document.getElementById("resultsModal").style.display = "block";
   document.getElementById("resultsModalBackdrop").style.display = "block";
   paused = true;
@@ -314,7 +323,7 @@ function closeResultsModal() {
   paused = false;
 }
 
-function DrawChart(id, data) {
+function DrawChart(id, data, max) {
   // Create the data table.
   var data = google.visualization.arrayToDataTable(data);
 
@@ -323,23 +332,17 @@ function DrawChart(id, data) {
     width: "1100",
     height: 300,
     bar: { gap: 0 },
-    chartArea: { width: "100%", height: "80%" },
-    legend: { position: "bottom" },
     interpolateNulls: false,
+    chartArea: { left: 10, top: 0 },
     histogram: {
       maxNumBuckets: 50,
       minValue: 0,
-      maxValue: 150,
+      maxValue: max + 40,
     },
   };
 
   // Instantiate and draw our chart, passing in some options.
-  if (!charts[id]) {
-    var chart = new google.visualization.Histogram(document.getElementById(id));
-    charts[id] = chart;
-  } else {
-    var chart = charts[id];
-  }
+  var chart = new google.visualization.Histogram(document.getElementById(id));
   chart.draw(data, options);
 }
 

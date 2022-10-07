@@ -5,3 +5,7 @@ body {
 aside {
   width: 400px;
 }
+
+.progress-bar {
+  transition: none !important;
+}

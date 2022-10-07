@@ -22,12 +22,21 @@ var csvRowsGoal = "strategy,time\n";
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
 
+var experimentMode = false;
+const experiment_ticks = 10000;
+
+var currentTick = 0;
+
 function reset() {
   world = new World(worldmap, mapDirection);
   timeToParkData = [selectedStrategies];
   timeToGoalData = [selectedStrategies];
+  csvRowsPark = "strategy,time\n";
+  csvRowsGoal = "strategy,time\n";
   DrawChart("time-to-park", timeToParkData);
   DrawChart("time-to-goal", timeToGoalData);
+  currentTick = 0;
+  experimentMode = false;
 }
 
 function strategyName(strategy) {
@@ -43,11 +52,89 @@ const squareSize = 32;
 let tickdelay = 20;
 let spawnspeed = 0.2;
 let paused = false;
-var realtimeChart = true;
+
+// Onclick of #experiment-mode, start experiment
+document.getElementById("experiment-mode").onclick = function () {
+  reset();
+  experimentMode = true;
+  paused = false;
+}
+
 
 // **********************************
 // Controls
 // **********************************
+
+// Spawn rate waves
+export const automated_loop_length = 500;
+const min_spawn_rate = 0.2;
+var max_spawn_rate = 1;
+const max_limit = 1;
+
+// return value for current bin using sine wave between min and max, over length of automated_loop_length
+function getSpawnRate(current_bin) {
+  return min_spawn_rate + (max_spawn_rate - min_spawn_rate) * Math.pow((Math.sin((current_bin / automated_loop_length) * 2 * Math.PI) + 1) / 2, 2);
+}
+
+// Create array of spawn rates of length automated_loop_length
+let spawn_rates = []
+function updateSpawnRates() {
+  spawn_rates = [];
+  for (var i = 0; i < automated_loop_length; i++) {
+    spawn_rates.push(getSpawnRate(i));
+  }
+}
+updateSpawnRates();
+
+// Draw bars for spawn_rate on canvas
+function drawSpawnRate(currentTick) {
+  document.getElementById("automated-spawn-rate-display").innerHTML = Math.floor(spawn_rates[currentTick % automated_loop_length] * 100) + "%";
+  const canvas = document.getElementById("spawn-rate");
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width;
+  const height = canvas.height;
+  const barWidth = width / automated_loop_length;
+  const barHeight = height / max_limit;
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "#fbe7a5";
+  ctx.fillRect(0, 0, width, height);
+  for (var i = 0; i < automated_loop_length; i++) {
+    ctx.fillStyle = "#f6c344";
+    ctx.fillRect(i * barWidth, height - spawn_rates[i] * barHeight, barWidth, spawn_rates[i] * barHeight);
+  }
+  const currentI = (currentTick % automated_loop_length)
+  ctx.fillStyle = "#312708";
+  ctx.fillRect(currentI * barWidth, height - spawn_rates[currentI] * barHeight - 2, barWidth * 4, spawn_rates[currentI] * barHeight + 2);
+}
+drawSpawnRate(currentTick);
+
+let spawn_rate_type = "auto";
+
+// Switch between spawn rate types
+document.getElementById("spawnrate-radio-auto").addEventListener("change", function (event) {
+  spawn_rate_type = event.target.value;
+  document.getElementById("spawnspeed").disabled = true;
+});
+document.getElementById("spawnrate-radio-manual").addEventListener("change", function (event) {
+  spawn_rate_type = event.target.value;
+  document.getElementById("spawnspeed").disabled = false;
+});
+
+// Switch between max_spawn_rate value
+document.getElementById("automatedPeak1").addEventListener("change", function (event) {
+  max_spawn_rate = 1;
+  updateSpawnRates();
+});
+document.getElementById("automatedPeak2").addEventListener("change", function (event) {
+  max_spawn_rate = 0.66;
+  updateSpawnRates();
+});
+document.getElementById("automatedPeak3").addEventListener("change", function (event) {
+  max_spawn_rate = 0.33;
+  updateSpawnRates();
+});
+
+
 
 // Reset button
 document.getElementById("reset").addEventListener("click", () => {
@@ -82,16 +169,6 @@ STRATEGIES.forEach((strategy) => {
   container.appendChild(label);
 });
 
-// Control if the chart is updated in realtime
-const realtimeChartCheckbox = document.getElementById("realtime-charts");
-realtimeChartCheckbox.addEventListener("change", () => {
-  if (realtimeChartCheckbox.checked) {
-    realtimeChart = true;
-  } else {
-    realtimeChart = false;
-  }
-});
-
 // Control play/pause button
 document.getElementById("play-pause").addEventListener("click", () => {
   if (document.getElementById("play-pause").innerHTML === "Play") {
@@ -110,6 +187,7 @@ document.getElementById("tickdelay").addEventListener("input", (e) => {
 
 document.getElementById("spawnspeed").addEventListener("input", (e) => {
   spawnspeed = e.target.value;
+  document.getElementById("manual-spawn-rate-display").innerHTML = Math.round(spawnspeed * 100) + "%";
 });
 
 // **********************************
@@ -126,7 +204,11 @@ let world = new World(worldmap, mapDirection);
 function gameTick() {
   if (!paused) {
     // Spawn new agent sometimes
-    if (Math.random() < spawnspeed) {
+    let rate = spawnspeed;
+    if (spawn_rate_type === "auto") {
+      rate = spawn_rates[currentTick % automated_loop_length];
+    }
+    if (Math.random() < rate) {
       // Pick random strategy from selectedStrategies
       if (selectedStrategies.length > 0) {
         const strategy =
@@ -139,6 +221,26 @@ function gameTick() {
 
     // Move current agents
     world.tick();
+    currentTick++;
+    drawSpawnRate(currentTick);
+    if (experimentMode) {
+      // Update #experiment-progress progress bar width
+      document.getElementById("experiment-progress").style.width = (currentTick / experiment_ticks) * 100 + "%";
+    }
+    if (experimentMode && currentTick > experiment_ticks) {
+      window.alert("Simulation ended, paused.");
+      paused = true;
+      DrawChart("time-to-park", timeToParkData);
+      DrawChart("time-to-goal", timeToGoalData);
+      if (window.confirm("Download data as CSV?")) {
+        downloadCSV(csvRowsPark, `time-to-park`);
+        downloadCSV(csvRowsGoal, `time-to-goal`);
+      }
+      experimentMode = false;
+    }
+  }
+  if (experimentMode) {
+    document.getElementById("experiment-progress").style.width = (currentTick / experiment_ticks) * 100 + "%";
   }
   setTimeout(gameTick, tickdelay);
 }
@@ -175,10 +277,21 @@ requestAnimationFrame(drawCanvas);
 // Draw graphs for time-to-park and time-to-goal
 // **********************************
 
+const charts = {};
+
 google.charts.load("current", { packages: ["corechart"] });
-google.charts.setOnLoadCallback(() =>
-  DrawChart("time-to-park", timeToParkData)
-);
+google.charts.setOnLoadCallback(() => {
+  DrawChart("time-to-park", timeToParkData);
+  DrawChart("time-to-goal", timeToGoalData);
+});
+
+
+// Render charts onclick of #render-charts
+document.getElementById("render-charts").addEventListener("click", () => {
+  DrawChart("time-to-park", timeToParkData);
+  DrawChart("time-to-goal", timeToGoalData);
+});
+
 
 function DrawChart(id, data) {
   // Create the data table.
@@ -200,7 +313,12 @@ function DrawChart(id, data) {
   };
 
   // Instantiate and draw our chart, passing in some options.
-  var chart = new google.visualization.Histogram(document.getElementById(id));
+  if (!charts[id]) {
+    var chart = new google.visualization.Histogram(document.getElementById(id));
+    charts[id] = chart;
+  } else {
+    var chart = charts[id];
+  }
   chart.draw(data, options);
 }
 
@@ -212,9 +330,6 @@ export function addTimeToPark(strategy, data) {
   row[index] = data;
   timeToParkData.push(row);
   csvRowsPark += (`${strategy},${data}\n`)
-  if (realtimeChart) {
-    DrawChart("time-to-park", timeToParkData);
-  }
 }
 
 export function addTimeToGoal(strategy, data) {
@@ -223,20 +338,17 @@ export function addTimeToGoal(strategy, data) {
   row[index] = data;
   timeToGoalData.push(row);
   csvRowsGoal += (`${strategy},${data}\n`)
-  if (realtimeChart) {
-    DrawChart("time-to-goal", timeToGoalData);
-  }
 }
 
 // When button with id "export-park" is clicked, download the csv file with the data
 document.getElementById("export-park").addEventListener("click", () => {
-  downloadCSV(csvRowsPark, "park.csv");
+  downloadCSV(csvRowsPark, `time-to-park`);
 }
 );
 
 // When button with id "export-goal" is clicked, download the csv file with the data
 document.getElementById("export-goal").addEventListener("click", () => {
-  downloadCSV(csvRowsGoal, "goal.csv");
+  downloadCSV(csvRowsGoal, `time-to-goal`);
 }
 );
 
@@ -248,7 +360,7 @@ function downloadCSV(csv, filename) {
   // CSV file
   csvFile = new Blob([csv], { type: "text/csv" });
   downloadLink = document.createElement("a");
-  downloadLink.download = filename;
+  downloadLink.download = filename + `===${selectedStrategies.join("-")}===peak-${max_spawn_rate}.csv`;
 
   // Add hidden download link
   downloadLink.href = window.URL.createObjectURL(csvFile);

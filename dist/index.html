@@ -14,10 +14,19 @@
     <aside class="vh-100 overflow-auto p-3">
       <h5>Controls</h5>
       <div class="d-grid gap-2">
-        <button class="btn btn-primary mb-3" id="play-pause">Pause</button>
+        <button class="btn btn-primary mb-1" id="play-pause">Pause</button>
       </div>
       <div class="d-grid gap-2">
         <button class="btn btn-sm btn-danger mb-3" id="reset">Reset</button>
+      </div>
+      <h5>Experiment mode</h5>
+      <div class="mb-3">
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary mb-1" id="experiment-mode">Start experiment</button>
+        </div>
+        <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-label="Basic example" style="width: 0%" id="experiment-progress"></div>
+        </div>
       </div>
       <h5>Options</h5>
       <div class="mb-3">
@@ -25,19 +34,62 @@
         <div id="strategy-checkboxes"></div>
       </div>
       <div class="mb-3">
-        <label for="tickdelay" class="form-label fw-bolder">Game tick delay</label>
+        <label for="tickdelay" class="form-label fw-bolder">Game tick delay <span class="text-muted fw-lighter">(sim
+            speed)</span></label>
         <input type="range" class="form-range" id="tickdelay">
       </div>
+      <h5>Spawn Probability</h5>
       <div class="mb-3">
-        <label for="spawnspeed" class="form-label fw-bolder">Spawn speed</label>
-        <input type="range" class="form-range" id="spawnspeed" min="0" max="1" value="0.2" step="0.01">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="spawnrate-radio" id="spawnrate-radio-auto" value="auto" checked="">
+          <label class="form-check-label" for="spawnrate-radio-auto">
+            Automated
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="spawnrate-radio" id="spawnrate-radio-manual" value="manual">
+          <label class="form-check-label" for="spawnrate-radio-manual">
+            Manual
+          </label>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="spawnspeed" class="form-label fw-bolder">Automated Probability <span id="automated-spawn-rate-display" class="fw-lighter">0</span></label>
+        <div class="bg-light p-2 mb-1 border rounded">
+          <span class="fw-bolder">Peak:</span>
+          <div class="form-check-inline">
+            <input class="form-check-input" type="radio" name="automatedPeak" id="automatedPeak1" value="option1" checked="">
+            <label class="form-check-label" for="automatedPeak1">
+              100%
+            </label>
+          </div>
+          <div class="form-check-inline">
+            <input class="form-check-input" type="radio" name="automatedPeak" id="automatedPeak2" value="option2">
+            <label class="form-check-label" for="automatedPeak2">
+              66%
+            </label>
+          </div>
+          <div class="form-check-inline">
+            <input class="form-check-input" type="radio" name="automatedPeak" id="automatedPeak3" value="option3">
+            <label class="form-check-label" for="automatedPeak3">
+              33%
+            </label>
+          </div>
+        </div>
+        <div class="bg-light p-2 pb-0 border rounded">
+          <canvas id="spawn-rate" width="282" height="100"></canvas>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="spawnspeed" class="form-label fw-bolder">Manual Probability <span id="manual-spawn-rate-display" class="fw-lighter">20%</span></label>
+        <input type="range" class="form-range" id="spawnspeed" min="0" max="1" value="0.2" step="0.01" disabled="">
       </div>
       <h5>Charts</h5>
       <div class="mb-3">
-        <div class="form-label fw-bolder">Chart rendering</div>
-        <input type="checkbox" class="form-check-input" id="realtime-charts" checked="">
-        <label class="form-check-label" for="realtime-charts">Update charts<div class="text-muted">(slow performance)
-          </div></label>
+        <div class="form-label fw-bolder">Update charts</div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-sm btn-outline-primary" id="render-charts">Update charts</button>
+        </div>
       </div>
       <div class="mb-3">
         <div class="form-label fw-bolder">Time to goal</div>
@@ -59,8 +111,8 @@
         </div>
       </div>
     </aside>
-    <main class="bg-light vh-100 overflow-auto p-3 w-100">
-      <canvas id="canvas" class="mw-100 mx-auto"></canvas>
+    <main class="bg-light vh-100 p-3 w-100 d-flex justify-content-center">
+      <canvas id="canvas" class=""></canvas>
     </main>
   </div>
   <script src="/src.a2b27638.js"></script>

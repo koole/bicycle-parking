@@ -6,5 +6,8 @@ aside {
   width: 400px;
 }
 
+.progress-bar {
+  transition: none !important;
+}
 
 /*# sourceMappingURL=/src.a2b27638.css.map */

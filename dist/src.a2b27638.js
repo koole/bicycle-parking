@@ -648,7 +648,7 @@ var Agent = /*#__PURE__*/function () {
           if (this.park()) {
             this.stage = "LEAVING_PARKING";
           } else {
-            console.log("Could not park");
+            // console.warn("Could not park");
             this.stage = "ENTERING";
           }
 
@@ -778,7 +778,7 @@ var Agent = /*#__PURE__*/function () {
       if (location == "east") {
         coordinates[0] = this.randomValueInRange(23, 29);
 
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.66) {
           coordinates[1] = this.randomValueInRange(19, 21);
         } else {
           coordinates[1] = 23;
@@ -851,7 +851,7 @@ var Agent = /*#__PURE__*/function () {
           if (this.park()) {
             this.stage = "LEAVING_PARKING";
           } else {
-            console.log("Could not park");
+            // console.warn("Could not park");
             this.failedToPark += 1;
 
             if (this.failedToPark > this.searchTime) {
@@ -968,7 +968,10 @@ var Agent = /*#__PURE__*/function () {
       switch (this.stage) {
         case "ENTERING":
           // BFS for the closest valid parking spot
-          var coords = {};
+          var coords = {
+            x: 0,
+            y: 0
+          };
           var Q = [];
           var grid = [];
 
@@ -2299,6 +2302,13 @@ var World = /*#__PURE__*/function () {
         return cell.type === type;
       });
       return cells[Math.floor(Math.random() * cells.length)];
+    }
+  }, {
+    key: "getParkingLots",
+    value: function getParkingLots() {
+      return this.state.flat().filter(function (cell) {
+        return cell.type === "PARKING";
+      });
     } // // Returns all neighbors of a cell
     // getNeighbors(cell) {
     //   const { x, y } = cell;
@@ -2394,6 +2404,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.addTimeToGoal = addTimeToGoal;
 exports.addTimeToPark = addTimeToPark;
+exports.automated_loop_length = void 0;
 
 require("./styles.css");
 
@@ -2428,13 +2439,20 @@ var csvRowsPark = "strategy,time\n";
 var csvRowsGoal = "strategy,time\n";
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
+var experimentMode = false;
+var experiment_ticks = 10000;
+var currentTick = 0;
 
 function reset() {
   world = new _World.default(_map.default, _map.mapDirection);
   timeToParkData = [selectedStrategies];
   timeToGoalData = [selectedStrategies];
+  csvRowsPark = "strategy,time\n";
+  csvRowsGoal = "strategy,time\n";
   DrawChart("time-to-park", timeToParkData);
   DrawChart("time-to-goal", timeToGoalData);
+  currentTick = 0;
+  experimentMode = false;
 }
 
 function strategyName(strategy) {
@@ -2446,11 +2464,87 @@ function strategyName(strategy) {
 var squareSize = 32;
 var tickdelay = 20;
 var spawnspeed = 0.2;
-var paused = false;
-var realtimeChart = true; // **********************************
+var paused = false; // Onclick of #experiment-mode, start experiment
+
+document.getElementById("experiment-mode").onclick = function () {
+  reset();
+  experimentMode = true;
+  paused = false;
+}; // **********************************
 // Controls
 // **********************************
-// Reset button
+// Spawn rate waves
+
+
+var automated_loop_length = 500;
+exports.automated_loop_length = automated_loop_length;
+var min_spawn_rate = 0.2;
+var max_spawn_rate = 1;
+var max_limit = 1; // return value for current bin using sine wave between min and max, over length of automated_loop_length
+
+function getSpawnRate(current_bin) {
+  return min_spawn_rate + (max_spawn_rate - min_spawn_rate) * Math.pow((Math.sin(current_bin / automated_loop_length * 2 * Math.PI) + 1) / 2, 2);
+} // Create array of spawn rates of length automated_loop_length
+
+
+var spawn_rates = [];
+
+function updateSpawnRates() {
+  spawn_rates = [];
+
+  for (var i = 0; i < automated_loop_length; i++) {
+    spawn_rates.push(getSpawnRate(i));
+  }
+}
+
+updateSpawnRates(); // Draw bars for spawn_rate on canvas
+
+function drawSpawnRate(currentTick) {
+  document.getElementById("automated-spawn-rate-display").innerHTML = Math.floor(spawn_rates[currentTick % automated_loop_length] * 100) + "%";
+  var canvas = document.getElementById("spawn-rate");
+  var ctx = canvas.getContext("2d");
+  var width = canvas.width;
+  var height = canvas.height;
+  var barWidth = width / automated_loop_length;
+  var barHeight = height / max_limit;
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "#fbe7a5";
+  ctx.fillRect(0, 0, width, height);
+
+  for (var i = 0; i < automated_loop_length; i++) {
+    ctx.fillStyle = "#f6c344";
+    ctx.fillRect(i * barWidth, height - spawn_rates[i] * barHeight, barWidth, spawn_rates[i] * barHeight);
+  }
+
+  var currentI = currentTick % automated_loop_length;
+  ctx.fillStyle = "#312708";
+  ctx.fillRect(currentI * barWidth, height - spawn_rates[currentI] * barHeight - 2, barWidth * 4, spawn_rates[currentI] * barHeight + 2);
+}
+
+drawSpawnRate(currentTick);
+var spawn_rate_type = "auto"; // Switch between spawn rate types
+
+document.getElementById("spawnrate-radio-auto").addEventListener("change", function (event) {
+  spawn_rate_type = event.target.value;
+  document.getElementById("spawnspeed").disabled = true;
+});
+document.getElementById("spawnrate-radio-manual").addEventListener("change", function (event) {
+  spawn_rate_type = event.target.value;
+  document.getElementById("spawnspeed").disabled = false;
+}); // Switch between max_spawn_rate value
+
+document.getElementById("automatedPeak1").addEventListener("change", function (event) {
+  max_spawn_rate = 1;
+  updateSpawnRates();
+});
+document.getElementById("automatedPeak2").addEventListener("change", function (event) {
+  max_spawn_rate = 0.66;
+  updateSpawnRates();
+});
+document.getElementById("automatedPeak3").addEventListener("change", function (event) {
+  max_spawn_rate = 0.33;
+  updateSpawnRates();
+}); // Reset button
 
 document.getElementById("reset").addEventListener("click", function () {
   reset();
@@ -2484,15 +2578,6 @@ STRATEGIES.forEach(function (strategy) {
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
   container.appendChild(label);
-}); // Control if the chart is updated in realtime
-
-var realtimeChartCheckbox = document.getElementById("realtime-charts");
-realtimeChartCheckbox.addEventListener("change", function () {
-  if (realtimeChartCheckbox.checked) {
-    realtimeChart = true;
-  } else {
-    realtimeChart = false;
-  }
 }); // Control play/pause button
 
 document.getElementById("play-pause").addEventListener("click", function () {
@@ -2510,6 +2595,7 @@ document.getElementById("tickdelay").addEventListener("input", function (e) {
 });
 document.getElementById("spawnspeed").addEventListener("input", function (e) {
   spawnspeed = e.target.value;
+  document.getElementById("manual-spawn-rate-display").innerHTML = Math.round(spawnspeed * 100) + "%";
 }); // **********************************
 // Read worldmap and create worldData
 // **********************************
@@ -2522,7 +2608,13 @@ var world = new _World.default(_map.default, _map.mapDirection); // ************
 function gameTick() {
   if (!paused) {
     // Spawn new agent sometimes
-    if (Math.random() < spawnspeed) {
+    var rate = spawnspeed;
+
+    if (spawn_rate_type === "auto") {
+      rate = spawn_rates[currentTick % automated_loop_length];
+    }
+
+    if (Math.random() < rate) {
       // Pick random strategy from selectedStrategies
       if (selectedStrategies.length > 0) {
         var strategy = selectedStrategies[Math.floor(Math.random() * selectedStrategies.length)];
@@ -2532,6 +2624,31 @@ function gameTick() {
 
 
     world.tick();
+    currentTick++;
+    drawSpawnRate(currentTick);
+
+    if (experimentMode) {
+      // Update #experiment-progress progress bar width
+      document.getElementById("experiment-progress").style.width = currentTick / experiment_ticks * 100 + "%";
+    }
+
+    if (experimentMode && currentTick > experiment_ticks) {
+      window.alert("Simulation ended, paused.");
+      paused = true;
+      DrawChart("time-to-park", timeToParkData);
+      DrawChart("time-to-goal", timeToGoalData);
+
+      if (window.confirm("Download data as CSV?")) {
+        downloadCSV(csvRowsPark, "time-to-park");
+        downloadCSV(csvRowsGoal, "time-to-goal");
+      }
+
+      experimentMode = false;
+    }
+  }
+
+  if (experimentMode) {
+    document.getElementById("experiment-progress").style.width = currentTick / experiment_ticks * 100 + "%";
   }
 
   setTimeout(gameTick, tickdelay);
@@ -2590,11 +2707,18 @@ requestAnimationFrame(drawCanvas); // **********************************
 // Draw graphs for time-to-park and time-to-goal
 // **********************************
 
+var charts = {};
 google.charts.load("current", {
   packages: ["corechart"]
 });
 google.charts.setOnLoadCallback(function () {
-  return DrawChart("time-to-park", timeToParkData);
+  DrawChart("time-to-park", timeToParkData);
+  DrawChart("time-to-goal", timeToGoalData);
+}); // Render charts onclick of #render-charts
+
+document.getElementById("render-charts").addEventListener("click", function () {
+  DrawChart("time-to-park", timeToParkData);
+  DrawChart("time-to-goal", timeToGoalData);
 });
 
 function DrawChart(id, data) {
@@ -2622,7 +2746,13 @@ function DrawChart(id, data) {
     }
   }; // Instantiate and draw our chart, passing in some options.
 
-  var chart = new google.visualization.Histogram(document.getElementById(id));
+  if (!charts[id]) {
+    var chart = new google.visualization.Histogram(document.getElementById(id));
+    charts[id] = chart;
+  } else {
+    var chart = charts[id];
+  }
+
   chart.draw(data, options);
 }
 
@@ -2634,10 +2764,6 @@ function addTimeToPark(strategy, data) {
   row[index] = data;
   timeToParkData.push(row);
   csvRowsPark += "".concat(strategy, ",").concat(data, "\n");
-
-  if (realtimeChart) {
-    DrawChart("time-to-park", timeToParkData);
-  }
 }
 
 function addTimeToGoal(strategy, data) {
@@ -2646,19 +2772,15 @@ function addTimeToGoal(strategy, data) {
   row[index] = data;
   timeToGoalData.push(row);
   csvRowsGoal += "".concat(strategy, ",").concat(data, "\n");
-
-  if (realtimeChart) {
-    DrawChart("time-to-goal", timeToGoalData);
-  }
 } // When button with id "export-park" is clicked, download the csv file with the data
 
 
 document.getElementById("export-park").addEventListener("click", function () {
-  downloadCSV(csvRowsPark, "park.csv");
+  downloadCSV(csvRowsPark, "time-to-park");
 }); // When button with id "export-goal" is clicked, download the csv file with the data
 
 document.getElementById("export-goal").addEventListener("click", function () {
-  downloadCSV(csvRowsGoal, "goal.csv");
+  downloadCSV(csvRowsGoal, "time-to-goal");
 }); // Function to download the csv file
 
 function downloadCSV(csv, filename) {
@@ -2669,7 +2791,7 @@ function downloadCSV(csv, filename) {
     type: "text/csv"
   });
   downloadLink = document.createElement("a");
-  downloadLink.download = filename; // Add hidden download link
+  downloadLink.download = filename + "===".concat(selectedStrategies.join("-"), "===peak-").concat(max_spawn_rate, ".csv"); // Add hidden download link
 
   downloadLink.href = window.URL.createObjectURL(csvFile);
   downloadLink.style.display = "none";

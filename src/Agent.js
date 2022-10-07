@@ -142,7 +142,7 @@ class Agent {
         if (this.park()) {
           this.stage = "LEAVING_PARKING";
         } else {
-          console.log("Could not park");
+          // console.warn("Could not park");
           this.stage = "ENTERING";
         }
         break;
@@ -269,7 +269,7 @@ class Agent {
     }
     if (location == "east") {
       coordinates[0] = this.randomValueInRange(23, 29);
-      if (Math.random() < 0.5) {
+      if (Math.random() < 0.66) {
         coordinates[1] = this.randomValueInRange(19, 21);
       } else {
         coordinates[1] = 23;
@@ -348,7 +348,7 @@ class Agent {
         if (this.park()) {
           this.stage = "LEAVING_PARKING";
         } else {
-          console.log("Could not park");
+          // console.warn("Could not park");
           this.failedToPark += 1;
           if (this.failedToPark > this.searchTime) {
             this.stage = "CHANGEPREF";
@@ -463,7 +463,7 @@ class Agent {
     switch (this.stage) {
       case "ENTERING":
         // BFS for the closest valid parking spot
-        let coords = {};
+        let coords = {x:0, y:0};
         let Q = [];
         let grid = [];
         const label = function (x, y) {

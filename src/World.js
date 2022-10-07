@@ -102,6 +102,11 @@ class World {
     return cells[Math.floor(Math.random() * cells.length)];
   }
 
+  getParkingLots() {
+    return this.state.flat().filter((cell) => cell.type === "PARKING");
+  }
+
+
   // // Returns all neighbors of a cell
   // getNeighbors(cell) {
   //   const { x, y } = cell;

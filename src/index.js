@@ -14,10 +14,15 @@ const maxSpawnRateLimit = 1;
 // Parameter variable setup
 // **********************************
 
-const STRATEGIES = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
+const STRATEGIES = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT", "SMART"];
 
 // Set default selected strategies
-let selectedStrategies = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
+let selectedStrategies = [
+  // "RANDOM_CHOICE",
+  // "LOT_PREFERENCE",
+  // "CLOSEST_SPOT",
+  //"SMART",
+];
 
 var currentTick = 0;
 

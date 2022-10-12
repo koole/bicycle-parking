@@ -129,7 +129,10 @@ class Cell {
       ctx.fillStyle = "#ffffff";
       ctx.font = "16px monospace";
       ctx.fillText(
-        "" + String(this.agents.filter(({ type }) => type === "PEDESTRIAN").length).padStart(3, '0'),
+        "" +
+          String(
+            this.agents.filter(({ type }) => type === "PEDESTRIAN").length
+          ).padStart(3, "0"),
         canvas_x + 1.5,
         canvas_y + 21
       );
@@ -143,8 +146,9 @@ class Cell {
           // If the current agents is moving to the left or right in the agent's paths next step
           // then draw the bike in the horizontal position
           if (
-            agent.path && agent.path.length > 0 &&
-            (agent.path[0].x === agent.cell.x)
+            agent.path &&
+            agent.path.length > 0 &&
+            agent.path[0].x === agent.cell.x
           ) {
             this.drawBike(ctx, x * squareSize, y * squareSize, "vertical", i);
           } else {

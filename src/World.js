@@ -26,11 +26,19 @@ class World {
     this.state = [];
     this.agents = [];
 
+    // This keeps track how full the lots are.
+    this.northCapacity = 0;
+    this.eastCapacity = 0;
+    this.midCapacity = 0;
+    this.westCapacity = 0;
+
     this.tickCount = 0;
 
     // Setup initial state
     const rows = worldmap.split("\n").filter((row) => row.length > 0);
-    const directionRows = mapDirection.split("\n").filter((row) => row.length > 0);
+    const directionRows = mapDirection
+      .split("\n")
+      .filter((row) => row.length > 0);
 
     // Turns the characters from the worldmap into understandable strings
     const types = {
@@ -59,8 +67,16 @@ class World {
         const type = types[c];
         const cell = new Cell(this, type, x, y, allowed_direction);
 
-        this.bikePathfinder.setDirectionalCondition(x, y, getDirectionArray(allowed_direction));
-        this.pedestrianPathfinder.setDirectionalCondition(x, y, getDirectionArray(allowed_direction));
+        this.bikePathfinder.setDirectionalCondition(
+          x,
+          y,
+          getDirectionArray(allowed_direction)
+        );
+        this.pedestrianPathfinder.setDirectionalCondition(
+          x,
+          y,
+          getDirectionArray(allowed_direction)
+        );
 
         return cell;
       });
@@ -106,6 +122,51 @@ class World {
     return this.state.flat().filter((cell) => cell.type === "PARKING");
   }
 
+  // These capacity functions evaulate the amount of bikes park in lots.
+  addLotCapacity(location) {
+    if (location == "north") {
+      this.northCapacity += 1;
+    }
+    if (location == "east") {
+      this.eastCapacity += 1;
+    }
+    if (location == "mid") {
+      this.midCapacity += 1;
+    }
+    if (location == "west") {
+      this.westCapacity += 1;
+    }
+  }
+
+  removeLotCapacity(location) {
+    if (location == "north") {
+      this.northCapacity -= 1;
+    }
+    if (location == "east") {
+      this.eastCapacity -= 1;
+    }
+    if (location == "mid") {
+      this.midCapacity -= 1;
+    }
+    if (location == "west") {
+      this.westCapacity -= 1;
+    }
+  }
+
+  getLotCapacity(location) {
+    if (location == "north") {
+      return this.northCapacity / 120;
+    }
+    if (location == "east") {
+      return this.eastCapacity / 72;
+    }
+    if (location == "mid") {
+      return this.midCapacity / 56;
+    }
+    if (location == "west") {
+      return this.westCapacity / 24;
+    }
+  }
 
   // // Returns all neighbors of a cell
   // getNeighbors(cell) {
@@ -162,9 +223,9 @@ class World {
       return 0.5 - Math.random();
     });
     for (const agent of this.agents) {
-      if(agent.type === "BIKE") {
+      if (agent.type === "BIKE") {
         agent.act();
-      } else if(agent.type === "PEDESTRIAN" && this.tickCount % 2 === 0) {
+      } else if (agent.type === "PEDESTRIAN" && this.tickCount % 2 === 0) {
         agent.act();
       }
     }

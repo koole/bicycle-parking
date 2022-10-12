@@ -197,7 +197,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.mapDirection = exports.default = void 0;
 var map = "\n____________________________________\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\n_bbw______________aa____________bb__\n_bbw______________aappppppppppa_bb__\n_bbw______________aappppppppppaaaaaS\n_bbw______________aappppppppppaaaaaE\n_bbw______________aa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbwwwooooooooooooaa________________\n_bbappoooopppppppoaa________________\n_bbappoooopppppppoaa________________\n_bbappooooooooooaaaa___pppppp_______\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwoooooooooooXaaaaaaaaaaaaaaaaaS\n_bbwwwooooooooooooaaaaaaaaaaaaaaaaaE\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwooooooooooooaa________________\n_bbaaa____________aa________________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbw_____________aaaaa______________\n_bbw______________aaaaa_____________\n_bbw______________aaaaa_____________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_ESw________________________________\n";
-var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhawaawa\n_sna______________aahhhhhhhhhhaeaaea\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
+var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
 exports.mapDirection = mapDirection;
 var _default = map;
 exports.default = _default;
@@ -361,7 +361,7 @@ var Cell = /*#__PURE__*/function () {
         ctx.fillText("" + String(this.agents.filter(function (_ref5) {
           var type = _ref5.type;
           return type === "PEDESTRIAN";
-        }).length).padStart(3, '0'), canvas_x + 1.5, canvas_y + 21);
+        }).length).padStart(3, "0"), canvas_x + 1.5, canvas_y + 21);
       } else {
         var bikeAgents = this.agents.filter(function (_ref6) {
           var type = _ref6.type;
@@ -493,15 +493,13 @@ var Cell = /*#__PURE__*/function () {
 
 var _default = Cell;
 exports.default = _default;
-},{}],"src/Agent.js":[function(require,module,exports) {
+},{}],"src/strategies/closest.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
-
-var _index = require("./index");
+exports.default = closest;
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
@@ -522,6 +520,654 @@ function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symb
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function closest(agent) {
+  switch (agent.stage) {
+    case "ENTERING":
+      // BFS for the closest valid parking spot
+      var coords = {
+        x: 0,
+        y: 0
+      };
+      var Q = [];
+      var grid = [];
+
+      var label = function label(x, y) {
+        var _grid$y;
+
+        (_grid$y = grid[y]) !== null && _grid$y !== void 0 ? _grid$y : grid[y] = [];
+        grid[y][x] = 1;
+      };
+
+      label(agent.cell.x, agent.cell.y);
+      Q = [[agent.cell.x, agent.cell.y]].concat(_toConsumableArray(Q));
+
+      BFS: while (Q.length) {
+        var V = Q.pop();
+        var cell = agent.world.getCellAtCoordinates(V[0], V[1]);
+
+        if (cell.canPark()) {
+          coords = {
+            x: V[0],
+            y: V[1]
+          };
+          break BFS;
+        }
+
+        var dirs = [[V[1], V[0] + 1], [V[1], V[0] - 1], [V[1] + 1, V[0]], [V[1] - 1, V[0]]];
+
+        for (var _i = 0, _dirs = dirs; _i < _dirs.length; _i++) {
+          var _agent$world$state$y, _grid$y2;
+
+          var _dirs$_i = _slicedToArray(_dirs[_i], 2),
+              y = _dirs$_i[0],
+              x = _dirs$_i[1];
+
+          var next = (_agent$world$state$y = agent.world.state[y]) === null || _agent$world$state$y === void 0 ? void 0 : _agent$world$state$y[x];
+          var valid_types = ["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING", "EXIT"];
+
+          if (next !== undefined && valid_types.includes(next.type) && ((_grid$y2 = grid[y]) === null || _grid$y2 === void 0 ? void 0 : _grid$y2[x]) !== 1) {
+            label(x, y);
+            Q = [[x, y]].concat(_toConsumableArray(Q));
+          }
+        }
+      }
+
+      agent.changeMoveTo(coords.x, coords.y, function () {
+        agent.stage = "MOVING_TO_PARKING_ENTERING";
+      });
+      break;
+
+    case "PARKING":
+      if (agent.park()) {
+        agent.stage = "LEAVING_PARKING";
+      } else {
+        agent.stage = "ENTERING";
+      }
+
+      break;
+    // cases below are copied from default
+
+    case "MOVING_TO_PARKING_ENTERING":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var nextCell = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+        agent.makeMove(nextCell);
+      } else {
+        agent.stage = "PARKING";
+      }
+
+      break;
+
+    case "CHANGEPREF":
+      var options = ["north", "east", "mid", "west"];
+
+      while (true) {
+        var lot = options[Math.floor(Math.random() * options.length)];
+
+        if (lot != agent.lotPreference) {
+          agent.lotPreference = lot;
+          break;
+        }
+      }
+
+      var coordinates = agent.lotMove(agent.lotPreference);
+      agent.changeMoveTo(coordinates[0], coordinates[1], function () {
+        agent.stage = "MOVING_TO_LOT";
+      });
+      break;
+
+    case "LEAVING_PARKING":
+      var buildingCell = agent.world.getRandomCellOfType("BUILDING_ENTRANCE");
+      agent.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+        agent.stage = "MOVING_TO_GOAL";
+      });
+      break;
+
+    case "MOVING_TO_GOAL":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell);
+      } else {
+        agent.stage = "IN_GOAL";
+        agent.hasReachedGoal();
+      }
+
+      break;
+
+    case "IN_GOAL":
+      if (Math.random() < agent.exitRate) {
+        agent.stage = "LEAVING_GOAL";
+      }
+
+      break;
+
+    case "LEAVING_GOAL":
+      agent.changeMoveTo(agent.parked_cell.x, agent.parked_cell.y, function () {
+        agent.stage = "MOVING_TO_PARKING_LEAVING";
+      });
+      break;
+
+    case "MOVING_TO_PARKING_LEAVING":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell2 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell2);
+      } else {
+        agent.stage = "UNPARKING";
+      }
+
+      break;
+
+    case "UNPARKING":
+      agent.unpark();
+      agent.stage = "LEAVING";
+      break;
+
+    case "LEAVING":
+      agent.changeMoveTo(agent.spawn.x, agent.spawn.y, function () {
+        agent.stage = "MOVING_TO_EXIT";
+      });
+      break;
+
+    case "MOVING_TO_EXIT":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell3 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell3);
+      } else {
+        agent.stage = "EXITED";
+      }
+
+      break;
+
+    case "EXITED":
+      agent.world.removeAgent(agent);
+      break;
+
+    default:
+      console.log("NO STAGE");
+  }
+}
+},{}],"src/strategies/lotPreference.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = lotPreference;
+
+function lotPreference(agent) {
+  switch (agent.stage) {
+    case "ENTERING":
+      agent.lotPreference = agent.lots[Math.floor(Math.random() * agent.lots.length)];
+
+      if (agent.lotPreference == "north" && agent.spawn.x == 35 && agent.spawn.y == 5) {
+        var coordinates = [30, agent.randomValueInRange(4, 7)];
+      } else {
+        var coordinates = agent.lotMove(agent.lotPreference);
+      }
+
+      agent.changeMoveTo(coordinates[0], coordinates[1], function () {
+        agent.stage = "MOVING_TO_LOT";
+      });
+      break;
+
+    case "MOVING_TO_LOT":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var nextCell = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+        agent.makeMove(nextCell);
+      } else {
+        agent.stage = "SEARCHING_IN_LOT";
+      }
+
+      break;
+
+    case "SEARCHING_IN_LOT":
+      var coordinates = agent.lotSearch(agent.lotPreference);
+      agent.changeMoveTo(coordinates[0], coordinates[1], function () {
+        agent.stage = "MOVING_TO_SPOT";
+      });
+      break;
+
+    case "MOVING_TO_SPOT":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell);
+      } else {
+        agent.stage = "PARKING";
+      }
+
+      break;
+
+    case "PARKING":
+      if (agent.park()) {
+        agent.stage = "LEAVING_PARKING";
+      } else {
+        // console.warn("Could not park");
+        agent.failedToPark += 1;
+
+        if (agent.failedToPark > agent.searchTime) {
+          agent.stage = "CHANGEPREF";
+          agent.failedToPark = 0;
+        } else {
+          agent.stage = "SEARCHING_IN_LOT";
+        }
+      }
+
+      break;
+
+    case "CHANGEPREF":
+      var options = ["north", "east", "mid", "west"];
+
+      while (true) {
+        var lot = options[Math.floor(Math.random() * options.length)];
+
+        if (lot != agent.lotPreference) {
+          agent.lotPreference = lot;
+          break;
+        }
+      }
+
+      var coordinates = agent.lotMove(agent.lotPreference);
+      agent.changeMoveTo(coordinates[0], coordinates[1], function () {
+        agent.stage = "MOVING_TO_LOT";
+      });
+      break;
+
+    case "LEAVING_PARKING":
+      var buildingCell = agent.world.getRandomCellOfType("BUILDING_ENTRANCE");
+      agent.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+        agent.stage = "MOVING_TO_GOAL";
+      });
+      break;
+
+    case "MOVING_TO_GOAL":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell2 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell2);
+      } else {
+        agent.stage = "IN_GOAL";
+        agent.hasReachedGoal();
+      }
+
+      break;
+
+    case "IN_GOAL":
+      if (Math.random() < agent.exitRate) {
+        agent.stage = "LEAVING_GOAL";
+      }
+
+      break;
+
+    case "LEAVING_GOAL":
+      agent.changeMoveTo(agent.parked_cell.x, agent.parked_cell.y, function () {
+        agent.stage = "MOVING_TO_PARKING_LEAVING";
+      });
+      break;
+
+    case "MOVING_TO_PARKING_LEAVING":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell3 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell3);
+      } else {
+        agent.stage = "UNPARKING";
+      }
+
+      break;
+
+    case "UNPARKING":
+      agent.unpark();
+      agent.stage = "LEAVING";
+      break;
+
+    case "LEAVING":
+      agent.changeMoveTo(agent.spawn.x, agent.spawn.y, function () {
+        agent.stage = "MOVING_TO_EXIT";
+      });
+      break;
+
+    case "MOVING_TO_EXIT":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell4 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell4);
+      } else {
+        agent.stage = "EXITED";
+      }
+
+      break;
+
+    case "EXITED":
+      agent.world.removeAgent(agent);
+      break;
+
+    default:
+      console.log("NO STAGE");
+  }
+}
+},{}],"src/strategies/random.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = random;
+
+// RANDOM STRATEGY
+function random(agent) {
+  switch (agent.stage) {
+    case "ENTERING":
+      var parkingCell = agent.world.getRandomCellOfType("PARKING");
+      agent.changeMoveTo(parkingCell.x, parkingCell.y, function () {
+        agent.stage = "MOVING_TO_PARKING_ENTERING";
+      });
+      break;
+
+    case "MOVING_TO_PARKING_ENTERING":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var nextCell = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+        agent.makeMove(nextCell);
+      } else {
+        agent.stage = "PARKING";
+      }
+
+      break;
+
+    case "PARKING":
+      if (agent.park()) {
+        agent.stage = "LEAVING_PARKING";
+      } else {
+        // console.warn("Could not park");
+        agent.stage = "ENTERING";
+      }
+
+      break;
+
+    case "LEAVING_PARKING":
+      var buildingCell = agent.world.getRandomCellOfType("BUILDING_ENTRANCE");
+      agent.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+        agent.stage = "MOVING_TO_GOAL";
+      });
+      break;
+
+    case "MOVING_TO_GOAL":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell);
+      } else {
+        agent.stage = "IN_GOAL";
+        agent.hasReachedGoal();
+      }
+
+      break;
+
+    case "IN_GOAL":
+      if (Math.random() < agent.exitRate) {
+        agent.stage = "LEAVING_GOAL";
+      }
+
+      break;
+
+    case "LEAVING_GOAL":
+      agent.changeMoveTo(agent.parked_cell.x, agent.parked_cell.y, function () {
+        agent.stage = "MOVING_TO_PARKING_LEAVING";
+      });
+      break;
+
+    case "MOVING_TO_PARKING_LEAVING":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell2 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell2);
+      } else {
+        agent.stage = "UNPARKING";
+      }
+
+      break;
+
+    case "UNPARKING":
+      agent.unpark();
+      agent.stage = "LEAVING";
+      break;
+
+    case "LEAVING":
+      agent.changeMoveTo(agent.spawn.x, agent.spawn.y, function () {
+        agent.stage = "MOVING_TO_EXIT";
+      });
+      break;
+
+    case "MOVING_TO_EXIT":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell3 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell3);
+      } else {
+        agent.stage = "EXITED";
+      }
+
+      break;
+
+    case "EXITED":
+      agent.world.removeAgent(agent);
+      break;
+
+    default:
+      console.log("Unknown stage: ", agent.stage);
+      break;
+  }
+}
+},{}],"src/strategies/smart.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = smart;
+
+// SMART STRATEGY
+function smart(agent) {
+  // AUXILIARY FUNCTIONS
+  function randomLotCoordinates(location) {
+    var coordinates = new Array(1);
+
+    if (location == "north") {
+      coordinates[0] = agent.randomValueInRange(20, 30);
+      coordinates[1] = agent.randomValueInRange(4, 7);
+    }
+
+    if (location == "east") {
+      coordinates[0] = agent.randomValueInRange(23, 29);
+
+      if (Math.random() < 0.66) {
+        coordinates[1] = agent.randomValueInRange(19, 21);
+      } else {
+        coordinates[1] = 23;
+      }
+    }
+
+    if (location == "mid") {
+      coordinates[0] = agent.randomValueInRange(10, 17);
+      coordinates[1] = agent.randomValueInRange(17, 19);
+    }
+
+    if (location == "west") {
+      coordinates[0] = agent.randomValueInRange(4, 6);
+      coordinates[1] = agent.randomValueInRange(17, 20);
+    }
+
+    return coordinates;
+  }
+
+  switch (agent.stage) {
+    case "ENTERING":
+      agent.lotChoice = agent.lots[Math.floor(Math.random() * agent.lots.length)];
+      var coordinates = randomLotCoordinates(agent.lotChoice);
+      agent.changeMoveTo(coordinates[0], coordinates[1], function () {
+        agent.stage = "MOVE_TO_LOT";
+      });
+      break;
+
+    case "CHANGE_CHOICE":
+      while (true) {
+        var choice = agent.lots[Math.floor(Math.random() * agent.lots.length)];
+
+        if (choice != agent.lotChoice) {
+          agent.lotChoice = choice;
+          break;
+        }
+      }
+
+      var coordinates = randomLotCoordinates(agent.lotChoice);
+      agent.changeMoveTo(coordinates[0], coordinates[1], function () {
+        agent.stage = "MOVE_TO_LOT";
+      });
+      break;
+
+    case "MOVE_TO_LOT":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var nextCell = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+        agent.makeMove(nextCell);
+
+        if (agent.path.length < 5) {
+          agent.stage = "EVALUATE_LOT";
+        }
+      } else {
+        agent.stage = "PARKING";
+      }
+
+      break;
+
+    case "EVALUATE_LOT":
+      if (agent.world.getLotCapacity(agent.lotChoice) > 0.9) {
+        agent.stage = "CHANGE_CHOICE";
+      } else {
+        agent.stage = "MOVE_TO_LOT";
+      }
+
+      break;
+
+    case "SEARCHING_IN_LOT":
+      var coordinates = randomLotCoordinates(agent.lotChoice);
+      agent.changeMoveTo(coordinates[0], coordinates[1], function () {
+        agent.stage = "MOVE_TO_LOT";
+      });
+      break;
+
+    case "PARKING":
+      if (agent.park(agent.lotChoice)) {
+        agent.stage = "LEAVING_PARKING";
+      } else {
+        // console.warn("Could not park");
+        agent.failedToPark += 1;
+
+        if (agent.failedToPark > agent.searchTime) {
+          agent.stage = "ENTERING";
+          agent.failedToPark = 0;
+        } else {
+          agent.stage = "SEARCHING_IN_LOT";
+        }
+      }
+
+      break;
+
+    case "LEAVING_PARKING":
+      var buildingCell = agent.world.getRandomCellOfType("BUILDING_ENTRANCE");
+      agent.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+        agent.stage = "MOVING_TO_GOAL";
+      });
+      break;
+
+    case "MOVING_TO_GOAL":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell);
+      } else {
+        agent.stage = "IN_GOAL";
+        agent.hasReachedGoal();
+      }
+
+      break;
+
+    case "IN_GOAL":
+      if (Math.random() < agent.exitRate) {
+        agent.stage = "LEAVING_GOAL";
+      }
+
+      break;
+
+    case "LEAVING_GOAL":
+      agent.changeMoveTo(agent.parked_cell.x, agent.parked_cell.y, function () {
+        agent.stage = "MOVING_TO_PARKING_LEAVING";
+      });
+      break;
+
+    case "MOVING_TO_PARKING_LEAVING":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell2 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell2);
+      } else {
+        agent.stage = "UNPARKING";
+      }
+
+      break;
+
+    case "UNPARKING":
+      agent.unpark(agent.lotChoice);
+      agent.stage = "LEAVING";
+      break;
+
+    case "LEAVING":
+      agent.changeMoveTo(agent.spawn.x, agent.spawn.y, function () {
+        agent.stage = "MOVING_TO_EXIT";
+      });
+      break;
+
+    case "MOVING_TO_EXIT":
+      if (agent.calculatingPath == false && agent.path !== null && agent.path.length > 0) {
+        var _nextCell3 = agent.world.getCellAtCoordinates(agent.path[0].x, agent.path[0].y);
+
+        agent.makeMove(_nextCell3);
+      } else {
+        agent.stage = "EXITED";
+      }
+
+      break;
+
+    case "EXITED":
+      agent.world.removeAgent(agent);
+      break;
+
+    default:
+      console.log("Unknown stage: ", agent.stage);
+      break;
+  }
+}
+},{}],"src/Agent.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _index = require("./index");
+
+var _closest = _interopRequireDefault(require("./strategies/closest"));
+
+var _lotPreference = _interopRequireDefault(require("./strategies/lotPreference"));
+
+var _random = _interopRequireDefault(require("./strategies/random"));
+
+var _smart = _interopRequireDefault(require("./strategies/smart"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -546,9 +1192,12 @@ var Agent = /*#__PURE__*/function () {
     this.failedToPark = 0; // Tracks how many times the agent failed to park.
 
     this.searchTime = 6; // How many ticks an agent is willing to search in a lot for a spot.
+    // this.lotPreference = null; // Which lot is currently the preference to park for the agent.
+    // SMART
 
-    this.lotPreference = null; // Which lot is currently the preference to park for the agent.
-    // This is for storing the calculated path
+    this.lots = ["north", "east", "mid", "west"];
+    this.lotChoice = null;
+    this.desire = null; // This is for storing the calculated path
     // and not recalculating it every tick
 
     this.path = null;
@@ -578,12 +1227,13 @@ var Agent = /*#__PURE__*/function () {
     }
   }, {
     key: "park",
-    value: function park() {
+    value: function park(location) {
       if (this.cell.canPark()) {
         if (this.type === "BIKE" && this.cell.type === "PARKING" && this.parked_cell === null) {
           this.parked_cell = this.cell;
           this.type = "PEDESTRIAN";
           this.cell.addBike();
+          this.world.addLotCapacity(location);
           this.hasParked();
           return true;
         }
@@ -593,9 +1243,10 @@ var Agent = /*#__PURE__*/function () {
     }
   }, {
     key: "unpark",
-    value: function unpark() {
+    value: function unpark(location) {
       if (this.type === "PEDESTRIAN" && this.cell.type === "PARKING" && this.parked_cell !== null) {
         this.cell.removeBike();
+        this.world.removeLotCapacity(location);
         this.parked_cell = null;
         this.type = "BIKE";
       }
@@ -631,123 +1282,7 @@ var Agent = /*#__PURE__*/function () {
         this.world.moveAgent(this, nextCell);
         this.path.shift();
       }
-    } ///////////////////////
-    //    STRATEGIES     //
-    ///////////////////////
-    // 1) DEFAULT - Random lot, random spot.
-    // 2) PARKING LOT PREFERENCE - Specific lot, random spot.
-    // 3) PARKING LOT/SPOT PREFERENCE - Specific lot, random spot.
-    // ADD MORE!
-    // 1) DEFAULT - Random lot, random spot.
-
-  }, {
-    key: "default",
-    value: function _default() {
-      var _this2 = this;
-
-      switch (this.stage) {
-        case "ENTERING":
-          var parkingCell = this.world.getRandomCellOfType("PARKING");
-          this.changeMoveTo(parkingCell.x, parkingCell.y, function () {
-            _this2.stage = "MOVING_TO_PARKING_ENTERING";
-          });
-          break;
-
-        case "MOVING_TO_PARKING_ENTERING":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-            this.makeMove(nextCell);
-          } else {
-            this.stage = "PARKING";
-          }
-
-          break;
-
-        case "PARKING":
-          if (this.park()) {
-            this.stage = "LEAVING_PARKING";
-          } else {
-            // console.warn("Could not park");
-            this.stage = "ENTERING";
-          }
-
-          break;
-
-        case "LEAVING_PARKING":
-          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
-          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
-            _this2.stage = "MOVING_TO_GOAL";
-          });
-          break;
-
-        case "MOVING_TO_GOAL":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell);
-          } else {
-            this.stage = "IN_GOAL";
-            this.hasReachedGoal();
-          }
-
-          break;
-
-        case "IN_GOAL":
-          if (Math.random() < this.exitRate) {
-            this.stage = "LEAVING_GOAL";
-          }
-
-          break;
-
-        case "LEAVING_GOAL":
-          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
-            _this2.stage = "MOVING_TO_PARKING_LEAVING";
-          });
-          break;
-
-        case "MOVING_TO_PARKING_LEAVING":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell2 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell2);
-          } else {
-            this.stage = "UNPARKING";
-          }
-
-          break;
-
-        case "UNPARKING":
-          this.unpark();
-          this.stage = "LEAVING";
-          break;
-
-        case "LEAVING":
-          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
-            _this2.stage = "MOVING_TO_EXIT";
-          });
-          break;
-
-        case "MOVING_TO_EXIT":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell3 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell3);
-          } else {
-            this.stage = "EXITED";
-          }
-
-          break;
-
-        case "EXITED":
-          this.world.removeAgent(this);
-          break;
-
-        default:
-          console.log("Unknown stage: ", this.stage);
-          break;
-      }
-    } // 2) PARKING LOT PREFERENCE - Agents goes to a specific lot, tried to park, after failing a few times goes to another lot.
-    // FUNCTIONS:
+    } // FUNCTIONS:
     // Generates a random value between min and max, not including max.
 
   }, {
@@ -815,344 +1350,15 @@ var Agent = /*#__PURE__*/function () {
       }
 
       return coordinates;
-    } // PARKING LOT PREFERENCE
-
-  }, {
-    key: "parkingLotPreference",
-    value: function parkingLotPreference() {
-      var _this3 = this;
-
-      switch (this.stage) {
-        case "ENTERING":
-          var lotOptions = ["north", "east", "mid", "west"];
-          this.lotPreference = lotOptions[Math.floor(Math.random() * lotOptions.length)];
-
-          if (this.lotPreference == "north" && this.spawn.x == 35 && this.spawn.y == 5) {
-            var coordinates = [30, this.randomValueInRange(4, 7)];
-          } else {
-            var coordinates = this.lotMove(this.lotPreference);
-          }
-
-          this.changeMoveTo(coordinates[0], coordinates[1], function () {
-            _this3.stage = "MOVING_TO_LOT";
-          });
-          break;
-
-        case "MOVING_TO_LOT":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-            this.makeMove(nextCell);
-          } else {
-            this.stage = "SEARCHING_IN_LOT";
-          }
-
-          break;
-
-        case "SEARCHING_IN_LOT":
-          var coordinates = this.lotSearch(this.lotPreference);
-          this.changeMoveTo(coordinates[0], coordinates[1], function () {
-            _this3.stage = "MOVING_TO_SPOT";
-          });
-          break;
-
-        case "MOVING_TO_SPOT":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell4 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell4);
-          } else {
-            this.stage = "PARKING";
-          }
-
-          break;
-
-        case "PARKING":
-          if (this.park()) {
-            this.stage = "LEAVING_PARKING";
-          } else {
-            // console.warn("Could not park");
-            this.failedToPark += 1;
-
-            if (this.failedToPark > this.searchTime) {
-              this.stage = "CHANGEPREF";
-              this.failedToPark = 0;
-            } else {
-              this.stage = "SEARCHING_IN_LOT";
-            }
-          }
-
-          break;
-
-        case "CHANGEPREF":
-          var options = ["north", "east", "mid", "west"];
-
-          while (true) {
-            var lot = options[Math.floor(Math.random() * options.length)];
-
-            if (lot != this.lotPreference) {
-              this.lotPreference = lot;
-              break;
-            }
-          }
-
-          var coordinates = this.lotMove(this.lotPreference);
-          this.changeMoveTo(coordinates[0], coordinates[1], function () {
-            _this3.stage = "MOVING_TO_LOT";
-          });
-          break;
-
-        case "LEAVING_PARKING":
-          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
-          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
-            _this3.stage = "MOVING_TO_GOAL";
-          });
-          break;
-
-        case "MOVING_TO_GOAL":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell5 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell5);
-          } else {
-            this.stage = "IN_GOAL";
-            this.hasReachedGoal();
-          }
-
-          break;
-
-        case "IN_GOAL":
-          if (Math.random() < this.exitRate) {
-            this.stage = "LEAVING_GOAL";
-          }
-
-          break;
-
-        case "LEAVING_GOAL":
-          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
-            _this3.stage = "MOVING_TO_PARKING_LEAVING";
-          });
-          break;
-
-        case "MOVING_TO_PARKING_LEAVING":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell6 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell6);
-          } else {
-            this.stage = "UNPARKING";
-          }
-
-          break;
-
-        case "UNPARKING":
-          this.unpark();
-          this.stage = "LEAVING";
-          break;
-
-        case "LEAVING":
-          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
-            _this3.stage = "MOVING_TO_EXIT";
-          });
-          break;
-
-        case "MOVING_TO_EXIT":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell7 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell7);
-          } else {
-            this.stage = "EXITED";
-          }
-
-          break;
-
-        case "EXITED":
-          this.world.removeAgent(this);
-          break;
-
-        default:
-          console.log("NO STAGE");
-      }
-    } // 3) parkingLotSpotPreference: specific lot and spot. Full? Spread out search from spot.
-
-  }, {
-    key: "parkingLotSpotPreference",
-    value: function parkingLotSpotPreference() {} // 4) closest parking spot from spawn
-
-  }, {
-    key: "closest_strat",
-    value: function closest_strat() {
-      var _this4 = this;
-
-      switch (this.stage) {
-        case "ENTERING":
-          // BFS for the closest valid parking spot
-          var coords = {
-            x: 0,
-            y: 0
-          };
-          var Q = [];
-          var grid = [];
-
-          var label = function label(x, y) {
-            var _grid$y;
-
-            (_grid$y = grid[y]) !== null && _grid$y !== void 0 ? _grid$y : grid[y] = [];
-            grid[y][x] = 1;
-          };
-
-          label(this.cell.x, this.cell.y);
-          Q = [[this.cell.x, this.cell.y]].concat(_toConsumableArray(Q));
-
-          BFS: while (Q.length) {
-            var V = Q.pop();
-            var cell = this.world.getCellAtCoordinates(V[0], V[1]);
-
-            if (cell.canPark()) {
-              coords = {
-                x: V[0],
-                y: V[1]
-              };
-              break BFS;
-            }
-
-            var dirs = [[V[1], V[0] + 1], [V[1], V[0] - 1], [V[1] + 1, V[0]], [V[1] - 1, V[0]]];
-
-            for (var _i = 0, _dirs = dirs; _i < _dirs.length; _i++) {
-              var _this$world$state$y, _grid$y2;
-
-              var _dirs$_i = _slicedToArray(_dirs[_i], 2),
-                  y = _dirs$_i[0],
-                  x = _dirs$_i[1];
-
-              var next = (_this$world$state$y = this.world.state[y]) === null || _this$world$state$y === void 0 ? void 0 : _this$world$state$y[x];
-              var valid_types = ["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING", "EXIT"];
-
-              if (next !== undefined && valid_types.includes(next.type) && ((_grid$y2 = grid[y]) === null || _grid$y2 === void 0 ? void 0 : _grid$y2[x]) !== 1) {
-                label(x, y);
-                Q = [[x, y]].concat(_toConsumableArray(Q));
-              }
-            }
-          }
-
-          this.changeMoveTo(coords.x, coords.y, function () {
-            _this4.stage = "MOVING_TO_PARKING_ENTERING";
-          });
-          break;
-
-        case "PARKING":
-          if (this.park()) {
-            this.stage = "LEAVING_PARKING";
-          } else {
-            this.stage = "ENTERING";
-          }
-
-          break;
-        // cases below are copied from default
-
-        case "MOVING_TO_PARKING_ENTERING":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-            this.makeMove(nextCell);
-          } else {
-            this.stage = "PARKING";
-          }
-
-          break;
-
-        case "CHANGEPREF":
-          var options = ["north", "east", "mid", "west"];
-
-          while (true) {
-            var lot = options[Math.floor(Math.random() * options.length)];
-
-            if (lot != this.lotPreference) {
-              this.lotPreference = lot;
-              break;
-            }
-          }
-
-          var coordinates = this.lotMove(this.lotPreference);
-          this.changeMoveTo(coordinates[0], coordinates[1], function () {
-            _this4.stage = "MOVING_TO_LOT";
-          });
-          break;
-
-        case "LEAVING_PARKING":
-          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
-          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
-            _this4.stage = "MOVING_TO_GOAL";
-          });
-          break;
-
-        case "MOVING_TO_GOAL":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell8 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell8);
-          } else {
-            this.stage = "IN_GOAL";
-            this.hasReachedGoal();
-          }
-
-          break;
-
-        case "IN_GOAL":
-          if (Math.random() < this.exitRate) {
-            this.stage = "LEAVING_GOAL";
-          }
-
-          break;
-
-        case "LEAVING_GOAL":
-          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
-            _this4.stage = "MOVING_TO_PARKING_LEAVING";
-          });
-          break;
-
-        case "MOVING_TO_PARKING_LEAVING":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell9 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell9);
-          } else {
-            this.stage = "UNPARKING";
-          }
-
-          break;
-
-        case "UNPARKING":
-          this.unpark();
-          this.stage = "LEAVING";
-          break;
-
-        case "LEAVING":
-          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
-            _this4.stage = "MOVING_TO_EXIT";
-          });
-          break;
-
-        case "MOVING_TO_EXIT":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell10 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell10);
-          } else {
-            this.stage = "EXITED";
-          }
-
-          break;
-
-        case "EXITED":
-          this.world.removeAgent(this);
-          break;
-
-        default:
-          console.log("NO STAGE");
-      }
     } ////////////////////////
     // STRATEGY EXECUTION //
     ////////////////////////
+    // 1) RANDOM - Random lot, random spot.
+    // 2) PARKING LOT PREFERENCE - Specific lot, random spot.
+    // 3) PARKING LOT/SPOT PREFERENCE - Specific lot, random spot.
+    // 4) CLOSEST
+    // 5) SMART - worl in progress
+    // ADD MORE!
 
   }, {
     key: "act",
@@ -1160,11 +1366,13 @@ var Agent = /*#__PURE__*/function () {
       this.ticks += 1;
 
       if (this.strategy == "RANDOM_CHOICE") {
-        this.default();
+        (0, _random.default)(this);
       } else if (this.strategy == "LOT_PREFERENCE") {
-        this.parkingLotPreference();
+        (0, _lotPreference.default)(this);
       } else if (this.strategy == "CLOSEST_SPOT") {
-        this.closest_strat();
+        (0, _closest.default)(this);
+      } else if (this.strategy == "SMART") {
+        (0, _smart.default)(this);
       } else {
         console.log("Unknown strategy: ", this.strategy);
       }
@@ -1174,9 +1382,9 @@ var Agent = /*#__PURE__*/function () {
   return Agent;
 }();
 
-var _default2 = Agent;
-exports.default = _default2;
-},{"./index":"src/index.js"}],"node_modules/easystarjs/src/instance.js":[function(require,module,exports) {
+var _default = Agent;
+exports.default = _default;
+},{"./index":"src/index.js","./strategies/closest":"src/strategies/closest.js","./strategies/lotPreference":"src/strategies/lotPreference.js","./strategies/random":"src/strategies/random.js","./strategies/smart":"src/strategies/smart.js"}],"node_modules/easystarjs/src/instance.js":[function(require,module,exports) {
 /**
  * Represents a single instance of EasyStar.
  * A path that is in the queue to eventually be found.
@@ -2229,7 +2437,12 @@ var World = /*#__PURE__*/function () {
     _classCallCheck(this, World);
 
     this.state = [];
-    this.agents = [];
+    this.agents = []; // This keeps track how full the lots are.
+
+    this.northCapacity = 0;
+    this.eastCapacity = 0;
+    this.midCapacity = 0;
+    this.westCapacity = 0;
     this.tickCount = 0; // Setup initial state
 
     var rows = worldmap.split("\n").filter(function (row) {
@@ -2328,6 +2541,64 @@ var World = /*#__PURE__*/function () {
       return this.state.flat().filter(function (cell) {
         return cell.type === "PARKING";
       });
+    } // These capacity functions evaulate the amount of bikes park in lots.
+
+  }, {
+    key: "addLotCapacity",
+    value: function addLotCapacity(location) {
+      if (location == "north") {
+        this.northCapacity += 1;
+      }
+
+      if (location == "east") {
+        this.eastCapacity += 1;
+      }
+
+      if (location == "mid") {
+        this.midCapacity += 1;
+      }
+
+      if (location == "west") {
+        this.westCapacity += 1;
+      }
+    }
+  }, {
+    key: "removeLotCapacity",
+    value: function removeLotCapacity(location) {
+      if (location == "north") {
+        this.northCapacity -= 1;
+      }
+
+      if (location == "east") {
+        this.eastCapacity -= 1;
+      }
+
+      if (location == "mid") {
+        this.midCapacity -= 1;
+      }
+
+      if (location == "west") {
+        this.westCapacity -= 1;
+      }
+    }
+  }, {
+    key: "getLotCapacity",
+    value: function getLotCapacity(location) {
+      if (location == "north") {
+        return this.northCapacity / 120;
+      }
+
+      if (location == "east") {
+        return this.eastCapacity / 72;
+      }
+
+      if (location == "mid") {
+        return this.midCapacity / 56;
+      }
+
+      if (location == "west") {
+        return this.westCapacity / 24;
+      }
     } // // Returns all neighbors of a cell
     // getNeighbors(cell) {
     //   const { x, y } = cell;
@@ -2459,9 +2730,13 @@ var maxSpawnRateLimit = 1; // **********************************
 // Parameter variable setup
 // **********************************
 
-var STRATEGIES = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"]; // Set default selected strategies
+var STRATEGIES = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT", "SMART"]; // Set default selected strategies
 
-var selectedStrategies = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
+var selectedStrategies = [// "RANDOM_CHOICE",
+  // "LOT_PREFERENCE",
+  // "CLOSEST_SPOT",
+  //"SMART",
+];
 var currentTick = 0;
 var csvRowsPark = "strategy,time\n";
 var csvRowsGoal = "strategy,time\n";
@@ -2902,7 +3177,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64167" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "35693" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

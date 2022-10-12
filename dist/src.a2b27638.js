@@ -973,6 +973,7 @@ exports.default = smart;
 function smart(agent) {
   // AUXILIARY FUNCTIONS
   function randomLotCoordinates(location) {
+    // Returns random parking coordinates at the given location.
     var coordinates = new Array(1);
 
     if (location == "north") {
@@ -1000,6 +1001,34 @@ function smart(agent) {
       coordinates[1] = agent.randomValueInRange(17, 20);
     }
 
+    return coordinates;
+  }
+
+  function lotSearch() {
+    var coordinates = new Array(1);
+
+    if (agent.world.state[agent.cell.y][agent.cell.x + 1].type == "PARKING") {
+      coordinates[0] = agent.cell.x + 1;
+      coordinates[1] = agent.cell.y;
+      console.log("SEARCH RIGHT");
+    } else if (agent.world.state[agent.cell.y][agent.cell.x - 1].type == "PARKING") {
+      coordinates[0] = agent.cell.x - 1;
+      coordinates[1] = agent.cell.y;
+      console.log("SEARCH LEFT");
+    } else if (agent.world.state[agent.cell.y - 1][agent.cell.x].type == "PARKING") {
+      coordinates[0] = agent.cell.x;
+      coordinates[1] = agent.cell.y - 1;
+      console.log("SEARCH UP");
+    } else if (agent.world.state[agent.cell.y + 1][agent.cell.x].type == "PARKING") {
+      coordinates[0] = agent.cell.x;
+      coordinates[1] = agent.cell.y - 1;
+      console.log("SEARCH DOWN");
+    } else {
+      agent.searchPath.pop(coordinates);
+      return coordinates;
+    }
+
+    agent.searchPath.push(coordinates);
     return coordinates;
   }
 
@@ -1052,7 +1081,7 @@ function smart(agent) {
       break;
 
     case "SEARCHING_IN_LOT":
-      var coordinates = randomLotCoordinates(agent.lotChoice);
+      var coordinates = lotSearch();
       agent.changeMoveTo(coordinates[0], coordinates[1], function () {
         agent.stage = "MOVE_TO_LOT";
       });
@@ -1066,7 +1095,7 @@ function smart(agent) {
         agent.failedToPark += 1;
 
         if (agent.failedToPark > agent.searchTime) {
-          agent.stage = "ENTERING";
+          agent.stage = "CHANGE_CHOICE";
           agent.failedToPark = 0;
         } else {
           agent.stage = "SEARCHING_IN_LOT";
@@ -1197,7 +1226,9 @@ var Agent = /*#__PURE__*/function () {
 
     this.lots = ["north", "east", "mid", "west"];
     this.lotChoice = null;
-    this.desire = null; // This is for storing the calculated path
+    this.desire = null;
+    this.handedness = Math.random();
+    this.searchPath = []; // This is for storing the calculated path
     // and not recalculating it every tick
 
     this.path = null;

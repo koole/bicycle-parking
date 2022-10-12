@@ -24,6 +24,8 @@ class Agent {
     this.lots = ["north", "east", "mid", "west"];
     this.lotChoice = null;
     this.desire = null;
+    this.handedness = Math.random()
+    this.searchPath = [];
 
     // This is for storing the calculated path
     // and not recalculating it every tick

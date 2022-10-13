@@ -194,9 +194,6 @@ class Agent {
   checkPreference() {
     var maxPref = Math.max(...this.lotPreference);
     var index = this.lotPreference.indexOf(maxPref);
-
-    console.log("PREF:", this.lots[index], "LVL:", maxPref);
-
     return this.lots[index];
   }
 

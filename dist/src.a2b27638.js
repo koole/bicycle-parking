@@ -705,7 +705,6 @@ var Agent = /*#__PURE__*/function () {
     value: function checkPreference() {
       var maxPref = Math.max.apply(Math, _toConsumableArray(this.lotPreference));
       var index = this.lotPreference.indexOf(maxPref);
-      console.log("PREF:", this.lots[index], "LVL:", maxPref);
       return this.lots[index];
     } // Basically the update function for the agents.
 

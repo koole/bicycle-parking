@@ -39,7 +39,7 @@ class Agent {
 
     // Variables for searching in lot.
     this.searchPath = [];
-    this.searchTime = 6;
+    this.searchTime = 6; // Tolances to look for a spot to park. Changes lot when searchFail == searchTime
     this.searchFail = 0;
   }
 
@@ -161,6 +161,7 @@ class Agent {
     return coordinates;
   }
 
+  // THIS SEARCH IS SHIT. ONE OPTION IS TO ADD DFS TO SEARCH SURROUDNINGS.
   lotSearch() {
     var coordinates = new Array(1);
 
@@ -197,7 +198,7 @@ class Agent {
     return this.lots[index];
   }
 
-  // Basically the update function for the agents.
+  // Basically the update functions for the agents.
   increasePreference(location) {
     var index = this.lots.indexOf(location);
 

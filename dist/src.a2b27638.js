@@ -554,7 +554,8 @@ var Agent = /*#__PURE__*/function () {
     // Variables for searching in lot.
 
     this.searchPath = [];
-    this.searchTime = 6;
+    this.searchTime = 6; // Tolances to look for a spot to park. Changes lot when searchFail == searchTime
+
     this.searchFail = 0;
   }
 
@@ -674,7 +675,8 @@ var Agent = /*#__PURE__*/function () {
       }
 
       return coordinates;
-    }
+    } // THIS SEARCH IS SHIT. ONE OPTION IS TO ADD DFS TO SEARCH SURROUDNINGS.
+
   }, {
     key: "lotSearch",
     value: function lotSearch() {
@@ -706,7 +708,7 @@ var Agent = /*#__PURE__*/function () {
       var maxPref = Math.max.apply(Math, _toConsumableArray(this.lotPreference));
       var index = this.lotPreference.indexOf(maxPref);
       return this.lots[index];
-    } // Basically the update function for the agents.
+    } // Basically the update functions for the agents.
 
   }, {
     key: "increasePreference",
@@ -1960,7 +1962,7 @@ var World = /*#__PURE__*/function () {
     _classCallCheck(this, World);
 
     this.state = [];
-    this.agentsMax = 250; // Max unique agents that can be present.
+    this.agentsMax = 400; // Max unique agents that can be present.
 
     this.spawnPotential = 0; // Keeps track of how many new agents have been added. Caps at agentsMax.
 

@@ -24,7 +24,7 @@ function getDirectionArray(direction) {
 class World {
   constructor(worldmap, mapDirection, selectedStrategies) {
     this.state = [];
-    this.agentsMax = 250; // Max unique agents that can be present.
+    this.agentsMax = 400; // Max unique agents that can be present.
     this.spawnPotential = 0; // Keeps track of how many new agents have been added. Caps at agentsMax.
     this.agentsActive = []; // Agents that are currently in the world.
     this.agentsDeactive = []; // Agents that are not currecntly in the world.

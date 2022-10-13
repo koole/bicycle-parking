@@ -35,6 +35,7 @@ class Agent {
       Math.random(),
       Math.random(),
     ];
+    this.changePreference = 0.01; // The amount preference changes upon update.
 
     // Variables for searching in lot.
     this.searchPath = [];
@@ -201,56 +202,52 @@ class Agent {
 
   // Basically the update function for the agents.
   increasePreference(location) {
-    this.lotPreference[0] -= 0.1;
-    this.lotPreference[1] -= 0.1;
-    this.lotPreference[2] -= 0.1;
-    this.lotPreference[3] -= 0.1;
+    var index = this.lots.indexOf(location);
 
-    if (location == "north") {
-      this.lotPreference[0] += 0.2;
-    }
-    if (location == "east") {
-      this.lotPreference[1] += 0.2;
-    }
-    if (location == "mid") {
-      this.lotPreference[2] += 0.2;
-    }
-    if (location == "west") {
-      this.lotPreference[3] += 0.2;
-    }
-    this.lotPreference[0] = Math.round(this.lotPreference[0] * 100.0) / 100.0;
-    this.lotPreference[1] = Math.round(this.lotPreference[1] * 100.0) / 100.0;
-    this.lotPreference[2] = Math.round(this.lotPreference[2] * 100.0) / 100.0;
-    this.lotPreference[3] = Math.round(this.lotPreference[3] * 100.0) / 100.0;
+    for (let i = 0; i < this.lots.length; i++) {
+      if (i == index) {
+        this.lotPreference[i] += this.changePreference;
+      } else {
+        this.lotPreference[i] -= this.changePreference;
+      }
 
-    if (this.lotPreference[0] > 1) {
-      this.lotPreference[0] = 1;
-    }
-    if (this.lotPreference[1] > 1) {
-      this.lotPreference[1] = 1;
-    }
-    if (this.lotPreference[2] > 1) {
-      this.lotPreference[2] = 1;
-    }
-    if (this.lotPreference[3] > 1) {
-      this.lotPreference[3] = 1;
-    }
+      this.lotPreference[i] = Math.round(this.lotPreference[i] * 100.0) / 100.0;
 
-    if (this.lotPreference[0] < 0) {
-      this.lotPreference[0] = 0;
-    }
-    if (this.lotPreference[1] < 0) {
-      this.lotPreference[1] = 0;
-    }
-    if (this.lotPreference[2] < 0) {
-      this.lotPreference[2] = 0;
-    }
-    if (this.lotPreference[3] < 0) {
-      this.lotPreference[3] = 0;
+      this.lotPreference[i] =
+        this.lotPreference[i] > 1
+          ? (this.lotPreference[i] = 1)
+          : this.lotPreference[i];
+
+      this.lotPreference[i] =
+        this.lotPreference[i] < 0
+          ? (this.lotPreference[i] = 0)
+          : this.lotPreference[i];
     }
   }
 
-  decreasePreference(location) {}
+  decreasePreference(location) {
+    var index = this.lots.indexOf(location);
+
+    for (let i = 0; i < this.lots.length; i++) {
+      if (i == index) {
+        this.lotPreference[i] -= this.changePreference;
+      } else {
+        this.lotPreference[i] += this.changePreference;
+      }
+
+      this.lotPreference[i] = Math.round(this.lotPreference[i] * 100.0) / 100.0;
+
+      this.lotPreference[i] =
+        this.lotPreference[i] > 1
+          ? (this.lotPreference[i] = 1)
+          : this.lotPreference[i];
+
+      this.lotPreference[i] =
+        this.lotPreference[i] < 0
+          ? (this.lotPreference[i] = 0)
+          : this.lotPreference[i];
+    }
+  }
 
   // SMART STRATEGY //
   act() {
@@ -266,6 +263,8 @@ class Agent {
         });
         break;
       case "CHANGE_CHOICE":
+        this.decreasePreference(this.lotChoice);
+
         while (true) {
           var choice = this.lots[Math.floor(Math.random() * this.lots.length)];
 

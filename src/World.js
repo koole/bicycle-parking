@@ -24,7 +24,10 @@ function getDirectionArray(direction) {
 class World {
   constructor(worldmap, mapDirection, selectedStrategies) {
     this.state = [];
-    this.agents = [];
+    this.agentsMax = 1; // Max unique agents that can be present.
+    this.spawnPotential = 0; // Keeps track of how many new agents have been added. Caps at agentsMax.
+    this.agentsActive = []; // Agents that are currently in the world.
+    this.agentsDeactive = []; // Agents that are not currecntly in the world.
 
     // This keeps track how full the lots are.
     this.northCapacity = 0;
@@ -193,19 +196,32 @@ class World {
   spawnAgent(strategy) {
     // Randomly pick a spawn cell
     const spawn = this.getRandomCellOfType("SPAWN");
-    const agent = new Agent(this, "BIKE", spawn, strategy);
 
-    if (spawn.checkAddAgent(agent)) {
-      // Add agent of type "BIKE" to this cell
-      spawn.addAgent(agent);
-      this.agents.push(agent);
+    if (this.spawnPotential < this.agentsMax) {
+      const agent = new Agent(this, "BIKE", spawn, strategy);
+
+      if (spawn.checkAddAgent(agent)) {
+        spawn.addAgent(agent);
+        this.agentsActive.push(agent);
+        this.spawnPotential += 1;
+      }
+    } else if (this.agentsDeactive.length > 0) {
+      const agent = this.agentsDeactive.shift();
+
+      if (spawn.checkAddAgent(agent)) {
+        spawn.addAgent(agent);
+        agent.cell.x = spawn.x; // This RESETS the spawn tile, so they randomly spawn on the tiles.
+        agent.cell.y = spawn.y; // Removing will make them spawn on the same time each time.
+        this.agentsActive.push(agent);
+      }
     }
   }
 
-  // Remove agent
+  // Remove agent from world?
   removeAgent(agent) {
-    this.agents = this.agents.filter((a) => a !== agent);
+    this.agentsActive = this.agentsActive.filter((a) => a !== agent);
     agent.cell.removeAgent(agent);
+    this.agentsDeactive.push(agent);
   }
 
   // // Moves agent to a new cell
@@ -219,10 +235,10 @@ class World {
 
   tick() {
     this.tickCount++;
-    this.agents.sort(function () {
+    this.agentsActive.sort(function () {
       return 0.5 - Math.random();
     });
-    for (const agent of this.agents) {
+    for (const agent of this.agentsActive) {
       if (agent.type === "BIKE") {
         agent.act();
       } else if (agent.type === "PEDESTRIAN" && this.tickCount % 2 === 0) {

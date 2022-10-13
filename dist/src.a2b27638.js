@@ -919,7 +919,6 @@ var Agent = /*#__PURE__*/function () {
 
         case "DESPAWN":
           this.stage = "SPAWN";
-          this.northPreference += 0.1;
           this.world.removeAgent(this);
           break;
 
@@ -1988,7 +1987,7 @@ var World = /*#__PURE__*/function () {
     _classCallCheck(this, World);
 
     this.state = [];
-    this.agentsMax = 1; // Max unique agents that can be present.
+    this.agentsMax = 250; // Max unique agents that can be present.
 
     this.spawnPotential = 0; // Keeps track of how many new agents have been added. Caps at agentsMax.
 
@@ -2193,16 +2192,18 @@ var World = /*#__PURE__*/function () {
           this.spawnPotential += 1;
         }
       } else if (this.agentsDeactive.length > 0) {
-        var _agent = this.agentsDeactive.shift();
+        var _agent = this.agentsDeactive.shift(); // Realign the agent to the correct spawn cell.
 
-        if (spawn.checkAddAgent(_agent)) {
-          spawn.addAgent(_agent);
-          _agent.cell.x = spawn.x; // This RESETS the spawn tile, so they randomly spawn on the tiles.
 
-          _agent.cell.y = spawn.y; // Removing will make them spawn on the same time each time.
+        _agent.spawn = spawn;
+        _agent.cell = spawn;
+
+        if (_agent.spawn.checkAddAgent(_agent)) {
+          _agent.spawn.addAgent(_agent);
 
           this.agentsActive.push(_agent);
         }
+      } else {//Do nothing
       }
     } // Remove agent from world?
 

@@ -24,7 +24,7 @@ function getDirectionArray(direction) {
 class World {
   constructor(worldmap, mapDirection, selectedStrategies) {
     this.state = [];
-    this.agentsMax = 1; // Max unique agents that can be present.
+    this.agentsMax = 250; // Max unique agents that can be present.
     this.spawnPotential = 0; // Keeps track of how many new agents have been added. Caps at agentsMax.
     this.agentsActive = []; // Agents that are currently in the world.
     this.agentsDeactive = []; // Agents that are not currecntly in the world.
@@ -196,7 +196,6 @@ class World {
   spawnAgent(strategy) {
     // Randomly pick a spawn cell
     const spawn = this.getRandomCellOfType("SPAWN");
-
     if (this.spawnPotential < this.agentsMax) {
       const agent = new Agent(this, "BIKE", spawn, strategy);
 
@@ -208,12 +207,17 @@ class World {
     } else if (this.agentsDeactive.length > 0) {
       const agent = this.agentsDeactive.shift();
 
-      if (spawn.checkAddAgent(agent)) {
-        spawn.addAgent(agent);
-        agent.cell.x = spawn.x; // This RESETS the spawn tile, so they randomly spawn on the tiles.
-        agent.cell.y = spawn.y; // Removing will make them spawn on the same time each time.
+      // Realign the agent to the correct spawn cell.
+      agent.spawn = spawn;
+      agent.cell = spawn;
+
+      if (agent.spawn.checkAddAgent(agent)) {
+        agent.spawn.addAgent(agent);
+
         this.agentsActive.push(agent);
       }
+    } else {
+      //Do nothing
     }
   }
 

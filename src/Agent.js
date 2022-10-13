@@ -402,7 +402,6 @@ class Agent {
         break;
       case "DESPAWN":
         this.stage = "SPAWN";
-        this.northPreference += 0.1;
         this.world.removeAgent(this);
         break;
       default:

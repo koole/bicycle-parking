@@ -133,6 +133,7 @@ class Agent {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
+  // Just returns the coordinates of a random parking spot depending on the location called.
   randomLotCoordinates(location) {
     // Returns random parking coordinates at the given location.
     var coordinates = new Array(1);
@@ -192,13 +193,14 @@ class Agent {
     return coordinates;
   }
 
+  // Returns the preference with the highest value.
   checkPreference() {
     var maxPref = Math.max(...this.lotPreference);
     var index = this.lotPreference.indexOf(maxPref);
     return this.lots[index];
   }
 
-  // Basically the update functions for the agents.
+  // Basically the update functions for the agents. This one increases one option and decreases the others.
   increasePreference(location) {
     var index = this.lots.indexOf(location);
 
@@ -222,7 +224,7 @@ class Agent {
           : this.lotPreference[i];
     }
   }
-
+  // Basically the update functions for the agents. This one decreases one option and increases the others.
   decreasePreference(location) {
     var index = this.lots.indexOf(location);
 

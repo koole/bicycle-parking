@@ -642,7 +642,8 @@ var Agent = /*#__PURE__*/function () {
     key: "randomValueInRange",
     value: function randomValueInRange(min, max) {
       return Math.floor(Math.random() * (max - min) + min);
-    }
+    } // Just returns the coordinates of a random parking spot depending on the location called.
+
   }, {
     key: "randomLotCoordinates",
     value: function randomLotCoordinates(location) {
@@ -701,14 +702,15 @@ var Agent = /*#__PURE__*/function () {
 
       this.searchPath.push(coordinates);
       return coordinates;
-    }
+    } // Returns the preference with the highest value.
+
   }, {
     key: "checkPreference",
     value: function checkPreference() {
       var maxPref = Math.max.apply(Math, _toConsumableArray(this.lotPreference));
       var index = this.lotPreference.indexOf(maxPref);
       return this.lots[index];
-    } // Basically the update functions for the agents.
+    } // Basically the update functions for the agents. This one increases one option and decreases the others.
 
   }, {
     key: "increasePreference",
@@ -726,7 +728,8 @@ var Agent = /*#__PURE__*/function () {
         this.lotPreference[i] = this.lotPreference[i] > 1 ? this.lotPreference[i] = 1 : this.lotPreference[i];
         this.lotPreference[i] = this.lotPreference[i] < 0 ? this.lotPreference[i] = 0 : this.lotPreference[i];
       }
-    }
+    } // Basically the update functions for the agents. This one decreases one option and increases the others.
+
   }, {
     key: "decreasePreference",
     value: function decreasePreference(location) {

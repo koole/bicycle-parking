@@ -4,6 +4,7 @@ import Cell from "./Cell";
 
 import Agent from "./Agent";
 import SmartAgent from "./Agents/SmartAgent";
+import RandomAgent from "./Agents/RandomAgent";
 
 function getDirectionArray(direction) {
   switch (direction) {
@@ -176,6 +177,8 @@ class World {
     switch (stragegy) {
       case "SMART":
         return SmartAgent;
+      case "RANDOM":
+        return RandomAgent;
       default:
         return Agent;
     }
@@ -183,6 +186,7 @@ class World {
 
   // Adds a new agent to the world, at a random spawn point
   spawnAgent(strategy) {
+
     // Find if there is an inactive agent with the same strategy
     const oldAgent = this.agentsInactive.find(
       (agent) => agent.strategy === strategy
@@ -190,7 +194,6 @@ class World {
 
     // If there is an inactive agent, activate it
     if (oldAgent) {
-      oldAgent.activate(spawn);
       this.agentsActive.push(oldAgent);
       this.agentsInactive = this.agentsInactive.filter(
         (a) => oldAgent !== a

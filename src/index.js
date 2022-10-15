@@ -14,7 +14,7 @@ const maxSpawnRateLimit = 1;
 // Parameter variable setup
 // **********************************
 
-const STRATEGIES = ["SMART"];
+const STRATEGIES = ["SMART", "RANDOM"];
 
 // Set default selected strategies
 let selectedStrategies = [

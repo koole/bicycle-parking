@@ -1585,6 +1585,86 @@ var Agent = /*#__PURE__*/function () {
         this.world.moveAgent(this, nextCell);
         this.path.shift();
       }
+    }
+  }, {
+    key: "finishedParkingStages",
+    value: function finishedParkingStages() {
+      var _this2 = this;
+
+      switch (this.stage) {
+        case "LEAVING_PARKING":
+          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
+            _this2.stage = "MOVING_TO_GOAL";
+          });
+          break;
+
+        case "MOVING_TO_GOAL":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            this.makeMove(nextCell);
+          } else {
+            this.stage = "IN_GOAL";
+            this.hasReachedGoal();
+          }
+
+          break;
+
+        case "IN_GOAL":
+          if (Math.random() < this.exitRate) {
+            this.stage = "LEAVING_GOAL";
+          }
+
+          break;
+
+        case "LEAVING_GOAL":
+          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
+            _this2.stage = "MOVING_TO_PARKING_LEAVING";
+          });
+          break;
+
+        case "MOVING_TO_PARKING_LEAVING":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell);
+          } else {
+            this.stage = "UNPARKING";
+          }
+
+          break;
+
+        case "UNPARKING":
+          this.unpark(this.lotChoice);
+          this.stage = "LEAVING";
+          break;
+
+        case "LEAVING":
+          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
+            _this2.stage = "MOVING_TO_EXIT";
+          });
+          break;
+
+        case "MOVING_TO_EXIT":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var _nextCell2 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+
+            this.makeMove(_nextCell2);
+          } else {
+            this.stage = "DESPAWN";
+          }
+
+          break;
+
+        case "DESPAWN":
+          this.stage = "SPAWN";
+          this.world.removeAgent(this);
+          break;
+
+        default:
+          console.log("Unknown stage: ", this.stage);
+          break;
+      }
     } ////////////////////////
     // STRATEGY EXECUTION //
     ////////////////////////
@@ -1874,78 +1954,8 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
 
           break;
 
-        case "LEAVING_PARKING":
-          var buildingCell = this.world.getRandomCellOfType("BUILDING_ENTRANCE");
-          this.changeMoveTo(buildingCell.x, buildingCell.y, function () {
-            _this2.stage = "MOVING_TO_GOAL";
-          });
-          break;
-
-        case "MOVING_TO_GOAL":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell);
-          } else {
-            this.stage = "IN_GOAL";
-            this.hasReachedGoal();
-          }
-
-          break;
-
-        case "IN_GOAL":
-          if (Math.random() < this.exitRate) {
-            this.stage = "LEAVING_GOAL";
-          }
-
-          break;
-
-        case "LEAVING_GOAL":
-          this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, function () {
-            _this2.stage = "MOVING_TO_PARKING_LEAVING";
-          });
-          break;
-
-        case "MOVING_TO_PARKING_LEAVING":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell2 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell2);
-          } else {
-            this.stage = "UNPARKING";
-          }
-
-          break;
-
-        case "UNPARKING":
-          this.unpark(this.lotChoice);
-          this.stage = "LEAVING";
-          break;
-
-        case "LEAVING":
-          this.changeMoveTo(this.spawn.x, this.spawn.y, function () {
-            _this2.stage = "MOVING_TO_EXIT";
-          });
-          break;
-
-        case "MOVING_TO_EXIT":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell3 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell3);
-          } else {
-            this.stage = "DESPAWN";
-          }
-
-          break;
-
-        case "DESPAWN":
-          this.stage = "SPAWN";
-          this.world.removeAgent(this);
-          break;
-
         default:
-          console.log("Unknown stage: ", this.stage);
+          this.finishedParkingStages();
           break;
       }
     }
@@ -1955,6 +1965,98 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
 }(_Agent2.default);
 
 var _default = SmartAgent;
+exports.default = _default;
+},{"../Agent":"src/Agent.js"}],"src/Agents/RandomAgent.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _Agent2 = _interopRequireDefault(require("../Agent"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var RandomAgent = /*#__PURE__*/function (_Agent) {
+  _inherits(RandomAgent, _Agent);
+
+  var _super = _createSuper(RandomAgent);
+
+  function RandomAgent(world, type, cell) {
+    _classCallCheck(this, RandomAgent);
+
+    return _super.call(this, world, type, cell, "RANDOM");
+  }
+
+  _createClass(RandomAgent, [{
+    key: "act",
+    value: function act() {
+      var _this = this;
+
+      this.startAct();
+
+      switch (this.stage) {
+        case "ENTERING":
+          var parkingCell = this.world.getRandomCellOfType("PARKING");
+          this.changeMoveTo(parkingCell.x, parkingCell.y, function () {
+            _this.stage = "MOVING_TO_PARKING_ENTERING";
+          });
+          break;
+
+        case "MOVING_TO_PARKING_ENTERING":
+          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+            this.makeMove(nextCell);
+          } else {
+            this.stage = "PARKING";
+          }
+
+          break;
+
+        case "PARKING":
+          if (this.park()) {
+            this.stage = "LEAVING_PARKING";
+          } else {
+            // console.warn("Could not park");
+            this.stage = "ENTERING";
+          }
+
+          break;
+
+        default:
+          this.finishedParkingStages();
+          break;
+      }
+    }
+  }]);
+
+  return RandomAgent;
+}(_Agent2.default);
+
+var _default = RandomAgent;
 exports.default = _default;
 },{"../Agent":"src/Agent.js"}],"src/World.js":[function(require,module,exports) {
 "use strict";
@@ -1971,6 +2073,8 @@ var _Cell = _interopRequireDefault(require("./Cell"));
 var _Agent = _interopRequireDefault(require("./Agent"));
 
 var _SmartAgent = _interopRequireDefault(require("./Agents/SmartAgent"));
+
+var _RandomAgent = _interopRequireDefault(require("./Agents/RandomAgent"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2207,6 +2311,9 @@ var World = /*#__PURE__*/function () {
         case "SMART":
           return _SmartAgent.default;
 
+        case "RANDOM":
+          return _RandomAgent.default;
+
         default:
           return _Agent.default;
       }
@@ -2221,7 +2328,6 @@ var World = /*#__PURE__*/function () {
       }); // If there is an inactive agent, activate it
 
       if (oldAgent) {
-        oldAgent.activate(spawn);
         this.agentsActive.push(oldAgent);
         this.agentsInactive = this.agentsInactive.filter(function (a) {
           return oldAgent !== a;
@@ -2230,13 +2336,11 @@ var World = /*#__PURE__*/function () {
       } else {
         // If there is no inactive agent, create a new one
         // Randomly pick a spawn cell
-        var _spawn = this.getRandomCellOfType("SPAWN");
-
+        var spawn = this.getRandomCellOfType("SPAWN");
         var AgentClass = this.getAgentClass(strategy);
-        var newAgent = new AgentClass(this, "BIKE", _spawn);
+        var newAgent = new AgentClass(this, "BIKE", spawn);
         this.agentsActive.push(newAgent);
-
-        _spawn.addAgent(newAgent);
+        spawn.addAgent(newAgent);
       }
     } // Remove agent from world
 
@@ -2293,7 +2397,7 @@ var World = /*#__PURE__*/function () {
 
 var _default = World;
 exports.default = _default;
-},{"easystarjs":"node_modules/easystarjs/src/easystar.js","./Cell":"src/Cell.js","./Agent":"src/Agent.js","./Agents/SmartAgent":"src/Agents/SmartAgent.js"}],"src/index.js":[function(require,module,exports) {
+},{"easystarjs":"node_modules/easystarjs/src/easystar.js","./Cell":"src/Cell.js","./Agent":"src/Agent.js","./Agents/SmartAgent":"src/Agents/SmartAgent.js","./Agents/RandomAgent":"src/Agents/RandomAgent.js"}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2337,7 +2441,7 @@ var maxSpawnRateLimit = 1; // **********************************
 // Parameter variable setup
 // **********************************
 
-var STRATEGIES = ["SMART"]; // Set default selected strategies
+var STRATEGIES = ["SMART", "RANDOM"]; // Set default selected strategies
 
 var selectedStrategies = ["SMART"];
 var currentTick = 0;

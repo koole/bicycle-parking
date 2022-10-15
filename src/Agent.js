@@ -107,6 +107,90 @@ class Agent {
     }
   }
 
+  finishedParkingStages() {
+    switch (this.stage) {
+      case "LEAVING_PARKING":
+        const buildingCell =
+          this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+        this.changeMoveTo(buildingCell.x, buildingCell.y, () => {
+          this.stage = "MOVING_TO_GOAL";
+        });
+        break;
+      case "MOVING_TO_GOAL":
+        if (
+          this.calculatingPath == false &&
+          this.path !== null &&
+          this.path.length > 0
+        ) {
+          const nextCell = this.world.getCellAtCoordinates(
+            this.path[0].x,
+            this.path[0].y
+          );
+          this.makeMove(nextCell);
+        } else {
+          this.stage = "IN_GOAL";
+          this.hasReachedGoal();
+        }
+        break;
+      case "IN_GOAL":
+        if (Math.random() < this.exitRate) {
+          this.stage = "LEAVING_GOAL";
+        }
+        break;
+      case "LEAVING_GOAL":
+        this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, () => {
+          this.stage = "MOVING_TO_PARKING_LEAVING";
+        });
+        break;
+      case "MOVING_TO_PARKING_LEAVING":
+        if (
+          this.calculatingPath == false &&
+          this.path !== null &&
+          this.path.length > 0
+        ) {
+          const nextCell = this.world.getCellAtCoordinates(
+            this.path[0].x,
+            this.path[0].y
+          );
+          this.makeMove(nextCell);
+        } else {
+          this.stage = "UNPARKING";
+        }
+        break;
+      case "UNPARKING":
+        this.unpark(this.lotChoice);
+        this.stage = "LEAVING";
+        break;
+      case "LEAVING":
+        this.changeMoveTo(this.spawn.x, this.spawn.y, () => {
+          this.stage = "MOVING_TO_EXIT";
+        });
+        break;
+      case "MOVING_TO_EXIT":
+        if (
+          this.calculatingPath == false &&
+          this.path !== null &&
+          this.path.length > 0
+        ) {
+          const nextCell = this.world.getCellAtCoordinates(
+            this.path[0].x,
+            this.path[0].y
+          );
+          this.makeMove(nextCell);
+        } else {
+          this.stage = "DESPAWN";
+        }
+        break;
+      case "DESPAWN":
+        this.stage = "SPAWN";
+        this.world.removeAgent(this);
+        break;
+      default:
+        console.log("Unknown stage: ", this.stage);
+        break;
+    }
+  }
+
   ////////////////////////
   // STRATEGY EXECUTION //
   ////////////////////////
@@ -118,8 +202,6 @@ class Agent {
   act() {
     console.warn("Agent.act() should be overridden");
   }
-
-
 }
 
 export default Agent;

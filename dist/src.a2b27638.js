@@ -2044,7 +2044,7 @@ var RandomAgent = /*#__PURE__*/function (_Agent) {
           if (this.park()) {
             this.stage = "LEAVING_PARKING";
           } else {
-            this.stage = "ENTERING";
+            this.stage = "SPAWN";
           }
 
           break;
@@ -2592,7 +2592,15 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
@@ -2613,6 +2621,16 @@ var csvRowsPark = "strategy,time\n";
 var csvRowsGoal = "strategy,time\n";
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
+var trendData = {}; // Add key to trendData for selectedStrategies
+
+function clearTrendData() {
+  trendData = {};
+  selectedStrategies.forEach(function (strategy) {
+    trendData[strategy] = [];
+  });
+}
+
+clearTrendData();
 var experimentMode = false;
 var spawnRateType = "auto"; // Config for automated spawn rate
 
@@ -2631,6 +2649,7 @@ function reset() {
   world = new _World.default(_map.default, _map.mapDirection);
   timeToParkData = [selectedStrategies];
   timeToGoalData = [selectedStrategies];
+  clearTrendData();
   csvRowsPark = "strategy,time\n";
   csvRowsGoal = "strategy,time\n";
   currentTick = 0;
@@ -2825,6 +2844,7 @@ function addTimeToGoal(strategy, data) {
   var row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToGoalData.push(row);
+  trendData[strategy].push(data);
   csvRowsGoal += "".concat(strategy, ",").concat(data, "\n");
 } // **********************************
 // Results modal
@@ -2837,6 +2857,7 @@ google.charts.load("current", {
 google.charts.setOnLoadCallback(function () {
   DrawChart("time-to-park", timeToParkData, 0);
   DrawChart("time-to-goal", timeToGoalData, 0);
+  DrawTrend(trendData);
 }); // Render charts onclick of #render-charts
 
 document.getElementById("render-charts").addEventListener("click", function () {
@@ -2861,6 +2882,7 @@ function openResultsModal() {
   });
   DrawChart("time-to-park", timeToParkData, max);
   DrawChart("time-to-goal", timeToGoalData, max);
+  DrawTrend(trendData);
   document.getElementById("resultsModal").style.display = "block";
   document.getElementById("resultsModalBackdrop").style.display = "block";
   oldTickDelay = tickDelay;
@@ -2901,6 +2923,80 @@ function DrawChart(id, data, max) {
 
   var chart = new google.visualization.Histogram(document.getElementById(id));
   chart.draw(data, options);
+}
+
+function DrawTrend(data) {
+  // Create new data table, with a column for each strategy
+  var dataRows = [];
+  var strategies = Object.keys(data); // Average the data for each strategy per `automatedLoopLength` ticks
+
+  strategies.forEach(function (strategy) {
+    var strategyData = data[strategy];
+    var averagedData = [];
+
+    for (var i = 0; i < strategyData.length; i += automatedLoopLength) {
+      var slice = strategyData.slice(i, i + automatedLoopLength);
+      var average = slice.reduce(function (a, b) {
+        return a + b;
+      }, 0) / slice.length;
+      averagedData.push(average);
+    }
+
+    dataRows.push(averagedData);
+  });
+  console.log(dataRows); // Find strategy with most data points, loop over this and create a row for each datapoint for all strategies at this index
+
+  var maxDataPoints = Math.max.apply(Math, _toConsumableArray(dataRows.map(function (row) {
+    return row.length;
+  })));
+  var dataCombined = [];
+
+  var _loop = function _loop(i) {
+    var row = [];
+    strategies.forEach(function (strategy, index) {
+      row.push(dataRows[index][i] || null);
+    });
+    dataCombined.push(row);
+  };
+
+  for (var i = 0; i < maxDataPoints; i++) {
+    _loop(i);
+  }
+
+  var dataColumns = [["X"].concat(strategies)];
+  dataCombined.forEach(function (row, index) {
+    dataColumns.push([index].concat(_toConsumableArray(row)));
+  });
+  console.log(dataCombined);
+  var data = google.visualization.arrayToDataTable(dataColumns);
+  console.log(data); // Trendline configuration for each strategy
+
+  var trendlines = {};
+  strategies.forEach(function (strategy, i) {
+    trendlines[i] = {
+      type: "exponential",
+      visibleInLegend: true // opacity: 1,
+
+    };
+  });
+  var trendOptions = {
+    width: "1100",
+    height: 300,
+    bar: {
+      gap: 0
+    },
+    interpolateNulls: false,
+    chartArea: {
+      left: 10,
+      top: 0,
+      bottom: 35
+    },
+    trendlines: trendlines,
+    // dataOpacity: 0.1,
+    explorer: {}
+  };
+  var trendChart = new google.visualization.LineChart(document.getElementById("trend-time-to-goal"));
+  trendChart.draw(data, trendOptions);
 } // **********************************
 // Read worldmap and create worldData
 // **********************************

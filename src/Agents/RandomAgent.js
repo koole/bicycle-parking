@@ -24,7 +24,7 @@ class RandomAgent extends Agent {
         if (this.park()) {
           this.stage = "LEAVING_PARKING";
         } else {
-          this.stage = "ENTERING";
+          this.stage = "SPAWN";
         }
         break;
       default:

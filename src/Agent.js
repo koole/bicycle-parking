@@ -22,6 +22,18 @@ class Agent {
     this.ticks_to_goal = null;
   }
 
+  respawn() {
+    this.stage = "SPAWN";
+    this.cell = this.spawn;
+    this.parked_cell = null;
+    this.move_to = null;
+    this.path = null;
+    this.calculatingPath = false;
+    this.ticks = 0;
+    this.ticks_to_parked = null;
+    this.ticks_to_goal = null;
+  }
+
   getPathfinder() {
     return this.type === "BIKE"
       ? this.world.bikePathfinder

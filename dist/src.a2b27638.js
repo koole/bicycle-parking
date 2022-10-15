@@ -1510,6 +1510,19 @@ var Agent = /*#__PURE__*/function () {
   }
 
   _createClass(Agent, [{
+    key: "respawn",
+    value: function respawn() {
+      this.stage = "SPAWN";
+      this.cell = this.spawn;
+      this.parked_cell = null;
+      this.move_to = null;
+      this.path = null;
+      this.calculatingPath = false;
+      this.ticks = 0;
+      this.ticks_to_parked = null;
+      this.ticks_to_goal = null;
+    }
+  }, {
     key: "getPathfinder",
     value: function getPathfinder() {
       return this.type === "BIKE" ? this.world.bikePathfinder : this.world.pedestrianPathfinder;
@@ -2483,6 +2496,7 @@ var World = /*#__PURE__*/function () {
           return oldAgent !== a;
         });
         oldAgent.spawn.addAgent(oldAgent);
+        oldAgent.respawn();
       } else {
         // If there is no inactive agent, create a new one
         // Randomly pick a spawn cell

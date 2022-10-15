@@ -199,6 +199,7 @@ class World {
       this.agentsActive.push(oldAgent);
       this.agentsInactive = this.agentsInactive.filter((a) => oldAgent !== a);
       oldAgent.spawn.addAgent(oldAgent);
+      oldAgent.respawn();
     } else {
       // If there is no inactive agent, create a new one
       // Randomly pick a spawn cell

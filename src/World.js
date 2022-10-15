@@ -1,6 +1,9 @@
-import Cell from "./Cell";
-import Agent from "./Agent";
 import EasyStar from "easystarjs";
+
+import Cell from "./Cell";
+
+import Agent from "./Agent";
+import SmartAgent from "./Agents/SmartAgent";
 
 function getDirectionArray(direction) {
   switch (direction) {
@@ -24,10 +27,8 @@ function getDirectionArray(direction) {
 class World {
   constructor(worldmap, mapDirection, selectedStrategies) {
     this.state = [];
-    this.agentsMax = 400; // Max unique agents that can be present.
-    this.spawnPotential = 0; // Keeps track of how many new agents have been added. Caps at agentsMax.
     this.agentsActive = []; // Agents that are currently in the world.
-    this.agentsDeactive = []; // Agents that are not currecntly in the world.
+    this.agentsInactive = []; // Agents that are not currecntly in the world.
 
     // This keeps track how full the lots are.
     this.northCapacity = 0;
@@ -171,64 +172,49 @@ class World {
     }
   }
 
-  // // Returns all neighbors of a cell
-  // getNeighbors(cell) {
-  //   const { x, y } = cell;
-  //   let neighbors = [];
-
-  //   // Get neighbors in all 4 directions
-  //   if (y > 0) {
-  //     neighbors.push(this.state[y - 1][x]);
-  //   }
-  //   if (y < this.state.length - 1) {
-  //     neighbors.push(this.state[y + 1][x]);
-  //   }
-  //   if (x > 0) {
-  //     neighbors.push(this.state[y][x - 1]);
-  //   }
-  //   if (x < this.state[y].length - 1) {
-  //     neighbors.push(this.state[y][x + 1]);
-  //   }
-  //   return neighbors;
-  // }
-
-  // Adds a new agent to the world, at a random spawn point
-  spawnAgent(strategy) {
-    // Randomly pick a spawn cell
-    const spawn = this.getRandomCellOfType("SPAWN");
-    if (this.spawnPotential < this.agentsMax) {
-      const agent = new Agent(this, "BIKE", spawn, strategy);
-
-      if (spawn.checkAddAgent(agent)) {
-        spawn.addAgent(agent);
-        this.agentsActive.push(agent);
-        this.spawnPotential += 1;
-      }
-    } else if (this.agentsDeactive.length > 0) {
-      const agent = this.agentsDeactive.shift();
-
-      // Realign the agent to the correct spawn cell.
-      agent.spawn = spawn;
-      agent.cell = spawn;
-
-      if (agent.spawn.checkAddAgent(agent)) {
-        agent.spawn.addAgent(agent);
-
-        this.agentsActive.push(agent);
-      }
-    } else {
-      //Do nothing
+  getAgentClass(stragegy) {
+    switch (stragegy) {
+      case "SMART":
+        return SmartAgent;
+      default:
+        return Agent;
     }
   }
 
-  // Remove agent from world?
+  // Adds a new agent to the world, at a random spawn point
+  spawnAgent(strategy) {
+    // Find if there is an inactive agent with the same strategy
+    const oldAgent = this.agentsInactive.find(
+      (agent) => agent.strategy === strategy
+    );
+
+    // If there is an inactive agent, activate it
+    if (oldAgent) {
+      oldAgent.activate(spawn);
+      this.agentsActive.push(oldAgent);
+      this.agentsInactive = this.agentsInactive.filter(
+        (a) => oldAgent !== a
+      );
+      oldAgent.spawn.addAgent(oldAgent);
+    } else {
+      // If there is no inactive agent, create a new one
+      // Randomly pick a spawn cell
+      const spawn = this.getRandomCellOfType("SPAWN");
+      const AgentClass = this.getAgentClass(strategy);
+      const newAgent = new AgentClass(this, "BIKE", spawn);
+      this.agentsActive.push(newAgent);
+      spawn.addAgent(newAgent);
+    }
+  }
+
+  // Remove agent from world
   removeAgent(agent) {
     this.agentsActive = this.agentsActive.filter((a) => a !== agent);
     agent.cell.removeAgent(agent);
-    this.agentsDeactive.push(agent);
+    this.agentsInactive.push(agent);
   }
 
-  // // Moves agent to a new cell
+  // Moves agent to a new cell
   moveAgent(agent, cell) {
     if (cell.checkAddAgent(agent)) {
       agent.cell.removeAgent(agent);

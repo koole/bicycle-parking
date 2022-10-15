@@ -18,7 +18,7 @@ const STRATEGIES = ["SMART"];
 
 // Set default selected strategies
 let selectedStrategies = [
-  //"SMART",
+  "SMART",
 ];
 
 var currentTick = 0;
@@ -39,6 +39,7 @@ var maxSpawnRate = 1;
 
 // Default tickDelay and spawnspeed
 let tickDelay = 20;
+let oldTickDelay = tickDelay;
 let spawnspeed = 0.2;
 
 let paused = false;
@@ -70,6 +71,7 @@ function strategyName(strategy) {
 // Onclick of #experiment-mode, start experiment
 document.getElementById("experiment-mode").onclick = function () {
   reset();
+  tickDelay = 0;
   experimentMode = true;
   paused = false;
 };
@@ -335,11 +337,13 @@ function openResultsModal() {
   DrawChart("time-to-goal", timeToGoalData, max);
   document.getElementById("resultsModal").style.display = "block";
   document.getElementById("resultsModalBackdrop").style.display = "block";
+  oldTickDelay = tickDelay;
   paused = true;
 }
 function closeResultsModal() {
   document.getElementById("resultsModal").style.display = "none";
   document.getElementById("resultsModalBackdrop").style.display = "none";
+  tickDelay = oldTickDelay;
   paused = false;
 }
 function DrawChart(id, data, max) {

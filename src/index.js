@@ -14,12 +14,10 @@ const maxSpawnRateLimit = 1;
 // Parameter variable setup
 // **********************************
 
-const STRATEGIES = ["SMART", "RANDOM"];
+const STRATEGIES = ["SMART", "RANDOM", "CLOSEST"];
 
 // Set default selected strategies
-let selectedStrategies = [
-  "SMART",
-];
+let selectedStrategies = ["SMART", "RANDOM", "CLOSEST"];
 
 var currentTick = 0;
 
@@ -396,7 +394,7 @@ function gameTick() {
           selectedStrategies[
             Math.floor(Math.random() * selectedStrategies.length)
           ];
-        world.spawnAgent("SMART");
+        world.spawnAgent(strategy);
       }
     }
 

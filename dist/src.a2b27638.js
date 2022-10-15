@@ -1506,9 +1506,7 @@ var Agent = /*#__PURE__*/function () {
     this.stage = "SPAWN";
     this.ticks = 0;
     this.ticks_to_parked = null;
-    this.ticks_to_goal = null; ///////////////
-    //// SMART ////
-    ///////////////
+    this.ticks_to_goal = null;
   }
 
   _createClass(Agent, [{
@@ -1587,6 +1585,16 @@ var Agent = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "executePathSequence",
+    value: function executePathSequence(callback) {
+      if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
+        var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
+        this.makeMove(nextCell);
+      } else if (this.calculatingPath == false) {
+        callback();
+      }
+    }
+  }, {
     key: "finishedParkingStages",
     value: function finishedParkingStages() {
       var _this2 = this;
@@ -1600,14 +1608,11 @@ var Agent = /*#__PURE__*/function () {
           break;
 
         case "MOVING_TO_GOAL":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-            this.makeMove(nextCell);
-          } else {
-            this.stage = "IN_GOAL";
-            this.hasReachedGoal();
-          }
+          this.executePathSequence(function () {
+            _this2.stage = "IN_GOAL";
 
+            _this2.hasReachedGoal();
+          });
           break;
 
         case "IN_GOAL":
@@ -1624,14 +1629,9 @@ var Agent = /*#__PURE__*/function () {
           break;
 
         case "MOVING_TO_PARKING_LEAVING":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell);
-          } else {
-            this.stage = "UNPARKING";
-          }
-
+          this.executePathSequence(function () {
+            _this2.stage = "UNPARKING";
+          });
           break;
 
         case "UNPARKING":
@@ -1646,14 +1646,9 @@ var Agent = /*#__PURE__*/function () {
           break;
 
         case "MOVING_TO_EXIT":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var _nextCell2 = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-
-            this.makeMove(_nextCell2);
-          } else {
-            this.stage = "DESPAWN";
-          }
-
+          this.executePathSequence(function () {
+            _this2.stage = "DESPAWN";
+          });
           break;
 
         case "DESPAWN":
@@ -1914,7 +1909,7 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
             if (this.path.length < 5) {
               this.stage = "EVALUATE_LOT";
             }
-          } else {
+          } else if (this.calculatingPath == false) {
             this.stage = "PARKING";
           }
 
@@ -2019,7 +2014,7 @@ var RandomAgent = /*#__PURE__*/function (_Agent) {
       this.startAct();
 
       switch (this.stage) {
-        case "ENTERING":
+        case "SPAWN":
           var parkingCell = this.world.getRandomCellOfType("PARKING");
           this.changeMoveTo(parkingCell.x, parkingCell.y, function () {
             _this.stage = "MOVING_TO_PARKING_ENTERING";
@@ -2027,20 +2022,15 @@ var RandomAgent = /*#__PURE__*/function (_Agent) {
           break;
 
         case "MOVING_TO_PARKING_ENTERING":
-          if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
-            var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
-            this.makeMove(nextCell);
-          } else {
-            this.stage = "PARKING";
-          }
-
+          this.executePathSequence(function () {
+            _this.stage = "PARKING";
+          });
           break;
 
         case "PARKING":
           if (this.park()) {
             this.stage = "LEAVING_PARKING";
           } else {
-            // console.warn("Could not park");
             this.stage = "ENTERING";
           }
 
@@ -2057,6 +2047,161 @@ var RandomAgent = /*#__PURE__*/function (_Agent) {
 }(_Agent2.default);
 
 var _default = RandomAgent;
+exports.default = _default;
+},{"../Agent":"src/Agent.js"}],"src/Agents/ClosestAgent.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _Agent2 = _interopRequireDefault(require("../Agent"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); Object.defineProperty(subClass, "prototype", { writable: false }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } else if (call !== void 0) { throw new TypeError("Derived constructors may only return object or undefined"); } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var ClosestAgent = /*#__PURE__*/function (_Agent) {
+  _inherits(ClosestAgent, _Agent);
+
+  var _super = _createSuper(ClosestAgent);
+
+  function ClosestAgent(world, type, cell) {
+    _classCallCheck(this, ClosestAgent);
+
+    return _super.call(this, world, type, cell, "CLOSEST");
+  }
+
+  _createClass(ClosestAgent, [{
+    key: "act",
+    value: function act() {
+      var _this = this;
+
+      this.startAct();
+
+      switch (this.stage) {
+        case "SPAWN":
+          // BFS for the closest valid parking spot
+          var coords = {
+            x: 0,
+            y: 0
+          };
+          var Q = [];
+          var grid = [];
+
+          var label = function label(x, y) {
+            var _grid$y;
+
+            (_grid$y = grid[y]) !== null && _grid$y !== void 0 ? _grid$y : grid[y] = [];
+            grid[y][x] = 1;
+          };
+
+          label(this.cell.x, this.cell.y);
+          Q = [[this.cell.x, this.cell.y]].concat(_toConsumableArray(Q));
+
+          BFS: while (Q.length) {
+            var V = Q.pop();
+            var cell = this.world.getCellAtCoordinates(V[0], V[1]);
+
+            if (cell.canPark()) {
+              coords = {
+                x: V[0],
+                y: V[1]
+              };
+              break BFS;
+            }
+
+            var dirs = [[V[1], V[0] + 1], [V[1], V[0] - 1], [V[1] + 1, V[0]], [V[1] - 1, V[0]]];
+
+            for (var _i = 0, _dirs = dirs; _i < _dirs.length; _i++) {
+              var _this$world$state$y, _grid$y2;
+
+              var _dirs$_i = _slicedToArray(_dirs[_i], 2),
+                  y = _dirs$_i[0],
+                  x = _dirs$_i[1];
+
+              var next = (_this$world$state$y = this.world.state[y]) === null || _this$world$state$y === void 0 ? void 0 : _this$world$state$y[x];
+              var valid_types = ["SPAWN", "BIKE_PATH", "ALL_PATH", "PARKING", "EXIT"];
+
+              if (next !== undefined && valid_types.includes(next.type) && ((_grid$y2 = grid[y]) === null || _grid$y2 === void 0 ? void 0 : _grid$y2[x]) !== 1) {
+                label(x, y);
+                Q = [[x, y]].concat(_toConsumableArray(Q));
+              }
+            }
+          }
+
+          this.changeMoveTo(coords.x, coords.y, function () {
+            _this.stage = "MOVING_TO_PARKING_ENTERING";
+          });
+          break;
+
+        case "MOVING_TO_PARKING_ENTERING":
+          this.executePathSequence(function () {
+            _this.stage = "PARKING";
+          });
+          break;
+
+        case "PARKING":
+          if (this.park()) {
+            this.stage = "LEAVING_PARKING";
+          } else {
+            this.stage = "SPAWN";
+          }
+
+          break;
+
+        default:
+          this.finishedParkingStages();
+          break;
+      }
+    }
+  }]);
+
+  return ClosestAgent;
+}(_Agent2.default);
+
+var _default = ClosestAgent;
 exports.default = _default;
 },{"../Agent":"src/Agent.js"}],"src/World.js":[function(require,module,exports) {
 "use strict";
@@ -2075,6 +2220,8 @@ var _Agent = _interopRequireDefault(require("./Agent"));
 var _SmartAgent = _interopRequireDefault(require("./Agents/SmartAgent"));
 
 var _RandomAgent = _interopRequireDefault(require("./Agents/RandomAgent"));
+
+var _ClosestAgent = _interopRequireDefault(require("./Agents/ClosestAgent"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2314,6 +2461,9 @@ var World = /*#__PURE__*/function () {
         case "RANDOM":
           return _RandomAgent.default;
 
+        case "CLOSEST":
+          return _ClosestAgent.default;
+
         default:
           return _Agent.default;
       }
@@ -2397,7 +2547,7 @@ var World = /*#__PURE__*/function () {
 
 var _default = World;
 exports.default = _default;
-},{"easystarjs":"node_modules/easystarjs/src/easystar.js","./Cell":"src/Cell.js","./Agent":"src/Agent.js","./Agents/SmartAgent":"src/Agents/SmartAgent.js","./Agents/RandomAgent":"src/Agents/RandomAgent.js"}],"src/index.js":[function(require,module,exports) {
+},{"easystarjs":"node_modules/easystarjs/src/easystar.js","./Cell":"src/Cell.js","./Agent":"src/Agent.js","./Agents/SmartAgent":"src/Agents/SmartAgent.js","./Agents/RandomAgent":"src/Agents/RandomAgent.js","./Agents/ClosestAgent":"src/Agents/ClosestAgent.js"}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2441,9 +2591,9 @@ var maxSpawnRateLimit = 1; // **********************************
 // Parameter variable setup
 // **********************************
 
-var STRATEGIES = ["SMART", "RANDOM"]; // Set default selected strategies
+var STRATEGIES = ["SMART", "RANDOM", "CLOSEST"]; // Set default selected strategies
 
-var selectedStrategies = ["SMART"];
+var selectedStrategies = ["SMART", "RANDOM", "CLOSEST"];
 var currentTick = 0;
 var csvRowsPark = "strategy,time\n";
 var csvRowsGoal = "strategy,time\n";
@@ -2759,7 +2909,7 @@ function gameTick() {
       // Pick random strategy from selectedStrategies
       if (selectedStrategies.length > 0) {
         var strategy = selectedStrategies[Math.floor(Math.random() * selectedStrategies.length)];
-        world.spawnAgent("SMART");
+        world.spawnAgent(strategy);
       }
     } // Move current agents
 

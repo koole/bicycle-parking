@@ -20,10 +20,6 @@ class Agent {
     this.ticks = 0;
     this.ticks_to_parked = null;
     this.ticks_to_goal = null;
-
-    ///////////////
-    //// SMART ////
-    ///////////////
   }
 
   getPathfinder() {
@@ -107,30 +103,37 @@ class Agent {
     }
   }
 
+  executePathSequence(callback) {
+    if (
+      this.calculatingPath == false &&
+      this.path !== null &&
+      this.path.length > 0
+    ) {
+      const nextCell = this.world.getCellAtCoordinates(
+        this.path[0].x,
+        this.path[0].y
+      );
+      this.makeMove(nextCell);
+    } else if (this.calculatingPath == false) {
+      callback();
+    }
+  }
+
   finishedParkingStages() {
     switch (this.stage) {
       case "LEAVING_PARKING":
-        const buildingCell =
-          this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+        const buildingCell = this.world.getRandomCellOfType(
+          "BUILDING_ENTRANCE"
+        );
         this.changeMoveTo(buildingCell.x, buildingCell.y, () => {
           this.stage = "MOVING_TO_GOAL";
         });
         break;
       case "MOVING_TO_GOAL":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
+        this.executePathSequence(() => {
           this.stage = "IN_GOAL";
           this.hasReachedGoal();
-        }
+        });
         break;
       case "IN_GOAL":
         if (Math.random() < this.exitRate) {
@@ -143,19 +146,9 @@ class Agent {
         });
         break;
       case "MOVING_TO_PARKING_LEAVING":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
+        this.executePathSequence(() => {
           this.stage = "UNPARKING";
-        }
+        });
         break;
       case "UNPARKING":
         this.unpark(this.lotChoice);
@@ -167,19 +160,9 @@ class Agent {
         });
         break;
       case "MOVING_TO_EXIT":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
+        this.executePathSequence(() => {
           this.stage = "DESPAWN";
-        }
+        });
         break;
       case "DESPAWN":
         this.stage = "SPAWN";

@@ -193,7 +193,7 @@ class SmartAgent extends Agent {
           if (this.path.length < 5) {
             this.stage = "EVALUATE_LOT";
           }
-        } else {
+        } else if (this.calculatingPath == false) {
           this.stage = "PARKING";
         }
         break;

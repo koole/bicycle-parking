@@ -197,7 +197,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.mapDirection = exports.default = void 0;
 var map = "\n____________________________________\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\n_bbw______________aa____________bb__\n_bbw______________aappppppppppa_bb__\n_bbw______________aappppppppppaaaaaS\n_bbw______________aappppppppppaaaaaE\n_bbw______________aa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbwwwooooooooooooaa________________\n_bbappoooopppppppoaa________________\n_bbappoooopppppppoaa________________\n_bbappooooooooooaaaa___pppppp_______\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwoooooooooooXaaaaaaaaaaaaaaaaaS\n_bbwwwooooooooooooaaaaaaaaaaaaaaaaaE\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwooooooooooooaa________________\n_bbaaa____________aa________________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbw_____________aaaaa______________\n_bbw______________aaaaa_____________\n_bbw______________aaaaa_____________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_ESw________________________________\n";
-var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhawaawa\n_sna______________aahhhhhhhhhhaeaaea\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
+var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
 exports.mapDirection = mapDirection;
 var _default = map;
 exports.default = _default;
@@ -1808,31 +1808,46 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
       }
 
       return coordinates;
-    } // THIS SEARCH IS SHIT. ONE OPTION IS TO ADD DFS TO SEARCH SURROUDNINGS.
+    } //Gets all the parking neighbours of the goal spot where the agent wants to park
 
+  }, {
+    key: "getNeighbourSpotsInLot",
+    value: function getNeighbourSpotsInLot(goal_cell) {
+      for (var X = goal_cell.x - 1; X <= goal_cell.x + 1; X++) {
+        for (var Y = goal_cell.y - 1; Y <= goal_cell.y + 1; Y++) {
+          if (this.world.state[Y][X].type == "PARKING") {
+            if (X == goal_cell.x && Y == goal_cell.y) continue;
+            var coordinates = new Array(1);
+            coordinates[0] = X;
+            coordinates[1] = Y;
+            this.searchPath.push(coordinates);
+          }
+        }
+      }
+
+      return this.searchPath;
+    }
   }, {
     key: "lotSearch",
     value: function lotSearch() {
       var coordinates = new Array(1);
+      var goal_cell = this.world.getCellAtCoordinates(this.move_to[0], this.move_to[1]);
+      coordinates[0] = goal_cell.x;
+      coordinates[1] = goal_cell.y;
+      console.log("first goal was " + coordinates[0] + " and " + coordinates[1]);
 
-      if (this.world.state[this.cell.y][this.cell.x + 1].type == "PARKING") {
-        coordinates[0] = this.cell.x + 1;
-        coordinates[1] = this.cell.y;
-      } else if (this.world.state[this.cell.y][this.cell.x - 1].type == "PARKING") {
-        coordinates[0] = this.cell.x - 1;
-        coordinates[1] = this.cell.y;
-      } else if (this.world.state[this.cell.y - 1][this.cell.x].type == "PARKING") {
-        coordinates[0] = this.cell.x;
-        coordinates[1] = this.cell.y - 1;
-      } else if (this.world.state[this.cell.y + 1][this.cell.x].type == "PARKING") {
-        coordinates[0] = this.cell.x;
-        coordinates[1] = this.cell.y - 1;
-      } else {
-        this.searchPath.pop(coordinates);
-        return coordinates;
+      for (var X = 0; X < this.searchPath.length; X++) {
+        var new_goal_cell = this.world.getCellAtCoordinates(this.searchPath[X][0], this.searchPath[X][1]);
+
+        if (new_goal_cell.canPark()) {
+          coordinates[0] = new_goal_cell.x;
+          coordinates[1] = new_goal_cell.y;
+          console.log("UPDATED goal was " + coordinates[0] + " and " + coordinates[1]);
+          break;
+        }
       }
 
-      this.searchPath.push(coordinates);
+      console.log("END " + coordinates[0] + " and " + coordinates[1]);
       return coordinates;
     } // Returns the preference with the highest value.
 
@@ -1894,6 +1909,8 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
           this.changeMoveTo(coordinates[0], coordinates[1], function () {
             _this2.stage = "MOVE_TO_LOT";
           });
+          var goal_cell = this.world.getCellAtCoordinates(this.move_to[0], this.move_to[1]);
+          this.getNeighbourSpotsInLot(goal_cell);
           break;
 
         case "CHANGE_CHOICE":
@@ -1915,12 +1932,21 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
           break;
 
         case "MOVE_TO_LOT":
+          // console.log("movetolot")
           if (this.calculatingPath == false && this.path !== null && this.path.length > 0) {
             var nextCell = this.world.getCellAtCoordinates(this.path[0].x, this.path[0].y);
             this.makeMove(nextCell);
 
             if (this.path.length < 5) {
               this.stage = "EVALUATE_LOT";
+
+              if (this.path.length < 2) {
+                var _goal_cell = this.world.getCellAtCoordinates(this.move_to[0], this.move_to[1]);
+
+                if (_goal_cell.canPark() != true) {
+                  this.stage = "SEARCHING_IN_LOT";
+                }
+              }
             }
           } else if (this.calculatingPath == false) {
             this.stage = "PARKING";
@@ -3148,7 +3174,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58862" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "35693" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

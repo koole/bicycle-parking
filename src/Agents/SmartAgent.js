@@ -84,7 +84,7 @@ class SmartAgent extends Agent {
     
     coordinates[0] = goal_cell.x;
     coordinates[1] = goal_cell.y;
-    console.log("first goal was " + coordinates[0] + " and " + coordinates[1])
+    // console.log("first goal was " + coordinates[0] + " and " + coordinates[1])
 
       for (let X = 0; X < this.searchPath.length; X++){
       const new_goal_cell = this.world.getCellAtCoordinates(this.searchPath[X][0], this.searchPath[X][1]);
@@ -96,7 +96,7 @@ class SmartAgent extends Agent {
         }
       }
 
-    console.log("END "+coordinates[0] + " and " + coordinates[1])
+    // console.log("END "+coordinates[0] + " and " + coordinates[1])
     return coordinates;
   }
 

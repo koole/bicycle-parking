@@ -12,42 +12,6 @@ class Cell {
 
   // Check if agent can be added to this cell
   checkAddAgent(agent) {
-    if (this.type === "SPAWN") {
-      return true;
-    }
-
-    if (this.type === "BUILDING_ENTRANCE" && agent.type === "PEDESTRIAN") {
-      return true;
-    }
-    // Allow a maximum of:
-    // 2 agents of type BIKE
-    // or 3 agents of type PEDESTRIAN
-    // or 1 agent of type BIKE and 2 agents of type PEDESTRIAN
-    // or 2 agent of type BIKE and 1 agents of type PEDESTRIAN
-    if (
-      agent.type === "BIKE" &&
-      this.agents.filter(({ type }) => type === "BIKE").length >= 20
-    ) {
-      return false;
-    }
-    if (
-      agent.type === "PEDESTRIAN" &&
-      this.agents.filter(({ type }) => type === "PEDESTRIAN").length >= 30
-    ) {
-      return false;
-    }
-    if (
-      agent.type === "BIKE" &&
-      this.agents.filter(({ type }) => type === "PEDESTRIAN").length >= 20
-    ) {
-      return false;
-    }
-    if (
-      agent.type === "PEDESTRIAN" &&
-      this.agents.filter(({ type }) => type === "BIKE").length >= 30
-    ) {
-      return false;
-    }
     return true;
   }
 

@@ -197,7 +197,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.mapDirection = exports.default = void 0;
 var map = "\n____________________________________\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\nbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb__\n_bbw______________aa____________bb__\n_bbw______________aappppppppppa_bb__\n_bbw______________aappppppppppaaaaaS\n_bbw______________aappppppppppaaaaaE\n_bbw______________aa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbw__ooooooooooooaa________________\n_bbwwwooooooooooooaa________________\n_bbappoooopppppppoaa________________\n_bbappoooopppppppoaa________________\n_bbappooooooooooaaaa___pppppp_______\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwoooooooooooXaaaaaaaaaaaaaaaaaS\n_bbwwwooooooooooooaaaaaaaaaaaaaaaaaE\n_bbwwwooooooooooooaa___pppppp_______\n_bbwwwooooooooooooaa________________\n_bbaaa____________aa________________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbaaaaaaaaaaaaaaaaaa_______________\n_bbw_____________aaaaa______________\n_bbw______________aaaaa_____________\n_bbw______________aaaaa_____________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_bbw________________________________\n_ESw________________________________\n";
-var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________aahhhhhhhhhhaaaaaa\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
+var mapDirection = "\n____________________________________\nwawwwwwwwwwwwwwwwwaawwwwwwwwwwwwwa__\neaaeeeeeeeeeeeeeeeaaeeeeeeeeeeeean__\n_sna______________sn____________sn__\n_sna______________aahhhhhhhhhha_sn__\n_sna______________aahhhhhhhhhhawaawa\n_sna______________aahhhhhhhhhhaeaaea\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_sna______________sn________________\n_aaaaa____________sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh____hhhhhha_sn________________\n_aaahh__________aaaa___vvvvvv_______\n_snaaa____________sn___vvvvvv_______\n_snaaa___________aaawwwaaaaaawwwwwwa\n_snaaa____________aaeeeaaaaaaeeeeeea\n_snaaa____________sn___vvvvvv_______\n_snaaa____________sn________________\n_snaaa____________sn________________\n_aaawwwwwwwwwwwwwwana_______________\n_aaaeeeeeeeeeeeeeeeaa_______________\n_sna_____________aaaaa______________\n_sna______________aaaaa_____________\n_sna______________aaaaa_____________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_sna________________________________\n_aaa________________________________\n";
 exports.mapDirection = mapDirection;
 var _default = map;
 exports.default = _default;
@@ -1210,47 +1210,6 @@ var Cell = /*#__PURE__*/function () {
   _createClass(Cell, [{
     key: "checkAddAgent",
     value: function checkAddAgent(agent) {
-      if (this.type === "SPAWN") {
-        return true;
-      }
-
-      if (this.type === "BUILDING_ENTRANCE" && agent.type === "PEDESTRIAN") {
-        return true;
-      } // Allow a maximum of:
-      // 2 agents of type BIKE
-      // or 3 agents of type PEDESTRIAN
-      // or 1 agent of type BIKE and 2 agents of type PEDESTRIAN
-      // or 2 agent of type BIKE and 1 agents of type PEDESTRIAN
-
-
-      if (agent.type === "BIKE" && this.agents.filter(function (_ref) {
-        var type = _ref.type;
-        return type === "BIKE";
-      }).length >= 20) {
-        return false;
-      }
-
-      if (agent.type === "PEDESTRIAN" && this.agents.filter(function (_ref2) {
-        var type = _ref2.type;
-        return type === "PEDESTRIAN";
-      }).length >= 30) {
-        return false;
-      }
-
-      if (agent.type === "BIKE" && this.agents.filter(function (_ref3) {
-        var type = _ref3.type;
-        return type === "PEDESTRIAN";
-      }).length >= 20) {
-        return false;
-      }
-
-      if (agent.type === "PEDESTRIAN" && this.agents.filter(function (_ref4) {
-        var type = _ref4.type;
-        return type === "BIKE";
-      }).length >= 30) {
-        return false;
-      }
-
       return true;
     }
   }, {
@@ -1311,6 +1270,8 @@ var Cell = /*#__PURE__*/function () {
           arrow = "↔";
         } else if (this.allowed_direction === "v") {
           arrow = "↕";
+        } else if (this.allowed_direction === "a") {
+          arrow = "·";
         }
 
         ctx.fillText(arrow, canvas_x + 11, canvas_y + 20); // reset transparency
@@ -1335,17 +1296,17 @@ var Cell = /*#__PURE__*/function () {
       if (this.type === "BUILDING_ENTRANCE") {
         ctx.fillStyle = "#ffffff";
         ctx.font = "16px monospace";
-        ctx.fillText("" + String(this.agents.filter(function (_ref5) {
-          var type = _ref5.type;
+        ctx.fillText("" + String(this.agents.filter(function (_ref) {
+          var type = _ref.type;
           return type === "PEDESTRIAN";
         }).length).padStart(3, "0"), canvas_x + 1.5, canvas_y + 21);
       } else {
-        var bikeAgents = this.agents.filter(function (_ref6) {
-          var type = _ref6.type;
+        var bikeAgents = this.agents.filter(function (_ref2) {
+          var type = _ref2.type;
           return type === "BIKE";
         });
-        var pedestrianAgents = this.agents.filter(function (_ref7) {
-          var type = _ref7.type;
+        var pedestrianAgents = this.agents.filter(function (_ref3) {
+          var type = _ref3.type;
           return type === "PEDESTRIAN";
         });
 
@@ -1381,12 +1342,12 @@ var Cell = /*#__PURE__*/function () {
         ctx.font = "12px monospace";
         ctx.fillStyle = "black";
         ctx.globalAlpha = 0.3;
-        ctx.fillText("B:" + this.agents.filter(function (_ref8) {
-          var type = _ref8.type;
+        ctx.fillText("B:" + this.agents.filter(function (_ref4) {
+          var type = _ref4.type;
           return type === "BIKE";
         }).length, canvas_x + 2, canvas_y + 12);
-        ctx.fillText("P:" + this.agents.filter(function (_ref9) {
-          var type = _ref9.type;
+        ctx.fillText("P:" + this.agents.filter(function (_ref5) {
+          var type = _ref5.type;
           return type === "PEDESTRIAN";
         }).length, canvas_x + 2, canvas_y + 24);
         ctx.globalAlpha = 1;
@@ -1833,8 +1794,7 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
       var coordinates = new Array(1);
       var goal_cell = this.world.getCellAtCoordinates(this.move_to[0], this.move_to[1]);
       coordinates[0] = goal_cell.x;
-      coordinates[1] = goal_cell.y;
-      console.log("first goal was " + coordinates[0] + " and " + coordinates[1]);
+      coordinates[1] = goal_cell.y; // console.log("first goal was " + coordinates[0] + " and " + coordinates[1])
 
       for (var X = 0; X < this.searchPath.length; X++) {
         var new_goal_cell = this.world.getCellAtCoordinates(this.searchPath[X][0], this.searchPath[X][1]);
@@ -1845,9 +1805,9 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
           console.log("UPDATED goal was " + coordinates[0] + " and " + coordinates[1]);
           break;
         }
-      }
+      } // console.log("END "+coordinates[0] + " and " + coordinates[1])
 
-      console.log("END " + coordinates[0] + " and " + coordinates[1]);
+
       return coordinates;
     } // Returns the preference with the highest value.
 
@@ -2292,6 +2252,8 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
+var MAX_PARKED_BIKES = 4;
+
 function getDirectionArray(direction) {
   switch (direction) {
     case "n":
@@ -2475,19 +2437,19 @@ var World = /*#__PURE__*/function () {
     key: "getLotCapacity",
     value: function getLotCapacity(location) {
       if (location == "north") {
-        return this.northCapacity / 120;
+        return this.northCapacity / (30 * MAX_PARKED_BIKES);
       }
 
       if (location == "east") {
-        return this.eastCapacity / 72;
+        return this.eastCapacity / (18 * MAX_PARKED_BIKES);
       }
 
       if (location == "mid") {
-        return this.midCapacity / 56;
+        return this.midCapacity / (14 * MAX_PARKED_BIKES);
       }
 
       if (location == "west") {
-        return this.westCapacity / 24;
+        return this.westCapacity / (6 * MAX_PARKED_BIKES);
       }
     }
   }, {
@@ -2570,7 +2532,7 @@ var World = /*#__PURE__*/function () {
 
           if (agent.type === "BIKE") {
             agent.act();
-          } else if (agent.type === "PEDESTRIAN" && this.tickCount % 2 === 0) {
+          } else if (agent.type === "PEDESTRIAN" && this.tickCount % 3 === 0) {
             agent.act();
           }
         }
@@ -2798,10 +2760,11 @@ document.getElementById("reset").addEventListener("click", function () {
 
 var strategyCheckboxes = document.getElementById("strategy-checkboxes");
 STRATEGIES.forEach(function (strategy) {
-  var container = document.createElement("div");
-  container.classList.add("form-check");
+  var container = document.createElement("li");
+  container.classList.add("list-group-item");
   var checkbox = document.createElement("input");
   checkbox.classList.add("form-check-input");
+  checkbox.classList.add("me-2");
   checkbox.type = "checkbox";
   checkbox.id = strategy;
   checkbox.checked = selectedStrategies.includes(strategy);
@@ -2819,6 +2782,7 @@ STRATEGIES.forEach(function (strategy) {
   var label = document.createElement("label");
   label.htmlFor = strategy;
   label.classList.add("form-check-label");
+  label.classList.add("stretched-link");
   label.appendChild(document.createTextNode(strategyName(strategy)));
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
@@ -3174,7 +3138,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "35693" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52983" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

@@ -96,10 +96,10 @@ function getSpawnRate(currentBin) {
   return (
     minSpawnRate +
     (maxSpawnRate - minSpawnRate) *
-    Math.pow(
-      (Math.sin((currentBin / automatedLoopLength) * 2 * Math.PI) + 1) / 2,
-      2
-    )
+      Math.pow(
+        (Math.sin((currentBin / automatedLoopLength) * 2 * Math.PI) + 1) / 2,
+        2
+      )
   );
 }
 
@@ -231,10 +231,11 @@ document.getElementById("reset").addEventListener("click", () => {
 // Create HTML checkboxes for each strategy, and add them and remove them to selectedStrategies when enabled/disabled
 const strategyCheckboxes = document.getElementById("strategy-checkboxes");
 STRATEGIES.forEach((strategy) => {
-  const container = document.createElement("div");
-  container.classList.add("form-check");
+  const container = document.createElement("li");
+  container.classList.add("list-group-item");
   const checkbox = document.createElement("input");
   checkbox.classList.add("form-check-input");
+  checkbox.classList.add("me-2");
   checkbox.type = "checkbox";
   checkbox.id = strategy;
   checkbox.checked = selectedStrategies.includes(strategy);
@@ -249,6 +250,7 @@ STRATEGIES.forEach((strategy) => {
   const label = document.createElement("label");
   label.htmlFor = strategy;
   label.classList.add("form-check-label");
+  label.classList.add("stretched-link");
   label.appendChild(document.createTextNode(strategyName(strategy)));
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
@@ -416,7 +418,7 @@ function DrawTrend(data) {
   dataCombined.forEach((row, index) => {
     dataColumns.push([index, ...row]);
   });
-  console.log(dataCombined)
+  console.log(dataCombined);
   var data = google.visualization.arrayToDataTable(dataColumns);
 
   console.log(data);
@@ -440,7 +442,9 @@ function DrawTrend(data) {
     // dataOpacity: 0.1,
     explorer: {},
   };
-  var trendChart = new google.visualization.LineChart(document.getElementById("trend-time-to-goal"));
+  var trendChart = new google.visualization.LineChart(
+    document.getElementById("trend-time-to-goal")
+  );
   trendChart.draw(data, trendOptions);
 }
 
@@ -467,7 +471,7 @@ function gameTick() {
       if (selectedStrategies.length > 0) {
         const strategy =
           selectedStrategies[
-          Math.floor(Math.random() * selectedStrategies.length)
+            Math.floor(Math.random() * selectedStrategies.length)
           ];
         world.spawnAgent(strategy);
       }

@@ -62,11 +62,10 @@ class SmartAgent extends Agent {
 
   //Gets all the parking neighbours of the goal spot where the agent wants to park
   getNeighbourSpotsInLot(goal_cell) {
-    
-    for (let X=goal_cell.x - 1; X <= goal_cell.x +1; X++){
-      for (let Y=goal_cell.y - 1; Y <= goal_cell.y +1; Y++) {
+    for (let X = goal_cell.x - 1; X <= goal_cell.x + 1; X++) {
+      for (let Y = goal_cell.y - 1; Y <= goal_cell.y + 1; Y++) {
         if (this.world.state[Y][X].type == "PARKING") {
-          if(X == goal_cell.x && Y == goal_cell.y) continue;
+          if (X == goal_cell.x && Y == goal_cell.y) continue;
           var coordinates = new Array(1);
           coordinates[0] = X;
           coordinates[1] = Y;
@@ -80,21 +79,29 @@ class SmartAgent extends Agent {
 
   lotSearch() {
     var coordinates = new Array(1);
-    const goal_cell = this.world.getCellAtCoordinates(this.move_to[0], this.move_to[1]);
-    
+    const goal_cell = this.world.getCellAtCoordinates(
+      this.move_to[0],
+      this.move_to[1]
+    );
+
     coordinates[0] = goal_cell.x;
     coordinates[1] = goal_cell.y;
     // console.log("first goal was " + coordinates[0] + " and " + coordinates[1])
 
-      for (let X = 0; X < this.searchPath.length; X++){
-      const new_goal_cell = this.world.getCellAtCoordinates(this.searchPath[X][0], this.searchPath[X][1]);
-        if(new_goal_cell.canPark()){
-          coordinates[0] = new_goal_cell.x;
-          coordinates[1] = new_goal_cell.y;
-          console.log("UPDATED goal was " + coordinates[0] + " and " + coordinates[1])
-          break;
-        }
+    for (let X = 0; X < this.searchPath.length; X++) {
+      const new_goal_cell = this.world.getCellAtCoordinates(
+        this.searchPath[X][0],
+        this.searchPath[X][1]
+      );
+      if (new_goal_cell.canPark()) {
+        coordinates[0] = new_goal_cell.x;
+        coordinates[1] = new_goal_cell.y;
+        console.log(
+          "UPDATED goal was " + coordinates[0] + " and " + coordinates[1]
+        );
+        break;
       }
+    }
 
     // console.log("END "+coordinates[0] + " and " + coordinates[1])
     return coordinates;
@@ -169,7 +176,10 @@ class SmartAgent extends Agent {
         this.changeMoveTo(coordinates[0], coordinates[1], () => {
           this.stage = "MOVE_TO_LOT";
         });
-        const goal_cell = this.world.getCellAtCoordinates(this.move_to[0], this.move_to[1]);
+        const goal_cell = this.world.getCellAtCoordinates(
+          this.move_to[0],
+          this.move_to[1]
+        );
 
         this.getNeighbourSpotsInLot(goal_cell);
         break;
@@ -205,14 +215,16 @@ class SmartAgent extends Agent {
 
           if (this.path.length < 5) {
             this.stage = "EVALUATE_LOT";
-            if (this.path.length < 2){
-              const goal_cell = this.world.getCellAtCoordinates(this.move_to[0], this.move_to[1]);
-              if(goal_cell.canPark() != true){
-                this.stage = "SEARCHING_IN_LOT"
+            if (this.path.length < 2) {
+              const goal_cell = this.world.getCellAtCoordinates(
+                this.move_to[0],
+                this.move_to[1]
+              );
+              if (goal_cell.canPark() != true) {
+                this.stage = "SEARCHING_IN_LOT";
               }
             }
-          } 
-          
+          }
         } else if (this.calculatingPath == false) {
           this.stage = "PARKING";
         }

@@ -7,6 +7,8 @@ import SmartAgent from "./Agents/SmartAgent";
 import RandomAgent from "./Agents/RandomAgent";
 import ClosestAgent from "./Agents/ClosestAgent";
 
+const MAX_PARKED_BIKES = 4;
+
 function getDirectionArray(direction) {
   switch (direction) {
     case "n":
@@ -161,16 +163,16 @@ class World {
 
   getLotCapacity(location) {
     if (location == "north") {
-      return this.northCapacity / 120;
+      return this.northCapacity / (30 * MAX_PARKED_BIKES);
     }
     if (location == "east") {
-      return this.eastCapacity / 72;
+      return this.eastCapacity / (18 * MAX_PARKED_BIKES);
     }
     if (location == "mid") {
-      return this.midCapacity / 56;
+      return this.midCapacity / (14 * MAX_PARKED_BIKES);
     }
     if (location == "west") {
-      return this.westCapacity / 24;
+      return this.westCapacity / (6 * MAX_PARKED_BIKES);
     }
   }
 
@@ -235,7 +237,7 @@ class World {
     for (const agent of this.agentsActive) {
       if (agent.type === "BIKE") {
         agent.act();
-      } else if (agent.type === "PEDESTRIAN" && this.tickCount % 2 === 0) {
+      } else if (agent.type === "PEDESTRIAN" && this.tickCount % 3 === 0) {
         agent.act();
       }
     }

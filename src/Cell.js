@@ -65,6 +65,8 @@ class Cell {
         arrow = "↔";
       } else if (this.allowed_direction === "v") {
         arrow = "↕";
+      } else if (this.allowed_direction === "a") {
+        arrow = "·";
       }
       ctx.fillText(arrow, canvas_x + 11, canvas_y + 20);
       // reset transparency

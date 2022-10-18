@@ -491,7 +491,16 @@ function gameTick() {
       experimentMode = false;
     }
   }
-  setTimeout(gameTick, tickDelay);
+
+  if(tickDelay > 0 ) {
+    setTimeout(gameTick, tickDelay);
+  } else {
+    if(currentTick % 10 === 0) {
+      setTimeout(gameTick, 0);
+    } else {
+      gameTick();
+    }
+  }
 }
 
 gameTick();

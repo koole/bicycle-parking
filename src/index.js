@@ -6,7 +6,7 @@ import World from "./World";
 // **********************************
 // Static config variables
 // **********************************
-const experimentTicks = 10000;
+const experimentTicks = 500000;
 const automatedLoopLength = 500;
 const maxSpawnRateLimit = 1;
 
@@ -492,10 +492,10 @@ function gameTick() {
     }
   }
 
-  if(tickDelay > 0 ) {
+  if (tickDelay > 0) {
     setTimeout(gameTick, tickDelay);
   } else {
-    if(currentTick % 10 === 0) {
+    if (currentTick % 10 === 0) {
       setTimeout(gameTick, 0);
     } else {
       gameTick();

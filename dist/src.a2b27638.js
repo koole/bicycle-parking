@@ -96221,7 +96221,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 // **********************************
 // Static config variables
 // **********************************
-var experimentTicks = 10000;
+var experimentTicks = 500000;
 var automatedLoopLength = 500;
 var maxSpawnRateLimit = 1; // **********************************
 // Parameter variable setup

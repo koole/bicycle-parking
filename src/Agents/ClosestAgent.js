@@ -49,7 +49,7 @@ class ClosestAgent extends Agent {
       }
     }
 	  // no valid goal was found, just return current cell
-	  return {x: this.cell.x, y: this.cell.y};
+	  return "NO_CELL_FOUND";
   }
   
   act() {
@@ -67,7 +67,7 @@ class ClosestAgent extends Agent {
 		  	return cell.type === "PARKING" && not_visited;
 		  });
 		
-      if (new_coords.x === this.cell.x && new_coords.y === this.cell.y) {
+      if (new_coords === "NO_CELL_FOUND") {
         // if we come here, we've probably already visited every lot, so we try searching all over again
         this.stage = "SPAWN";
       } else {
@@ -90,19 +90,17 @@ class ClosestAgent extends Agent {
           const in_lot = Math.abs(agent.cell.x - cell.x) + Math.abs(agent.cell.y - cell.y) <= 5;
           return cell.canPark() && in_lot;
         });
-        if (spot_coords.x === this.cell.x && spot_coords.y === this.cell.y) {
-          // if we come here, we've probably already visited every lot, so we try searching all over again
+        if (spot_coords === "NO_CELL_FOUND") {
+          // There is no free spot in this lot
           this.stage = "FIND_LOT";
         } else {
           this.changeMoveTo(spot_coords.x, spot_coords.y, () => {
-            this.visited.push(coords);
             this.stage = "MOVING_TO_SPOT";
           });
         }
         break;
       
       case "MOVING_TO_SPOT":
-        console.log("a")
         this.executePathSequence(() => {
           this.stage = "PARKING";
         });
@@ -113,6 +111,7 @@ class ClosestAgent extends Agent {
         if (this.park()) {
           this.stage = "LEAVING_PARKING";
         } else {
+          // Spot was taken before agent could park, find a new one
           this.stage = "FIND_SPOT";
         }
         break;

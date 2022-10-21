@@ -1,4 +1,5 @@
 import Agent from "../Agent";
+import mathjs from "mathjs";
 
 class SmartAgent extends Agent {
   constructor(world, type, cell) {
@@ -14,7 +15,8 @@ class SmartAgent extends Agent {
       Math.random(),
       Math.random(),
     ];
-    this.changePreference = 0.01; // The amount preference changes upon update.
+    this.changePreference = 0.05; // The amount preference changes upon update.
+    this.ticksTaken = [];
 
     // Variables for searching in lot.
     this.searchPath = [];
@@ -164,6 +166,14 @@ class SmartAgent extends Agent {
     }
   }
 
+  // ticksChecked() {
+  //   if (this.ticksTaken.length >= 10) {
+  //     console.log("FULL");
+  //   } else {
+  //     this.ticksTaken.push(this.ticks);
+  //   }
+  // }
+
   // SMART STRATEGY //
   act() {
     this.startAct();
@@ -257,6 +267,15 @@ class SmartAgent extends Agent {
           }
         }
         break;
+      // case "MOVING_TO_GOAL":
+      //   this.executePathSequence(() => {
+      //     this.stage = "IN_GOAL";
+      //     this.hasReachedGoal();
+      //   });
+
+      // console.log(this.ticksTaken);
+
+      // break;
       default:
         this.finishedParkingStages();
         break;

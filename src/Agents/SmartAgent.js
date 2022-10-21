@@ -185,9 +185,8 @@ class SmartAgent extends Agent {
     switch (this.stage) {
       case "SPAWN":
         if (Math.random() <= 0.1) {
-          const rndLocation = randomValueInRange(1, 5);
-
-          this.lotChoice = this.lots[rndLocation];
+          this.lotChoice = this.lots[this.randomValueInRange(0, 4)];
+          console.log(this.lotChoice);
         } else {
           this.lotChoice = this.checkPreference();
         }

@@ -95311,10 +95311,11 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
     _this = _super.call(this, world, type, cell, "SMART"); // Variables relating to lot preferences.
 
     _this.lots = ["north", "east", "mid", "west"];
-    _this.lotChoice = null; // NORTH, EAST, MID, WEST
+    _this.lotChoice = null;
+    _this.lotChoiceInitial = null; // NORTH, EAST, MID, WEST
 
     _this.lotPreference = [Math.random(), Math.random(), Math.random(), Math.random()];
-    _this.changePreference = 0.05; // The amount preference changes upon update.
+    _this.changePreference = 0.1; // The amount preference changes upon update.
 
     _this.ticksTaken = []; // Variables for searching in lot.
 
@@ -95458,11 +95459,13 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
       if (this.ticksTaken.length >= 10) {
         var meanTicks = (0, _mathjs.mean)(this.ticksTaken);
         var stdTicks = (0, _mathjs.std)(this.ticksTaken);
-        console.log(meanTicks, stdTicks);
 
         if (this.ticks < meanTicks - stdTicks / 2) {
-          console.log("INCREASING");
+          console.log("GOOD");
           this.increasePreference(this.lotChoice);
+        } else if (this.ticks > meanTicks + stdTicks / 2) {
+          console.log("BAD");
+          this.decreasePreference(this.lotChoiceInitial);
         }
 
         this.ticksTaken.shift();
@@ -95481,6 +95484,7 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
       switch (this.stage) {
         case "SPAWN":
           this.lotChoice = this.checkPreference();
+          this.lotChoiceInitial = this.lotChoice;
           var coordinates = this.randomLotCoordinates(this.lotChoice);
           this.changeMoveTo(coordinates[0], coordinates[1], function () {
             _this2.stage = "MOVE_TO_LOT";
@@ -95490,8 +95494,7 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
           break;
 
         case "CHANGE_CHOICE":
-          this.decreasePreference(this.lotChoice);
-
+          // this.decreasePreference(this.lotChoice);
           while (true) {
             var choice = this.lots[Math.floor(Math.random() * this.lots.length)];
 

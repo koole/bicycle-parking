@@ -8,6 +8,7 @@ class SmartAgent extends Agent {
     // Variables relating to lot preferences.
     this.lots = ["north", "east", "mid", "west"];
     this.lotChoice = null;
+    this.lotChoiceInitial = null;
     // NORTH, EAST, MID, WEST
     this.lotPreference = [
       Math.random(),
@@ -15,7 +16,7 @@ class SmartAgent extends Agent {
       Math.random(),
       Math.random(),
     ];
-    this.changePreference = 0.05; // The amount preference changes upon update.
+    this.changePreference = 0.1; // The amount preference changes upon update.
     this.ticksTaken = [];
 
     // Variables for searching in lot.
@@ -168,11 +169,12 @@ class SmartAgent extends Agent {
       var meanTicks = mean(this.ticksTaken);
       var stdTicks = std(this.ticksTaken);
 
-      console.log(meanTicks, stdTicks);
-
       if (this.ticks < meanTicks - stdTicks / 2) {
-        console.log("INCREASING");
+        console.log("GOOD");
         this.increasePreference(this.lotChoice);
+      } else if (this.ticks > meanTicks + stdTicks / 2) {
+        console.log("BAD");
+        this.decreasePreference(this.lotChoiceInitial);
       }
 
       this.ticksTaken.shift();
@@ -188,6 +190,7 @@ class SmartAgent extends Agent {
     switch (this.stage) {
       case "SPAWN":
         this.lotChoice = this.checkPreference();
+        this.lotChoiceInitial = this.lotChoice;
         var coordinates = this.randomLotCoordinates(this.lotChoice);
 
         this.changeMoveTo(coordinates[0], coordinates[1], () => {
@@ -201,7 +204,7 @@ class SmartAgent extends Agent {
         this.getNeighbourSpotsInLot(goal_cell);
         break;
       case "CHANGE_CHOICE":
-        this.decreasePreference(this.lotChoice);
+        // this.decreasePreference(this.lotChoice);
 
         while (true) {
           var choice = this.lots[Math.floor(Math.random() * this.lots.length)];

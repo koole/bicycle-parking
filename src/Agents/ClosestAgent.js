@@ -48,8 +48,8 @@ class ClosestAgent extends Agent {
         }
       }
     }
-	// no valid goal was found, just return current cell
-	return {x: this.cell.x, y: this.cell.y};
+	  // no valid goal was found, just return current cell
+	  return {x: this.cell.x, y: this.cell.y};
   }
   
   act() {
@@ -57,25 +57,25 @@ class ClosestAgent extends Agent {
 
     switch (this.stage) {
       case "SPAWN":
-	    this.visited = [{x: this.cell.x, y: this.cell.y}];
-	  case "FIND_LOT":
-      // find lot to move to
-      const new_coords = this.find_closest_tile((agent, cell) => {
-			const not_visited = agent.visited.every((v_cell) => 
-				Math.abs(v_cell.x - cell.x) + Math.abs(v_cell.y - cell.y) > 5
-			);
-			return cell.type === "PARKING" && not_visited;
-		});
+	      this.visited = [{x: this.cell.x, y: this.cell.y}];
+	    case "FIND_LOT":
+        // find lot to move to
+        const new_coords = this.find_closest_tile((agent, cell) => {
+		  	const not_visited = agent.visited.every((v_cell) => 
+		  		Math.abs(v_cell.x - cell.x) + Math.abs(v_cell.y - cell.y) > 5
+		  	);
+		  	return cell.type === "PARKING" && not_visited;
+		  });
 		
-		if (new_coords.x === this.cell.x && new_coords.y === this.cell.y) {
-			// if we come here, we've probably already visited every lot, so we try searching all over again
-			this.stage = "SPAWN";
-		} else {
-          this.changeMoveTo(new_coords.x, new_coords.y, () => {
-			this.visited.push(coords);
-            this.stage = "MOVING_TO_LOT";
-          });
-		}
+      if (new_coords.x === this.cell.x && new_coords.y === this.cell.y) {
+        // if we come here, we've probably already visited every lot, so we try searching all over again
+        this.stage = "SPAWN";
+      } else {
+            this.changeMoveTo(new_coords.x, new_coords.y, () => {
+        this.visited.push(new_coords);
+              this.stage = "MOVING_TO_LOT";
+            });
+      }
         break;
 
       case "MOVING_TO_LOT":
@@ -84,41 +84,42 @@ class ClosestAgent extends Agent {
         });
         break;
       
-	  case "FIND_SPOT":
-	    // find spot to move to
-      const spot_coords = this.find_closest_tile((agent, cell) => {
-			  const in_lot = Math.abs(agent.cell.x - cell.x) + Math.abs(agent.cell.y - cell.y) <= 5;
-			  return cell.type === "PARKING" && in_lot;
-		  });
-		  if (spot_coords.x === this.cell.x && spot_coords.y === this.cell.y) {
-			  // if we come here, we've probably already visited every lot, so we try searching all over again
-			  this.stage = "FIND_LOT";
-	  	} else {
-        this.changeMoveTo(spot_coords.x, spot_coords.y, () => {
-			    this.visited.push(coords);
-          this.stage = "MOVING_TO_SPOT";
+      case "FIND_SPOT":
+        // find spot to move to
+        const spot_coords = this.find_closest_tile((agent, cell) => {
+          const in_lot = Math.abs(agent.cell.x - cell.x) + Math.abs(agent.cell.y - cell.y) <= 5;
+          return cell.canPark() && in_lot;
         });
-		  }
-      break;
-		
-    case "MOVING_TO_SPOT":
-      this.executePathSequence(() => {
-        this.stage = "PARKING";
-      });
-      break;
-	  
-	  
-    case "PARKING":
-      if (this.park()) {
-        this.stage = "LEAVING_PARKING";
-      } else {
-        this.stage = "FIND_SPOT";
-      }
-      break;
+        if (spot_coords.x === this.cell.x && spot_coords.y === this.cell.y) {
+          // if we come here, we've probably already visited every lot, so we try searching all over again
+          this.stage = "FIND_LOT";
+        } else {
+          this.changeMoveTo(spot_coords.x, spot_coords.y, () => {
+            this.visited.push(coords);
+            this.stage = "MOVING_TO_SPOT";
+          });
+        }
+        break;
+      
+      case "MOVING_TO_SPOT":
+        console.log("a")
+        this.executePathSequence(() => {
+          this.stage = "PARKING";
+        });
+        break;
+      
+      
+      case "PARKING":
+        if (this.park()) {
+          this.stage = "LEAVING_PARKING";
+        } else {
+          this.stage = "FIND_SPOT";
+        }
+        break;
 
-    default:
-      this.finishedParkingStages();
-      break;
+      default:
+        this.finishedParkingStages();
+        break;
     }
   }
 }

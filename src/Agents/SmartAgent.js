@@ -16,8 +16,10 @@ class SmartAgent extends Agent {
       Math.random(),
       Math.random(),
     ];
+    this.exploreChance = 0.05; // Willingness to try a different lot outside of preference.
     this.changePreference = 0.1; // The amount preference changes upon update.
     this.ticksTaken = [];
+    this.ticksTakenArrayLength = 50;
 
     // Variables for searching in lot.
     this.searchPath = [];
@@ -161,7 +163,7 @@ class SmartAgent extends Agent {
 
   // Updates the preferences dependent on time taken.
   ticksChecked() {
-    if (this.ticksTaken.length >= 10) {
+    if (this.ticksTaken.length >= this.ticksTakenArrayLength) {
       var meanTicks = mean(this.ticksTaken);
       var stdTicks = std(this.ticksTaken);
 
@@ -184,7 +186,7 @@ class SmartAgent extends Agent {
 
     switch (this.stage) {
       case "SPAWN":
-        if (Math.random() <= 0.1) {
+        if (Math.random() <= this.exploreChance) {
           this.lotChoice = this.lots[this.randomValueInRange(0, 4)];
         } else {
           this.lotChoice = this.checkPreference();

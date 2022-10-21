@@ -95319,9 +95319,12 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
     _this.lotChoiceInitial = null; // NORTH, EAST, MID, WEST
 
     _this.lotPreference = [Math.random(), Math.random(), Math.random(), Math.random()];
+    _this.exploreChance = 0.05; // Willingness to try a different lot outside of preference.
+
     _this.changePreference = 0.1; // The amount preference changes upon update.
 
-    _this.ticksTaken = []; // Variables for searching in lot.
+    _this.ticksTaken = [];
+    _this.ticksTakenArrayLength = 50; // Variables for searching in lot.
 
     _this.searchPath = [];
     _this.searchTime = 6; // Tolances to look for a spot to park. Changes lot when searchFail == searchTime
@@ -95458,7 +95461,7 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
   }, {
     key: "ticksChecked",
     value: function ticksChecked() {
-      if (this.ticksTaken.length >= 10) {
+      if (this.ticksTaken.length >= this.ticksTakenArrayLength) {
         var meanTicks = (0, _mathjs.mean)(this.ticksTaken);
         var stdTicks = (0, _mathjs.std)(this.ticksTaken); // This statement updates preferences based on the amount of ticks taken to reach goal.
 
@@ -95483,7 +95486,7 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
 
       switch (this.stage) {
         case "SPAWN":
-          if (Math.random() <= 0.1) {
+          if (Math.random() <= this.exploreChance) {
             this.lotChoice = this.lots[this.randomValueInRange(0, 4)];
           } else {
             this.lotChoice = this.checkPreference();

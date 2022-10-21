@@ -1,5 +1,5 @@
 import Agent from "../Agent";
-import { mean, std } from "mathjs";
+import math, { mean, std } from "mathjs";
 
 class SmartAgent extends Agent {
   constructor(world, type, cell) {
@@ -124,8 +124,6 @@ class SmartAgent extends Agent {
         this.lotPreference[i] -= this.changePreference;
       }
 
-      this.lotPreference[i] = Math.round(this.lotPreference[i] * 100.0) / 100.0;
-
       this.lotPreference[i] =
         this.lotPreference[i] > 1
           ? (this.lotPreference[i] = 1)
@@ -149,8 +147,6 @@ class SmartAgent extends Agent {
         this.lotPreference[i] += this.changePreference;
       }
 
-      this.lotPreference[i] = Math.round(this.lotPreference[i] * 100.0) / 100.0;
-
       this.lotPreference[i] =
         this.lotPreference[i] > 1
           ? (this.lotPreference[i] = 1)
@@ -169,11 +165,10 @@ class SmartAgent extends Agent {
       var meanTicks = mean(this.ticksTaken);
       var stdTicks = std(this.ticksTaken);
 
+      // This statement updates preferences based on the amount of ticks taken to reach goal.
       if (this.ticks < meanTicks - stdTicks / 2) {
-        console.log("GOOD");
         this.increasePreference(this.lotChoice);
       } else if (this.ticks > meanTicks + stdTicks / 2) {
-        console.log("BAD");
         this.decreasePreference(this.lotChoiceInitial);
       }
 
@@ -189,13 +184,21 @@ class SmartAgent extends Agent {
 
     switch (this.stage) {
       case "SPAWN":
-        this.lotChoice = this.checkPreference();
+        if (Math.random() <= 0.1) {
+          const rndLocation = randomValueInRange(1, 5);
+
+          this.lotChoice = this.lots[rndLocation];
+        } else {
+          this.lotChoice = this.checkPreference();
+        }
+
         this.lotChoiceInitial = this.lotChoice;
         var coordinates = this.randomLotCoordinates(this.lotChoice);
 
         this.changeMoveTo(coordinates[0], coordinates[1], () => {
           this.stage = "MOVE_TO_LOT";
         });
+
         const goal_cell = this.world.getCellAtCoordinates(
           this.move_to[0],
           this.move_to[1]

@@ -95260,7 +95260,11 @@ exports.default = void 0;
 
 var _Agent2 = _interopRequireDefault(require("../Agent"));
 
-var _mathjs = require("mathjs");
+var _mathjs = _interopRequireWildcard(require("mathjs"));
+
+function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+
+function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -95429,7 +95433,6 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
           this.lotPreference[i] -= this.changePreference;
         }
 
-        this.lotPreference[i] = Math.round(this.lotPreference[i] * 100.0) / 100.0;
         this.lotPreference[i] = this.lotPreference[i] > 1 ? this.lotPreference[i] = 1 : this.lotPreference[i];
         this.lotPreference[i] = this.lotPreference[i] < 0 ? this.lotPreference[i] = 0 : this.lotPreference[i];
       }
@@ -95447,7 +95450,6 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
           this.lotPreference[i] += this.changePreference;
         }
 
-        this.lotPreference[i] = Math.round(this.lotPreference[i] * 100.0) / 100.0;
         this.lotPreference[i] = this.lotPreference[i] > 1 ? this.lotPreference[i] = 1 : this.lotPreference[i];
         this.lotPreference[i] = this.lotPreference[i] < 0 ? this.lotPreference[i] = 0 : this.lotPreference[i];
       }
@@ -95458,13 +95460,11 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
     value: function ticksChecked() {
       if (this.ticksTaken.length >= 10) {
         var meanTicks = (0, _mathjs.mean)(this.ticksTaken);
-        var stdTicks = (0, _mathjs.std)(this.ticksTaken);
+        var stdTicks = (0, _mathjs.std)(this.ticksTaken); // This statement updates preferences based on the amount of ticks taken to reach goal.
 
         if (this.ticks < meanTicks - stdTicks / 2) {
-          console.log("GOOD");
           this.increasePreference(this.lotChoice);
         } else if (this.ticks > meanTicks + stdTicks / 2) {
-          console.log("BAD");
           this.decreasePreference(this.lotChoiceInitial);
         }
 
@@ -95483,7 +95483,13 @@ var SmartAgent = /*#__PURE__*/function (_Agent) {
 
       switch (this.stage) {
         case "SPAWN":
-          this.lotChoice = this.checkPreference();
+          if (Math.random() <= 0.1) {
+            var rndLocation = randomValueInRange(1, 5);
+            this.lotChoice = this.lots[rndLocation];
+          } else {
+            this.lotChoice = this.checkPreference();
+          }
+
           this.lotChoiceInitial = this.lotChoice;
           var coordinates = this.randomLotCoordinates(this.lotChoice);
           this.changeMoveTo(coordinates[0], coordinates[1], function () {

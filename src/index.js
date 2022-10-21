@@ -6,7 +6,7 @@ import World from "./World";
 // **********************************
 // Static config variables
 // **********************************
-const experimentTicks = 500000;
+const experimentTicks = 250000;
 const automatedLoopLength = 500;
 const maxSpawnRateLimit = 1;
 

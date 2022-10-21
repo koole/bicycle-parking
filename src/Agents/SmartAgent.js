@@ -1,5 +1,5 @@
 import Agent from "../Agent";
-import mathjs from "mathjs";
+import { mean, std } from "mathjs";
 
 class SmartAgent extends Agent {
   constructor(world, type, cell) {
@@ -22,6 +22,7 @@ class SmartAgent extends Agent {
     this.searchPath = [];
     this.searchTime = 6; // Tolances to look for a spot to park. Changes lot when searchFail == searchTime
     this.searchFail = 0;
+    this.capacityTolerance = 0.85;
   }
 
   ////////////////////////
@@ -88,7 +89,6 @@ class SmartAgent extends Agent {
 
     coordinates[0] = goal_cell.x;
     coordinates[1] = goal_cell.y;
-    // console.log("first goal was " + coordinates[0] + " and " + coordinates[1])
 
     for (let X = 0; X < this.searchPath.length; X++) {
       const new_goal_cell = this.world.getCellAtCoordinates(
@@ -98,14 +98,10 @@ class SmartAgent extends Agent {
       if (new_goal_cell.canPark()) {
         coordinates[0] = new_goal_cell.x;
         coordinates[1] = new_goal_cell.y;
-        console.log(
-          "UPDATED goal was " + coordinates[0] + " and " + coordinates[1]
-        );
         break;
       }
     }
 
-    // console.log("END "+coordinates[0] + " and " + coordinates[1])
     return coordinates;
   }
 
@@ -166,13 +162,24 @@ class SmartAgent extends Agent {
     }
   }
 
-  // ticksChecked() {
-  //   if (this.ticksTaken.length >= 10) {
-  //     console.log("FULL");
-  //   } else {
-  //     this.ticksTaken.push(this.ticks);
-  //   }
-  // }
+  // Updates the preferences dependent on time taken.
+  ticksChecked() {
+    if (this.ticksTaken.length >= 10) {
+      var meanTicks = mean(this.ticksTaken);
+      var stdTicks = std(this.ticksTaken);
+
+      console.log(meanTicks, stdTicks);
+
+      if (this.ticks < meanTicks - stdTicks / 2) {
+        console.log("INCREASING");
+        this.increasePreference(this.lotChoice);
+      }
+
+      this.ticksTaken.shift();
+    }
+
+    this.ticksTaken.push(this.ticks);
+  }
 
   // SMART STRATEGY //
   act() {
@@ -209,9 +216,9 @@ class SmartAgent extends Agent {
         this.changeMoveTo(coordinates[0], coordinates[1], () => {
           this.stage = "MOVE_TO_LOT";
         });
+
         break;
       case "MOVE_TO_LOT":
-        // console.log("movetolot")
         if (
           this.calculatingPath == false &&
           this.path !== null &&
@@ -223,8 +230,11 @@ class SmartAgent extends Agent {
           );
           this.makeMove(nextCell);
 
-          if (this.path.length < 5) {
-            this.stage = "EVALUATE_LOT";
+          if (
+            this.path.length < 5 &&
+            this.world.getLotCapacity(this.lotChoice) > this.capacityTolerance
+          ) {
+            this.stage = "CHANGE_CHOICE";
             if (this.path.length < 2) {
               const goal_cell = this.world.getCellAtCoordinates(
                 this.move_to[0],
@@ -239,13 +249,6 @@ class SmartAgent extends Agent {
           this.stage = "PARKING";
         }
         break;
-      case "EVALUATE_LOT":
-        if (this.world.getLotCapacity(this.lotChoice) > 0.8) {
-          this.stage = "CHANGE_CHOICE";
-        } else {
-          this.stage = "MOVE_TO_LOT";
-        }
-        break;
       case "SEARCHING_IN_LOT":
         var coordinates = this.lotSearch();
         this.changeMoveTo(coordinates[0], coordinates[1], () => {
@@ -255,7 +258,7 @@ class SmartAgent extends Agent {
       case "PARKING":
         if (this.park(this.lotChoice)) {
           this.stage = "LEAVING_PARKING";
-          this.increasePreference(this.lotChoice);
+          // this.increasePreference(this.lotChoice);
         } else {
           // console.warn("Could not park");
           this.searchFail += 1;
@@ -267,15 +270,13 @@ class SmartAgent extends Agent {
           }
         }
         break;
-      // case "MOVING_TO_GOAL":
-      //   this.executePathSequence(() => {
-      //     this.stage = "IN_GOAL";
-      //     this.hasReachedGoal();
-      //   });
-
-      // console.log(this.ticksTaken);
-
-      // break;
+      case "MOVING_TO_GOAL":
+        this.executePathSequence(() => {
+          this.stage = "IN_GOAL";
+          this.ticksChecked();
+          this.hasReachedGoal();
+        });
+        break;
       default:
         this.finishedParkingStages();
         break;

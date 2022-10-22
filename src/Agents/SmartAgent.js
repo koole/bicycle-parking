@@ -1,5 +1,5 @@
 import Agent from "../Agent";
-import math, { mean, std } from "mathjs";
+import { mean, std } from "mathjs";
 
 class SmartAgent extends Agent {
   constructor(world, type, cell) {

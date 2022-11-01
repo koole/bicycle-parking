@@ -5,7 +5,8 @@ import Cell from "./Cell";
 import Agent from "./Agent";
 import SmartAgent from "./Agents/SmartAgent";
 import RandomAgent from "./Agents/RandomAgent";
-import ClosestAgent from "./Agents/ClosestAgent";
+import ClosestToSpawnAgent from "./Agents/ClosestToSpawnAgent";
+import ClosestToGoalAgent from "./Agents/ClosestToGoalAgent";
 
 const MAX_PARKED_BIKES = 4;
 
@@ -182,8 +183,10 @@ class World {
         return SmartAgent;
       case "RANDOM":
         return RandomAgent;
-      case "CLOSEST":
-        return ClosestAgent;
+      case "CLOSEST_TO_SPAWN":
+        return ClosestToSpawnAgent;
+      case "CLOSEST_TO_GOAL":
+        return ClosestToGoalAgent;
       default:
         return Agent;
     }

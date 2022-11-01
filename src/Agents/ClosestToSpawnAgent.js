@@ -1,8 +1,8 @@
 import Agent from "../Agent";
 
-class ClosestAgent extends Agent {
+class ClosestToSpawnAgent extends Agent {
   constructor(world, type, cell) {
-    super(world, type, cell, "CLOSEST");
+    super(world, type, cell, "CLOSEST_TO_SPAWN");
   }
 
   // BFS for the closest valid parking spot
@@ -119,4 +119,4 @@ class ClosestAgent extends Agent {
   }
 }
 
-export default ClosestAgent;
+export default ClosestToSpawnAgent;

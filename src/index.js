@@ -14,10 +14,11 @@ const maxSpawnRateLimit = 1;
 // Parameter variable setup
 // **********************************
 
-const STRATEGIES = ["SMART", "RANDOM", "CLOSEST"];
+const STRATEGIES = ["SMART", "RANDOM", "CLOSEST_TO_SPAWN", "CLOSEST_TO_GOAL"];
 
 // Set default selected strategies
-let selectedStrategies = ["SMART", "RANDOM", "CLOSEST"];
+// let selectedStrategies = ["SMART", "RANDOM", "CLOSEST_TO_SPAWN", "CLOSEST_TO_GOAL"];
+let selectedStrategies = ["CLOSEST_TO_GOAL"];
 
 var currentTick = 0;
 
@@ -345,8 +346,8 @@ function openResultsModal() {
     }
   });
 
-  DrawChart("time-to-park", timeToParkData, max);
-  DrawChart("time-to-goal", timeToGoalData, max);
+  // DrawChart("time-to-park", timeToParkData, max);
+  // DrawChart("time-to-goal", timeToGoalData, max);
   DrawTrend(trendData);
   document.getElementById("resultsModal").style.display = "block";
   document.getElementById("resultsModalBackdrop").style.display = "block";
@@ -401,8 +402,6 @@ function DrawTrend(data) {
     dataRows.push(averagedData);
   });
 
-  console.log(dataRows);
-
   // Find strategy with most data points, loop over this and create a row for each datapoint for all strategies at this index
   const maxDataPoints = Math.max(...dataRows.map((row) => row.length));
   const dataCombined = [];
@@ -418,10 +417,9 @@ function DrawTrend(data) {
   dataCombined.forEach((row, index) => {
     dataColumns.push([index, ...row]);
   });
-  console.log(dataCombined);
+
   var data = google.visualization.arrayToDataTable(dataColumns);
 
-  console.log(data);
   // Trendline configuration for each strategy
   const trendlines = {};
   strategies.forEach((strategy, i) => {

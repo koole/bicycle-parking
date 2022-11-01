@@ -96,9 +96,9 @@ class Cell {
       ctx.font = "16px monospace";
       ctx.fillText(
         "" +
-          String(
-            this.agents.filter(({ type }) => type === "PEDESTRIAN").length
-          ).padStart(3, "0"),
+        String(
+          this.agents.filter(({ type }) => type === "PEDESTRIAN").length
+        ).padStart(3, "0"),
         canvas_x + 1.5,
         canvas_y + 21
       );
@@ -217,10 +217,12 @@ class Cell {
 
   drawBike(ctx, x, y, orientation, i) {
     ctx.fillStyle = "#222529";
-    if (orientation === "vertical") {
-      ctx.fillRect(x + 6 + 10 * i, y + 2, 5, 20);
-    } else {
-      ctx.fillRect(x + 2, y + 6 + 10 * i, 20, 5);
+    if (i < 3) {
+      if (orientation === "vertical") {
+        ctx.fillRect(x + 6 + 8 * i, y + 2, 4, 20);
+      } else {
+        ctx.fillRect(x + 2, y + 4 + 8 * i, 20, 4);
+      }
     }
   }
 

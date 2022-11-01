@@ -22,8 +22,8 @@ let selectedStrategies = ["CLOSEST_TO_GOAL"];
 
 var currentTick = 0;
 
-var csvRowsPark = "strategy,time\n";
-var csvRowsGoal = "strategy,time\n";
+var csvRowsPark = "strategy,time,tick\n";
+var csvRowsGoal = "strategy,time,tick\n";
 
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
@@ -62,8 +62,8 @@ function reset() {
   timeToParkData = [selectedStrategies];
   timeToGoalData = [selectedStrategies];
   clearTrendData();
-  csvRowsPark = "strategy,time\n";
-  csvRowsGoal = "strategy,time\n";
+  csvRowsPark = "strategy,time,tick\n";
+  csvRowsGoal = "strategy,time,tick\n";
   currentTick = 0;
   experimentMode = false;
 }
@@ -302,7 +302,7 @@ export function addTimeToPark(strategy, data) {
   const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToParkData.push(row);
-  csvRowsPark += `${strategy},${data}\n`;
+  csvRowsPark += `${strategy},${data},${currentTick}\n`;
 }
 
 export function addTimeToGoal(strategy, data) {
@@ -311,7 +311,7 @@ export function addTimeToGoal(strategy, data) {
   row[index] = data;
   timeToGoalData.push(row);
   trendData[strategy].push(data);
-  csvRowsGoal += `${strategy},${data}\n`;
+  csvRowsGoal += `${strategy},${data},${currentTick}\n`;
 }
 
 // **********************************

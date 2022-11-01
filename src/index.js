@@ -346,8 +346,8 @@ function openResultsModal() {
     }
   });
 
-  // DrawChart("time-to-park", timeToParkData, max);
-  // DrawChart("time-to-goal", timeToGoalData, max);
+  DrawChart("time-to-park", timeToParkData, max);
+  DrawChart("time-to-goal", timeToGoalData, max);
   DrawTrend(trendData);
   document.getElementById("resultsModal").style.display = "block";
   document.getElementById("resultsModalBackdrop").style.display = "block";

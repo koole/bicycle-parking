@@ -12,42 +12,6 @@ class Cell {
 
   // Check if agent can be added to this cell
   checkAddAgent(agent) {
-    if (this.type === "SPAWN") {
-      return true;
-    }
-
-    if (this.type === "BUILDING_ENTRANCE" && agent.type === "PEDESTRIAN") {
-      return true;
-    }
-    // Allow a maximum of:
-    // 2 agents of type BIKE
-    // or 3 agents of type PEDESTRIAN
-    // or 1 agent of type BIKE and 2 agents of type PEDESTRIAN
-    // or 2 agent of type BIKE and 1 agents of type PEDESTRIAN
-    if (
-      agent.type === "BIKE" &&
-      this.agents.filter(({ type }) => type === "BIKE").length >= 20
-    ) {
-      return false;
-    }
-    if (
-      agent.type === "PEDESTRIAN" &&
-      this.agents.filter(({ type }) => type === "PEDESTRIAN").length >= 30
-    ) {
-      return false;
-    }
-    if (
-      agent.type === "BIKE" &&
-      this.agents.filter(({ type }) => type === "PEDESTRIAN").length >= 20
-    ) {
-      return false;
-    }
-    if (
-      agent.type === "PEDESTRIAN" &&
-      this.agents.filter(({ type }) => type === "BIKE").length >= 30
-    ) {
-      return false;
-    }
     return true;
   }
 
@@ -101,6 +65,8 @@ class Cell {
         arrow = "↔";
       } else if (this.allowed_direction === "v") {
         arrow = "↕";
+      } else if (this.allowed_direction === "a") {
+        arrow = "·";
       }
       ctx.fillText(arrow, canvas_x + 11, canvas_y + 20);
       // reset transparency
@@ -129,7 +95,10 @@ class Cell {
       ctx.fillStyle = "#ffffff";
       ctx.font = "16px monospace";
       ctx.fillText(
-        "" + String(this.agents.filter(({ type }) => type === "PEDESTRIAN").length).padStart(3, '0'),
+        "" +
+          String(
+            this.agents.filter(({ type }) => type === "PEDESTRIAN").length
+          ).padStart(3, "0"),
         canvas_x + 1.5,
         canvas_y + 21
       );
@@ -143,8 +112,9 @@ class Cell {
           // If the current agents is moving to the left or right in the agent's paths next step
           // then draw the bike in the horizontal position
           if (
-            agent.path && agent.path.length > 0 &&
-            (agent.path[0].x === agent.cell.x)
+            agent.path &&
+            agent.path.length > 0 &&
+            agent.path[0].x === agent.cell.x
           ) {
             this.drawBike(ctx, x * squareSize, y * squareSize, "vertical", i);
           } else {

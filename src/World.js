@@ -1,6 +1,13 @@
-import Cell from "./Cell";
-import Agent from "./Agent";
 import EasyStar from "easystarjs";
+
+import Cell from "./Cell";
+
+import Agent from "./Agent";
+import SmartAgent from "./Agents/SmartAgent";
+import RandomAgent from "./Agents/RandomAgent";
+import ClosestAgent from "./Agents/ClosestAgent";
+
+const MAX_PARKED_BIKES = 4;
 
 function getDirectionArray(direction) {
   switch (direction) {
@@ -24,13 +31,22 @@ function getDirectionArray(direction) {
 class World {
   constructor(worldmap, mapDirection, selectedStrategies) {
     this.state = [];
-    this.agents = [];
+    this.agentsActive = []; // Agents that are currently in the world.
+    this.agentsInactive = []; // Agents that are not currecntly in the world.
+
+    // This keeps track how full the lots are.
+    this.northCapacity = 0;
+    this.eastCapacity = 0;
+    this.midCapacity = 0;
+    this.westCapacity = 0;
 
     this.tickCount = 0;
 
     // Setup initial state
     const rows = worldmap.split("\n").filter((row) => row.length > 0);
-    const directionRows = mapDirection.split("\n").filter((row) => row.length > 0);
+    const directionRows = mapDirection
+      .split("\n")
+      .filter((row) => row.length > 0);
 
     // Turns the characters from the worldmap into understandable strings
     const types = {
@@ -59,8 +75,16 @@ class World {
         const type = types[c];
         const cell = new Cell(this, type, x, y, allowed_direction);
 
-        this.bikePathfinder.setDirectionalCondition(x, y, getDirectionArray(allowed_direction));
-        this.pedestrianPathfinder.setDirectionalCondition(x, y, getDirectionArray(allowed_direction));
+        this.bikePathfinder.setDirectionalCondition(
+          x,
+          y,
+          getDirectionArray(allowed_direction)
+        );
+        this.pedestrianPathfinder.setDirectionalCondition(
+          x,
+          y,
+          getDirectionArray(allowed_direction)
+        );
 
         return cell;
       });
@@ -106,48 +130,97 @@ class World {
     return this.state.flat().filter((cell) => cell.type === "PARKING");
   }
 
-
-  // // Returns all neighbors of a cell
-  // getNeighbors(cell) {
-  //   const { x, y } = cell;
-  //   let neighbors = [];
-
-  //   // Get neighbors in all 4 directions
-  //   if (y > 0) {
-  //     neighbors.push(this.state[y - 1][x]);
-  //   }
-  //   if (y < this.state.length - 1) {
-  //     neighbors.push(this.state[y + 1][x]);
-  //   }
-  //   if (x > 0) {
-  //     neighbors.push(this.state[y][x - 1]);
-  //   }
-  //   if (x < this.state[y].length - 1) {
-  //     neighbors.push(this.state[y][x + 1]);
-  //   }
-  //   return neighbors;
-  // }
-
-  // Adds a new agent to the world, at a random spawn point
-  spawnAgent(strategy) {
-    // Randomly pick a spawn cell
-    const spawn = this.getRandomCellOfType("SPAWN");
-    const agent = new Agent(this, "BIKE", spawn, strategy);
-
-    if (spawn.checkAddAgent(agent)) {
-      // Add agent of type "BIKE" to this cell
-      spawn.addAgent(agent);
-      this.agents.push(agent);
+  // These capacity functions evaulate the amount of bikes park in lots.
+  addLotCapacity(location) {
+    if (location == "north") {
+      this.northCapacity += 1;
+    }
+    if (location == "east") {
+      this.eastCapacity += 1;
+    }
+    if (location == "mid") {
+      this.midCapacity += 1;
+    }
+    if (location == "west") {
+      this.westCapacity += 1;
     }
   }
 
-  // Remove agent
-  removeAgent(agent) {
-    this.agents = this.agents.filter((a) => a !== agent);
-    agent.cell.removeAgent(agent);
+  removeLotCapacity(location) {
+    if (location == "north") {
+      this.northCapacity -= 1;
+    }
+    if (location == "east") {
+      this.eastCapacity -= 1;
+    }
+    if (location == "mid") {
+      this.midCapacity -= 1;
+    }
+    if (location == "west") {
+      this.westCapacity -= 1;
+    }
   }
 
-  // // Moves agent to a new cell
+  getLotCapacity(location) {
+    if (location == "north") {
+      return this.northCapacity / (30 * MAX_PARKED_BIKES);
+    }
+    if (location == "east") {
+      return this.eastCapacity / (18 * MAX_PARKED_BIKES);
+    }
+    if (location == "mid") {
+      return this.midCapacity / (14 * MAX_PARKED_BIKES);
+    }
+    if (location == "west") {
+      return this.westCapacity / (6 * MAX_PARKED_BIKES);
+    }
+  }
+
+  getAgentClass(stragegy) {
+    switch (stragegy) {
+      case "SMART":
+        return SmartAgent;
+      case "RANDOM":
+        return RandomAgent;
+      case "CLOSEST":
+        return ClosestAgent;
+      default:
+        return Agent;
+    }
+  }
+
+  // Adds a new agent to the world, at a random spawn point
+  spawnAgent(strategy) {
+    // Find if there is an inactive agent with the same strategy
+    const oldAgent = this.agentsInactive.find(
+      (agent) => agent.strategy === strategy
+    );
+
+    // If there is an inactive agent, activate it
+    if (oldAgent) {
+      this.agentsActive.push(oldAgent);
+      this.agentsInactive = this.agentsInactive.filter((a) => oldAgent !== a);
+      oldAgent.spawn.addAgent(oldAgent);
+      oldAgent.respawn();
+    } else {
+      // If there is no inactive agent, create a new one
+      // Randomly pick a spawn cell
+      const spawn = this.getRandomCellOfType("SPAWN");
+      const AgentClass = this.getAgentClass(strategy);
+      const newAgent = new AgentClass(this, "BIKE", spawn);
+      this.agentsActive.push(newAgent);
+      spawn.addAgent(newAgent);
+    }
+  }
+
+  // Remove agent from world
+  removeAgent(agent) {
+    this.agentsActive = this.agentsActive.filter((a) => a !== agent);
+    agent.cell.removeAgent(agent);
+    this.agentsInactive.push(agent);
+  }
+
+  // Moves agent to a new cell
   moveAgent(agent, cell) {
     if (cell.checkAddAgent(agent)) {
       agent.cell.removeAgent(agent);
@@ -158,13 +231,13 @@ class World {
 
   tick() {
     this.tickCount++;
-    this.agents.sort(function () {
+    this.agentsActive.sort(function () {
       return 0.5 - Math.random();
     });
-    for (const agent of this.agents) {
-      if(agent.type === "BIKE") {
+    for (const agent of this.agentsActive) {
+      if (agent.type === "BIKE") {
         agent.act();
-      } else if(agent.type === "PEDESTRIAN" && this.tickCount % 2 === 0) {
+      } else if (agent.type === "PEDESTRIAN" && this.tickCount % 3 === 0) {
         agent.act();
       }
     }

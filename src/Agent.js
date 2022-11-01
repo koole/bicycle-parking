@@ -11,17 +11,24 @@ class Agent {
     this.move_to = null;
     this.exitRate = 0.01; // The rate at which agents leave the building across stragegies.
 
-    // Variables for lotPreference
-    this.failedToPark = 0; // Tracks how many times the agent failed to park.
-    this.searchTime = 6; // How many ticks an agent is willing to search in a lot for a spot.
-    this.lotPreference = null; // Which lot is currently the preference to park for the agent.
-
     // This is for storing the calculated path
     // and not recalculating it every tick
     this.path = null;
     this.calculatingPath = false;
-    this.stage = "ENTERING";
+    this.stage = "SPAWN";
 
+    this.ticks = 0;
+    this.ticks_to_parked = null;
+    this.ticks_to_goal = null;
+  }
+
+  respawn() {
+    this.stage = "SPAWN";
+    this.cell = this.spawn;
+    this.parked_cell = null;
+    this.move_to = null;
+    this.path = null;
+    this.calculatingPath = false;
     this.ticks = 0;
     this.ticks_to_parked = null;
     this.ticks_to_goal = null;
@@ -43,7 +50,7 @@ class Agent {
     addTimeToGoal(this.strategy, this.ticks_to_goal);
   }
 
-  park() {
+  park(location) {
     if (this.cell.canPark()) {
       if (
         this.type === "BIKE" &&
@@ -53,6 +60,7 @@ class Agent {
         this.parked_cell = this.cell;
         this.type = "PEDESTRIAN";
         this.cell.addBike();
+        this.world.addLotCapacity(location);
         this.hasParked();
         return true;
       }
@@ -60,13 +68,14 @@ class Agent {
     return false;
   }
 
-  unpark() {
+  unpark(location) {
     if (
       this.type === "PEDESTRIAN" &&
       this.cell.type === "PARKING" &&
       this.parked_cell !== null
     ) {
       this.cell.removeBike();
+      this.world.removeLotCapacity(location);
       this.parked_cell = null;
       this.type = "BIKE";
     }
@@ -106,68 +115,37 @@ class Agent {
     }
   }
 
-  ///////////////////////
-  //    STRATEGIES     //
-  ///////////////////////
-  // 1) DEFAULT - Random lot, random spot.
-  // 2) PARKING LOT PREFERENCE - Specific lot, random spot.
-  // 3) PARKING LOT/SPOT PREFERENCE - Specific lot, random spot.
-  // ADD MORE!
+  executePathSequence(callback) {
+    if (
+      this.calculatingPath == false &&
+      this.path !== null &&
+      this.path.length > 0
+    ) {
+      const nextCell = this.world.getCellAtCoordinates(
+        this.path[0].x,
+        this.path[0].y
+      );
+      this.makeMove(nextCell);
+    } else if (this.calculatingPath == false) {
+      callback();
+    }
+  }
 
-  // 1) DEFAULT - Random lot, random spot.
-  default() {
+  finishedParkingStages() {
     switch (this.stage) {
-      case "ENTERING":
-        const parkingCell = this.world.getRandomCellOfType("PARKING");
-        this.changeMoveTo(parkingCell.x, parkingCell.y, () => {
-          this.stage = "MOVING_TO_PARKING_ENTERING";
-        });
-        break;
-      case "MOVING_TO_PARKING_ENTERING":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "PARKING";
-        }
-        break;
-      case "PARKING":
-        if (this.park()) {
-          this.stage = "LEAVING_PARKING";
-        } else {
-          // console.warn("Could not park");
-          this.stage = "ENTERING";
-        }
-        break;
       case "LEAVING_PARKING":
-        const buildingCell =
-          this.world.getRandomCellOfType("BUILDING_ENTRANCE");
+        const buildingCell = this.world.getRandomCellOfType(
+          "BUILDING_ENTRANCE"
+        );
         this.changeMoveTo(buildingCell.x, buildingCell.y, () => {
           this.stage = "MOVING_TO_GOAL";
         });
         break;
       case "MOVING_TO_GOAL":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
+        this.executePathSequence(() => {
           this.stage = "IN_GOAL";
           this.hasReachedGoal();
-        }
+        });
         break;
       case "IN_GOAL":
         if (Math.random() < this.exitRate) {
@@ -180,22 +158,12 @@ class Agent {
         });
         break;
       case "MOVING_TO_PARKING_LEAVING":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
+        this.executePathSequence(() => {
           this.stage = "UNPARKING";
-        }
+        });
         break;
       case "UNPARKING":
-        this.unpark();
+        this.unpark(this.lotChoice);
         this.stage = "LEAVING";
         break;
       case "LEAVING":
@@ -204,21 +172,12 @@ class Agent {
         });
         break;
       case "MOVING_TO_EXIT":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "EXITED";
-        }
+        this.executePathSequence(() => {
+          this.stage = "DESPAWN";
+        });
         break;
-      case "EXITED":
+      case "DESPAWN":
+        this.stage = "SPAWN";
         this.world.removeAgent(this);
         break;
       default:
@@ -227,421 +186,16 @@ class Agent {
     }
   }
 
-  // 2) PARKING LOT PREFERENCE - Agents goes to a specific lot, tried to park, after failing a few times goes to another lot.
-  // FUNCTIONS:
-  // Generates a random value between min and max, not including max.
-  randomValueInRange(min, max) {
-    return Math.floor(Math.random() * (max - min) + min);
-  }
-
-  // Takes in a lot and returns x, y coordinates next to it.
-  lotMove(location) {
-    var coordinates = new Array(1);
-
-    if (location == "north") {
-      coordinates[0] = 19;
-      coordinates[1] = this.randomValueInRange(4, 7);
-    }
-
-    if (location == "east") {
-      coordinates[0] = this.randomValueInRange(23, 29);
-      coordinates[1] = this.randomValueInRange(21, 23);
-    }
-    if (location == "mid") {
-      coordinates[0] = 16;
-      coordinates[1] = 19;
-    }
-    if (location == "west") {
-      coordinates[0] = 3;
-      coordinates[1] = this.randomValueInRange(17, 20);
-    }
-
-    return coordinates;
-  }
-
-  // Takes a lot to search for parking in, returns x, y coordinates of a parking spot.
-  lotSearch(location) {
-    var coordinates = new Array(1);
-
-    if (location == "north") {
-      coordinates[0] = this.randomValueInRange(20, 30);
-      coordinates[1] = this.randomValueInRange(4, 7);
-    }
-    if (location == "east") {
-      coordinates[0] = this.randomValueInRange(23, 29);
-      if (Math.random() < 0.66) {
-        coordinates[1] = this.randomValueInRange(19, 21);
-      } else {
-        coordinates[1] = 23;
-      }
-    }
-    if (location == "mid") {
-      coordinates[0] = this.randomValueInRange(10, 17);
-      coordinates[1] = this.randomValueInRange(17, 19);
-    }
-    if (location == "west") {
-      coordinates[0] = this.randomValueInRange(4, 6);
-      coordinates[1] = this.randomValueInRange(17, 20);
-    }
-
-    return coordinates;
-  }
-
-  // PARKING LOT PREFERENCE
-  parkingLotPreference() {
-    switch (this.stage) {
-      case "ENTERING":
-        const lotOptions = ["north", "east", "mid", "west"];
-        this.lotPreference =
-          lotOptions[Math.floor(Math.random() * lotOptions.length)];
-        if (
-          this.lotPreference == "north" &&
-          this.spawn.x == 35 &&
-          this.spawn.y == 5
-        ) {
-          var coordinates = [30, this.randomValueInRange(4, 7)];
-        } else {
-          var coordinates = this.lotMove(this.lotPreference);
-        }
-
-        this.changeMoveTo(coordinates[0], coordinates[1], () => {
-          this.stage = "MOVING_TO_LOT";
-        });
-        break;
-      case "MOVING_TO_LOT":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "SEARCHING_IN_LOT";
-        }
-        break;
-      case "SEARCHING_IN_LOT":
-        var coordinates = this.lotSearch(this.lotPreference);
-        this.changeMoveTo(coordinates[0], coordinates[1], () => {
-          this.stage = "MOVING_TO_SPOT";
-        });
-        break;
-      case "MOVING_TO_SPOT":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "PARKING";
-        }
-        break;
-      case "PARKING":
-        if (this.park()) {
-          this.stage = "LEAVING_PARKING";
-        } else {
-          // console.warn("Could not park");
-          this.failedToPark += 1;
-          if (this.failedToPark > this.searchTime) {
-            this.stage = "CHANGEPREF";
-            this.failedToPark = 0;
-          } else {
-            this.stage = "SEARCHING_IN_LOT";
-          }
-        }
-        break;
-      case "CHANGEPREF":
-        var options = ["north", "east", "mid", "west"];
-
-        while (true) {
-          var lot = options[Math.floor(Math.random() * options.length)];
-
-          if (lot != this.lotPreference) {
-            this.lotPreference = lot;
-            break;
-          }
-        }
-
-        var coordinates = this.lotMove(this.lotPreference);
-        this.changeMoveTo(coordinates[0], coordinates[1], () => {
-          this.stage = "MOVING_TO_LOT";
-        });
-        break;
-      case "LEAVING_PARKING":
-        const buildingCell =
-          this.world.getRandomCellOfType("BUILDING_ENTRANCE");
-        this.changeMoveTo(buildingCell.x, buildingCell.y, () => {
-          this.stage = "MOVING_TO_GOAL";
-        });
-        break;
-      case "MOVING_TO_GOAL":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "IN_GOAL";
-          this.hasReachedGoal();
-        }
-        break;
-      case "IN_GOAL":
-        if (Math.random() < this.exitRate) {
-          this.stage = "LEAVING_GOAL";
-        }
-        break;
-      case "LEAVING_GOAL":
-        this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, () => {
-          this.stage = "MOVING_TO_PARKING_LEAVING";
-        });
-        break;
-      case "MOVING_TO_PARKING_LEAVING":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "UNPARKING";
-        }
-        break;
-      case "UNPARKING":
-        this.unpark();
-        this.stage = "LEAVING";
-        break;
-      case "LEAVING":
-        this.changeMoveTo(this.spawn.x, this.spawn.y, () => {
-          this.stage = "MOVING_TO_EXIT";
-        });
-        break;
-      case "MOVING_TO_EXIT":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "EXITED";
-        }
-        break;
-      case "EXITED":
-        this.world.removeAgent(this);
-        break;
-      default:
-        console.log("NO STAGE");
-    }
-  }
-
-  // 3) parkingLotSpotPreference: specific lot and spot. Full? Spread out search from spot.
-  parkingLotSpotPreference() {}
-
-  // 4) closest parking spot from spawn
-  closest_strat() {
-    switch (this.stage) {
-      case "ENTERING":
-        // BFS for the closest valid parking spot
-        let coords = {x:0, y:0};
-        let Q = [];
-        let grid = [];
-        const label = function (x, y) {
-          grid[y] ??= [];
-          grid[y][x] = 1;
-        };
-        label(this.cell.x, this.cell.y);
-        Q = [[this.cell.x, this.cell.y], ...Q];
-        BFS: while (Q.length) {
-          const V = Q.pop();
-          const cell = this.world.getCellAtCoordinates(V[0], V[1]);
-          if (cell.canPark()) {
-            coords = { x: V[0], y: V[1] };
-            break BFS;
-          }
-          const dirs = [
-            [V[1], V[0] + 1],
-            [V[1], V[0] - 1],
-            [V[1] + 1, V[0]],
-            [V[1] - 1, V[0]],
-          ];
-          for (const [y, x] of dirs) {
-            let next = this.world.state[y]?.[x];
-            let valid_types = [
-              "SPAWN",
-              "BIKE_PATH",
-              "ALL_PATH",
-              "PARKING",
-              "EXIT",
-            ];
-            if (
-              next !== undefined &&
-              valid_types.includes(next.type) &&
-              grid[y]?.[x] !== 1
-            ) {
-              label(x, y);
-              Q = [[x, y], ...Q];
-            }
-          }
-        }
-        this.changeMoveTo(coords.x, coords.y, () => {
-          this.stage = "MOVING_TO_PARKING_ENTERING";
-        });
-        break;
-      case "PARKING":
-        if (this.park()) {
-          this.stage = "LEAVING_PARKING";
-        } else {
-          this.stage = "ENTERING";
-        }
-        break;
-      // cases below are copied from default
-      case "MOVING_TO_PARKING_ENTERING":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "PARKING";
-        }
-        break;
-      case "CHANGEPREF":
-        var options = ["north", "east", "mid", "west"];
-
-        while (true) {
-          var lot = options[Math.floor(Math.random() * options.length)];
-
-          if (lot != this.lotPreference) {
-            this.lotPreference = lot;
-            break;
-          }
-        }
-
-        var coordinates = this.lotMove(this.lotPreference);
-        this.changeMoveTo(coordinates[0], coordinates[1], () => {
-          this.stage = "MOVING_TO_LOT";
-        });
-        break;
-      case "LEAVING_PARKING":
-        const buildingCell =
-          this.world.getRandomCellOfType("BUILDING_ENTRANCE");
-        this.changeMoveTo(buildingCell.x, buildingCell.y, () => {
-          this.stage = "MOVING_TO_GOAL";
-        });
-        break;
-      case "MOVING_TO_GOAL":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "IN_GOAL";
-          this.hasReachedGoal();
-        }
-        break;
-      case "IN_GOAL":
-        if (Math.random() < this.exitRate) {
-          this.stage = "LEAVING_GOAL";
-        }
-        break;
-      case "LEAVING_GOAL":
-        this.changeMoveTo(this.parked_cell.x, this.parked_cell.y, () => {
-          this.stage = "MOVING_TO_PARKING_LEAVING";
-        });
-        break;
-      case "MOVING_TO_PARKING_LEAVING":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "UNPARKING";
-        }
-        break;
-      case "UNPARKING":
-        this.unpark();
-        this.stage = "LEAVING";
-        break;
-      case "LEAVING":
-        this.changeMoveTo(this.spawn.x, this.spawn.y, () => {
-          this.stage = "MOVING_TO_EXIT";
-        });
-        break;
-      case "MOVING_TO_EXIT":
-        if (
-          this.calculatingPath == false &&
-          this.path !== null &&
-          this.path.length > 0
-        ) {
-          const nextCell = this.world.getCellAtCoordinates(
-            this.path[0].x,
-            this.path[0].y
-          );
-          this.makeMove(nextCell);
-        } else {
-          this.stage = "EXITED";
-        }
-        break;
-      case "EXITED":
-        this.world.removeAgent(this);
-        break;
-      default:
-        console.log("NO STAGE");
-    }
-  }
-
   ////////////////////////
   // STRATEGY EXECUTION //
   ////////////////////////
-  act() {
+
+  startAct() {
     this.ticks += 1;
-    if (this.strategy == "RANDOM_CHOICE") {
-      this.default();
-    } else if (this.strategy == "LOT_PREFERENCE") {
-      this.parkingLotPreference();
-    } else if (this.strategy == "CLOSEST_SPOT") {
-      this.closest_strat();
-    } else {
-      console.log("Unknown strategy: ", this.strategy);
-    }
+  }
+
+  act() {
+    console.warn("Agent.act() should be overridden");
   }
 }
 

@@ -6,7 +6,7 @@ import World from "./World";
 // **********************************
 // Static config variables
 // **********************************
-const experimentTicks = 10000;
+const experimentTicks = 250000;
 const automatedLoopLength = 500;
 const maxSpawnRateLimit = 1;
 
@@ -14,10 +14,10 @@ const maxSpawnRateLimit = 1;
 // Parameter variable setup
 // **********************************
 
-const STRATEGIES = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
+const STRATEGIES = ["SMART", "RANDOM", "CLOSEST"];
 
 // Set default selected strategies
-let selectedStrategies = ["RANDOM_CHOICE", "LOT_PREFERENCE", "CLOSEST_SPOT"];
+let selectedStrategies = ["SMART", "RANDOM", "CLOSEST"];
 
 var currentTick = 0;
 
@@ -26,6 +26,15 @@ var csvRowsGoal = "strategy,time\n";
 
 var timeToParkData = [selectedStrategies];
 var timeToGoalData = [selectedStrategies];
+var trendData = {};
+// Add key to trendData for selectedStrategies
+function clearTrendData() {
+  trendData = {};
+  selectedStrategies.forEach((strategy) => {
+    trendData[strategy] = [];
+  });
+}
+clearTrendData();
 
 var experimentMode = false;
 
@@ -37,6 +46,7 @@ var maxSpawnRate = 1;
 
 // Default tickDelay and spawnspeed
 let tickDelay = 20;
+let oldTickDelay = tickDelay;
 let spawnspeed = 0.2;
 
 let paused = false;
@@ -50,6 +60,7 @@ function reset() {
   world = new World(worldmap, mapDirection);
   timeToParkData = [selectedStrategies];
   timeToGoalData = [selectedStrategies];
+  clearTrendData();
   csvRowsPark = "strategy,time\n";
   csvRowsGoal = "strategy,time\n";
   currentTick = 0;
@@ -68,6 +79,7 @@ function strategyName(strategy) {
 // Onclick of #experiment-mode, start experiment
 document.getElementById("experiment-mode").onclick = function () {
   reset();
+  tickDelay = 0;
   experimentMode = true;
   paused = false;
 };
@@ -219,10 +231,11 @@ document.getElementById("reset").addEventListener("click", () => {
 // Create HTML checkboxes for each strategy, and add them and remove them to selectedStrategies when enabled/disabled
 const strategyCheckboxes = document.getElementById("strategy-checkboxes");
 STRATEGIES.forEach((strategy) => {
-  const container = document.createElement("div");
-  container.classList.add("form-check");
+  const container = document.createElement("li");
+  container.classList.add("list-group-item");
   const checkbox = document.createElement("input");
   checkbox.classList.add("form-check-input");
+  checkbox.classList.add("me-2");
   checkbox.type = "checkbox";
   checkbox.id = strategy;
   checkbox.checked = selectedStrategies.includes(strategy);
@@ -237,6 +250,7 @@ STRATEGIES.forEach((strategy) => {
   const label = document.createElement("label");
   label.htmlFor = strategy;
   label.classList.add("form-check-label");
+  label.classList.add("stretched-link");
   label.appendChild(document.createTextNode(strategyName(strategy)));
   strategyCheckboxes.appendChild(container);
   container.appendChild(checkbox);
@@ -295,6 +309,7 @@ export function addTimeToGoal(strategy, data) {
   const row = Array(selectedStrategies.length).fill(null);
   row[index] = data;
   timeToGoalData.push(row);
+  trendData[strategy].push(data);
   csvRowsGoal += `${strategy},${data}\n`;
 }
 
@@ -306,6 +321,7 @@ google.charts.load("current", { packages: ["corechart"] });
 google.charts.setOnLoadCallback(() => {
   DrawChart("time-to-park", timeToParkData, 0);
   DrawChart("time-to-goal", timeToGoalData, 0);
+  DrawTrend(trendData);
 });
 // Render charts onclick of #render-charts
 document.getElementById("render-charts").addEventListener("click", () => {
@@ -331,15 +347,19 @@ function openResultsModal() {
 
   DrawChart("time-to-park", timeToParkData, max);
   DrawChart("time-to-goal", timeToGoalData, max);
+  DrawTrend(trendData);
   document.getElementById("resultsModal").style.display = "block";
   document.getElementById("resultsModalBackdrop").style.display = "block";
+  oldTickDelay = tickDelay;
   paused = true;
 }
 function closeResultsModal() {
   document.getElementById("resultsModal").style.display = "none";
   document.getElementById("resultsModalBackdrop").style.display = "none";
+  tickDelay = oldTickDelay;
   paused = false;
 }
+
 function DrawChart(id, data, max) {
   // Create the data table.
   var data = google.visualization.arrayToDataTable(data);
@@ -363,6 +383,69 @@ function DrawChart(id, data, max) {
   // Instantiate and draw our chart, passing in some options.
   var chart = new google.visualization.Histogram(document.getElementById(id));
   chart.draw(data, options);
+}
+
+function DrawTrend(data) {
+  // Create new data table, with a column for each strategy
+  const dataRows = [];
+  const strategies = Object.keys(data);
+  // Average the data for each strategy per `automatedLoopLength` ticks
+  strategies.forEach((strategy) => {
+    const strategyData = data[strategy];
+    const averagedData = [];
+    for (let i = 0; i < strategyData.length; i += automatedLoopLength) {
+      const slice = strategyData.slice(i, i + automatedLoopLength);
+      const average = slice.reduce((a, b) => a + b, 0) / slice.length;
+      averagedData.push(average);
+    }
+    dataRows.push(averagedData);
+  });
+
+  console.log(dataRows);
+
+  // Find strategy with most data points, loop over this and create a row for each datapoint for all strategies at this index
+  const maxDataPoints = Math.max(...dataRows.map((row) => row.length));
+  const dataCombined = [];
+  for (let i = 0; i < maxDataPoints; i++) {
+    const row = [];
+    strategies.forEach((strategy, index) => {
+      row.push(dataRows[index][i] || null);
+    });
+    dataCombined.push(row);
+  }
+
+  const dataColumns = [["X", ...strategies]];
+  dataCombined.forEach((row, index) => {
+    dataColumns.push([index, ...row]);
+  });
+  console.log(dataCombined);
+  var data = google.visualization.arrayToDataTable(dataColumns);
+
+  console.log(data);
+  // Trendline configuration for each strategy
+  const trendlines = {};
+  strategies.forEach((strategy, i) => {
+    trendlines[i] = {
+      type: "exponential",
+      visibleInLegend: true,
+      // opacity: 1,
+    };
+  });
+
+  var trendOptions = {
+    width: "1100",
+    height: 300,
+    bar: { gap: 0 },
+    interpolateNulls: false,
+    chartArea: { left: 10, top: 0, bottom: 35 },
+    trendlines: trendlines,
+    // dataOpacity: 0.1,
+    explorer: {},
+  };
+  var trendChart = new google.visualization.LineChart(
+    document.getElementById("trend-time-to-goal")
+  );
+  trendChart.draw(data, trendOptions);
 }
 
 // **********************************
@@ -408,7 +491,16 @@ function gameTick() {
       experimentMode = false;
     }
   }
-  setTimeout(gameTick, tickDelay);
+
+  if (tickDelay > 0) {
+    setTimeout(gameTick, tickDelay);
+  } else {
+    if (currentTick % 10 === 0) {
+      setTimeout(gameTick, 0);
+    } else {
+      gameTick();
+    }
+  }
 }
 
 gameTick();

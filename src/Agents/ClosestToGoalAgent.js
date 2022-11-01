@@ -7,7 +7,7 @@ class ClosestToGoalAgent extends Agent {
   }
 
   // BFS for the closest valid parking spot
-  find_closest_tile(valid_goal) {
+  find_closest_tile(valid_goal, origin) {
     let coords = {};
     let Q = [];
     let grid = [];
@@ -15,8 +15,8 @@ class ClosestToGoalAgent extends Agent {
       grid[y] ??= [];
       grid[y][x] = 1;
     };
-    label(this.goal.x, this.goal.y);
-    Q = [[this.goal.x, this.goal.y], ...Q];
+    label(origin.x, origin.y);
+    Q = [[origin.x, origin.y], ...Q];
     while (Q.length) {
       const V = Q.pop();
       const cell = this.world.getCellAtCoordinates(V[0], V[1]);
@@ -61,7 +61,7 @@ class ClosestToGoalAgent extends Agent {
               Math.abs(v_cell.x - cell.x) + Math.abs(v_cell.y - cell.y) > 5
           );
           return cell.type === "PARKING" && not_visited;
-        });
+        }, this.goal);
 
         if (new_coords === "NO_CELL_FOUND") {
           // if we come here, we've probably already visited every lot, so we try searching all over again
@@ -87,7 +87,7 @@ class ClosestToGoalAgent extends Agent {
             Math.abs(agent.cell.x - cell.x) + Math.abs(agent.cell.y - cell.y) <=
             5;
           return cell.canPark() && in_lot;
-        });
+        }, this.cell);
         if (spot_coords === "NO_CELL_FOUND") {
           // There is no free spot in this lot
           this.stage = "FIND_LOT";

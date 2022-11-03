@@ -46,24 +46,24 @@
               value="auto" checked />
             <span>
               <span>Automated</span> <span id="automated-spawn-rate-display" class="text-muted">0</span>
-              <small class="d-block text-muted">Configurable peak spawn rate</small>
+              <small class="d-block text-muted">Configurable peak spawn probability</small>
               <small class="d-block bg-light p-2 rounded-top border-end border-start border-top text-center mt-2">
                 <div class="form-check-inline">
                   <input class="form-check-input" type="radio" name="automatedPeak" id="automatedPeak1" value="option1"
                     checked />
                   <label class="form-check-label" for="automatedPeak1">
-                    100%
+                    Busy
                   </label>
                 </div>
                 <div class="form-check-inline">
                   <input class="form-check-input" type="radio" name="automatedPeak" id="automatedPeak2"
                     value="option2" />
-                  <label class="form-check-label" for="automatedPeak2"> 66% </label>
+                  <label class="form-check-label" for="automatedPeak2"> Normal </label>
                 </div>
                 <div class="form-check-inline">
                   <input class="form-check-input" type="radio" name="automatedPeak" id="automatedPeak3"
                     value="option3" />
-                  <label class="form-check-label" for="automatedPeak3"> 33% </label>
+                  <label class="form-check-label" for="automatedPeak3"> Quiet </label>
                 </div>
               </small>
               <div class="">
@@ -76,7 +76,7 @@
             <div class="w-100">
               <span>Constant (manual)</span> <span id="manual-spawn-rate-display" class="text-muted">20%</span>
               <div>
-                <small class="d-block text-muted">Spawn agents at constant rate</small>
+                <small class="d-block text-muted">Spawn agents at constant probability</small>
                 <input type="range" class="form-range mt-2" id="spawnspeed" min="0" max="1" value="0.2" step="0.01"
                   disabled />
               </div>

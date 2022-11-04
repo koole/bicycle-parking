@@ -17,7 +17,12 @@ const maxSpawnRateLimit = 1;
 const STRATEGIES = ["SMART", "RANDOM", "CLOSEST_TO_SPAWN", "CLOSEST_TO_GOAL"];
 
 // Set default selected strategies
-let selectedStrategies = ["SMART", "RANDOM", "CLOSEST_TO_SPAWN", "CLOSEST_TO_GOAL"];
+let selectedStrategies = [
+  "SMART",
+  "RANDOM",
+  "CLOSEST_TO_SPAWN",
+  "CLOSEST_TO_GOAL",
+];
 
 var currentTick = 0;
 

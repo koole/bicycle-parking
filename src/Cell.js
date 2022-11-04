@@ -96,9 +96,9 @@ class Cell {
       ctx.font = "16px monospace";
       ctx.fillText(
         "" +
-        String(
-          this.agents.filter(({ type }) => type === "PEDESTRIAN").length
-        ).padStart(3, "0"),
+          String(
+            this.agents.filter(({ type }) => type === "PEDESTRIAN").length
+          ).padStart(3, "0"),
         canvas_x + 1.5,
         canvas_y + 21
       );
